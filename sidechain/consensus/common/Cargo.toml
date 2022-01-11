@@ -49,6 +49,7 @@ sp-runtime = { version = "5.0.0", default-features = false, git = "https://githu
 
 [dev-dependencies]
 # local
+its-consensus-aura = { path = "../aura" }
 itp-test = { path = "../../../core-primitives/test" }
 its-consensus-aura = { path = "../aura" }
 its-test = { path = "../../test" }
