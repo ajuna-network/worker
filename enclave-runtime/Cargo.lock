@@ -555,6 +555,7 @@ dependencies = [
  "itp-stf-executor",
  "itp-stf-state-handler",
  "itp-storage",
+ "itp-storage-verifier",
  "itp-teerex-storage",
  "itp-test",
  "itp-time-utils",
@@ -1174,8 +1175,10 @@ dependencies = [
  "itc-parentchain-light-client",
  "itp-extrinsics-factory",
  "itp-ocall-api",
+ "itp-registry-storage",
  "itp-settings",
  "itp-stf-executor",
+ "itp-storage-verifier",
  "itp-types",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
@@ -1355,6 +1358,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itp-registry-storage"
+version = "0.8.0"
+dependencies = [
+ "itp-storage",
+ "parity-scale-codec",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
+]
+
+[[package]]
 name = "itp-settings"
 version = "0.8.0"
 
@@ -1393,6 +1405,7 @@ dependencies = [
  "itp-ocall-api",
  "itp-stf-state-handler",
  "itp-storage",
+ "itp-storage-verifier",
  "itp-test",
  "itp-time-utils",
  "itp-types",
@@ -1446,6 +1459,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "itp-storage-verifier"
+version = "0.8.0"
+dependencies = [
+ "derive_more",
+ "itp-ocall-api",
+ "itp-storage",
+ "itp-types",
+ "parity-scale-codec",
+ "sgx_tstd",
+ "sgx_types",
+ "sp-core",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
+ "thiserror 1.0.9",
+]
+
+[[package]]
 name = "itp-teerex-storage"
 version = "0.8.0"
 dependencies = [
@@ -1463,6 +1493,7 @@ dependencies = [
  "itp-sgx-crypto",
  "itp-stf-state-handler",
  "itp-storage",
+ "itp-storage-verifier",
  "itp-teerex-storage",
  "itp-time-utils",
  "itp-types",
