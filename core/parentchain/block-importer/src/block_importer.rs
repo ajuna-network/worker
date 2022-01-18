@@ -29,8 +29,10 @@ use itc_parentchain_light_client::{
 };
 use itp_extrinsics_factory::CreateExtrinsics;
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
+use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
 use itp_settings::node::{PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE};
 use itp_stf_executor::traits::StfUpdateState;
+use itp_storage_verifier::GetStorageVerified;
 use itp_types::{OpaqueCall, H256};
 use log::*;
 use sp_runtime::{
@@ -125,7 +127,7 @@ impl<
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
-	OCallApi: EnclaveOnChainOCallApi + EnclaveAttestationOCallApi,
+	OCallApi: EnclaveOnChainOCallApi + EnclaveAttestationOCallApi + GetStorageVerified,
 	StfExecutor: StfUpdateState,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
@@ -176,6 +178,12 @@ impl<
 				block.header().number,
 				block.header().hash()
 			);
+
+			let queue_game: Option<u64> = self
+				.ocall_api
+				.get_storage_verified(RegistryStorage::queue_game(), block.header())?
+				.into_tuple()
+				.1;
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.
