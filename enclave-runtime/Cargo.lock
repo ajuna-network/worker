@@ -570,8 +570,8 @@ dependencies = [
  "serde 1.0.118 (git+https://github.com/mesalock-linux/serde-sgx?tag=sgx_1.1.3)",
  "serde_derive 1.0.118",
  "serde_json 1.0.60 (git+https://github.com/mesalock-linux/serde-json-sgx?tag=sgx_1.1.3)",
- "sgx-externalities 0.4.0 (git+https://github.com/integritee-network/sgx-runtime?branch=master)",
- "sgx-runtime 0.8.0 (git+https://github.com/integritee-network/sgx-runtime?branch=master)",
+ "sgx-externalities",
+ "sgx-runtime",
  "sgx_rand",
  "sgx_serialize",
  "sgx_serialize_derive",
@@ -1209,8 +1209,8 @@ dependencies = [
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "pallet-balances",
  "parity-scale-codec",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
- "sgx-runtime 0.8.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
+ "sgx-runtime",
  "sgx_tstd",
  "sp-application-crypto",
  "sp-core",
@@ -1487,7 +1487,7 @@ dependencies = [
  "itp-types",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tstd",
  "sgx_types",
  "sp-core",
@@ -1508,7 +1508,7 @@ dependencies = [
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
  "rust-base58",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tcrypto",
  "sgx_tstd",
  "sgx_types",
@@ -1575,7 +1575,7 @@ dependencies = [
  "its-top-pool",
  "jsonrpc-core",
  "parity-scale-codec",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tcrypto_helper",
  "sgx_tstd",
  "sgx_types",
@@ -1623,7 +1623,7 @@ dependencies = [
  "its-top-pool-rpc-author",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tstd",
  "sgx_types",
  "sp-core",
@@ -1655,7 +1655,7 @@ dependencies = [
  "its-top-pool-executor",
  "its-validateer-fetch",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tstd",
  "sp-core",
  "sp-runtime",
@@ -1749,7 +1749,7 @@ dependencies = [
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
  "serde 1.0.130",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tstd",
  "sp-core",
  "sp-io",
@@ -1794,7 +1794,7 @@ dependencies = [
  "its-top-pool-rpc-author",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tstd",
  "sgx_types",
  "sp-core",
@@ -2192,7 +2192,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#99fd40bec48c40f2b596f259cc6153f4725573a2"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#42d30621949ab204e570c27682117bbdf7fdfe0b"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2206,7 +2206,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#99fd40bec48c40f2b596f259cc6153f4725573a2"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#42d30621949ab204e570c27682117bbdf7fdfe0b"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -3092,21 +3092,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sgx-externalities"
-version = "0.4.0"
-source = "git+https://github.com/integritee-network/sgx-runtime?branch=master#3695e29c300d53e2e38848c3a5116c5530501ad8"
-dependencies = [
- "derive_more",
- "environmental",
- "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
- "parity-scale-codec",
- "postcard",
- "serde 1.0.130",
- "sgx_tstd",
- "sgx_types",
-]
-
-[[package]]
 name = "sgx-runtime"
 version = "0.8.0"
 source = "git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master#b1968d0866f53d6387606bc4d3d306f80450a021"
@@ -3122,39 +3107,6 @@ dependencies = [
  "pallet-parentchain",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "parity-scale-codec",
- "scale-info",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core",
- "sp-inherents",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
-]
-
-[[package]]
-name = "sgx-runtime"
-version = "0.8.0"
-source = "git+https://github.com/integritee-network/sgx-runtime?branch=master#3695e29c300d53e2e38848c3a5116c5530501ad8"
-dependencies = [
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "pallet-aura",
- "pallet-balances",
- "pallet-grandpa",
- "pallet-parentchain",
- "pallet-randomness-collective-flip",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -3656,7 +3608,7 @@ dependencies = [
  "libsecp256k1",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
- "sgx-externalities 0.4.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master)",
+ "sgx-externalities",
  "sgx_tstd",
  "sgx_types",
  "sp-core",
