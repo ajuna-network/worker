@@ -57,6 +57,7 @@ use teerex_primitives::Request;
 use ita_stf::{ShardIdentifier, TrustedCallSigned, TrustedOperation};
 use itc_rpc_client::direct_client::{DirectApi, DirectClient as DirectWorkerApi};
 use itp_node_api_extensions::{PalletTeerexApi, TEEREX};
+use itp_registry_storage::REGISTRY;
 use itp_types::{DirectRequestStatus, RpcRequest, RpcResponse, RpcReturnValue};
 use substrate_client_keystore::{KeystoreExt, LocalKeystore};
 
@@ -411,6 +412,36 @@ fn main() {
 						amount,
 						shard
 					);
+
+					let tx_hash =
+						chain_api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();
+					println!("[+] TrustedOperation got finalized. Hash: {:?}\n", tx_hash);
+					Ok(())
+				}),
+		)
+		.add_cmd(
+			Command::new("queue-game")
+				.description("Sign up to a new game in the game registry")
+				.options(|app| {
+					app.arg(
+						Arg::with_name("who")
+							.takes_value(true)
+							.required(true)
+							.value_name("SS58")
+							.help("To be registered AccountId in ss58check format"),
+					)
+				})
+				.runner(move |_args: &str, matches: &ArgMatches<'_>| {
+					let chain_api = get_chain_api(matches);
+
+					// get the sender
+					let arg_who = matches.value_of("who").unwrap();
+					let who = get_pair_from_str(arg_who);
+					let chain_api = chain_api.set_signer(sr25519_core::Pair::from(who));
+
+					// compose the extrinsic
+					let xt: UncheckedExtrinsicV4<([u8; 2])> =
+						compose_extrinsic!(chain_api, REGISTRY, "queue");
 
 					let tx_hash =
 						chain_api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();

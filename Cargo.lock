@@ -2067,6 +2067,7 @@ dependencies = [
  "ita-stf",
  "itc-rpc-client",
  "itp-node-api-extensions",
+ "itp-registry-storage",
  "itp-types",
  "json",
  "log 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
