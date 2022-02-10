@@ -413,7 +413,7 @@ fn main() {
 					);
 
 					let tx_hash =
-						chain_api.send_extrinsic(xt.hex_encode(), XtStatus::Finalized).unwrap();
+						chain_api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();
 					println!("[+] TrustedOperation got finalized. Hash: {:?}\n", tx_hash);
 					Ok(())
 				}),
