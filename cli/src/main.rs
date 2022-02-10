@@ -445,7 +445,10 @@ fn main() {
 
 					let tx_hash =
 						chain_api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();
-					println!("[+] TrustedOperation got finalized. Hash: {:?}\n", tx_hash);
+					println!(
+						"[+] Successfully registered player in game queue. Extrinsic Hash: {:?}\n",
+						tx_hash
+					);
 					Ok(())
 				}),
 		)
