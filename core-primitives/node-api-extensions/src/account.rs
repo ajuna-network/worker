@@ -1,6 +1,6 @@
 use sp_core::crypto::Pair;
 use sp_runtime::MultiSignature;
-use substrate_api_client::{Api, RpcClient};
+use substrate_api_client::{AccountData, Api, RpcClient};
 
 use itp_types::AccountId;
 
@@ -21,6 +21,8 @@ where
 	}
 
 	fn get_free_balance(&self, who: &AccountId) -> ApiResult<u128> {
-		Ok(self.get_account_data(who)?.map_or_else(|| 0, |data| data.free))
+		Ok(self
+			.get_storage_map("Balances", "Account", who, None)?
+			.map_or_else(|| 0, |data: AccountData| data.free))
 	}
 }
