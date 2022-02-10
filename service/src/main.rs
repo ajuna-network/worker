@@ -371,7 +371,7 @@ fn start_worker<E, T, D>(
 	}
 
 	println!("[>] Register the enclave (send the extrinsic)");
-	let register_enclave_xt_hash = node_api.send_extrinsic(xthex, XtStatus::Finalized).unwrap();
+	let register_enclave_xt_hash = node_api.send_extrinsic(xthex, XtStatus::InBlock).unwrap();
 	println!("[<] Extrinsic got finalized. Hash: {:?}\n", register_enclave_xt_hash);
 
 	let last_synced_header = init_light_client(&node_api, enclave.clone()).unwrap();
