@@ -134,7 +134,7 @@ dependencies = [
 [[package]]
 name = "ajuna-runtime"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#416860ca5d49fa8f58c8dfebffe93f61a5057090"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -4078,7 +4078,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#416860ca5d49fa8f58c8dfebffe93f61a5057090"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4093,7 +4093,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#416860ca5d49fa8f58c8dfebffe93f61a5057090"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4108,7 +4108,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#416860ca5d49fa8f58c8dfebffe93f61a5057090"
 dependencies = [
  "frame-support",
  "frame-system",
