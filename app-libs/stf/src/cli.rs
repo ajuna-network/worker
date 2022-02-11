@@ -368,7 +368,7 @@ pub fn cmd<'a>(
 					info!("column choice is {:?}", column);
 
 					println!(
-						"send trusted call play_turn from {} with weapon {:?}",
+						"send trusted call play_turn from {} with column {:?}",
 						player.public(),
 						column
 					);
