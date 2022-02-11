@@ -330,6 +330,125 @@ pub fn cmd<'a>(
 					Ok(())
 				}),
 		)
+		.add_cmd(
+			Command::new("play-turn")
+				.description("Player turn of connect four")
+				.options(|app| {
+					app.setting(AppSettings::ColoredHelp)
+						.arg(
+							Arg::with_name("player")
+								.takes_value(true)
+								.required(true)
+								.value_name("SS58")
+								.help("player's AccountId in ss58check format"),
+						)
+						.arg(
+							Arg::with_name("column")
+								.takes_value(true)
+								.required(true)
+								.value_name("u8")
+								.help("play stone in column, must be in the range of [0,7]"),
+						)
+				})
+				.runner(move |_args: &str, matches: &ArgMatches<'_>| {
+					let arg_player = matches.value_of("player").unwrap();
+					let column = matches
+						.value_of("column")
+						.unwrap()
+						.parse()
+						.expect("amount can be converted to u8");
+
+					if column >= 8 {
+						panic!("Game only allows columns smaller then 8");
+					}
+					let player = get_pair_from_str(matches, arg_player);
+					let direct: bool = matches.is_present("direct");
+
+					info!("player ss58 is {}", player.public().to_ss58check());
+					info!("column choice is {:?}", column);
+
+					println!(
+						"send trusted call play_turn from {} with weapon {:?}",
+						player.public(),
+						column
+					);
+					let (mrenclave, shard) = get_identifiers(matches);
+					// get nonce
+					let key_pair = sr25519_core::Pair::from(player.clone());
+					let top: TrustedOperation =
+						TrustedGetter::nonce(sr25519_core::Public::from(player.public()).into())
+							.sign(&KeyPair::Sr25519(key_pair.clone()))
+							.into();
+					let res = perform_operation(matches, &top);
+					let nonce: Index = if let Some(n) = res {
+						if let Ok(nonce) = Index::decode(&mut n.as_slice()) {
+							nonce
+						} else {
+							info!("could not decode value. maybe hasn't been set? {:x?}", n);
+							0
+						}
+					} else {
+						0
+					};
+					debug!("got nonce: {:?}", nonce);
+					let top: TrustedOperation = TrustedCall::rps_choose(
+						sr25519_core::Public::from(player.public()).into(),
+						column,
+					)
+					.sign(&KeyPair::Sr25519(key_pair), nonce, &mrenclave, &shard)
+					.into_trusted_operation(direct);
+					let _ = perform_operation(matches, &top);
+					Ok(())
+				}),
+		)
+		.add_cmd(
+			Command::new("get-game")
+				.description("query game state for account in keystore")
+				.options(|app| {
+					app.arg(
+						Arg::with_name("accountid")
+							.takes_value(true)
+							.required(true)
+							.value_name("SS58")
+							.help("AccountId in ss58check format"),
+					)
+				})
+				.runner(move |_args: &str, matches: &ArgMatches<'_>| {
+					let arg_who = matches.value_of("accountid").unwrap();
+					debug!("arg_who = {:?}", arg_who);
+					let who = get_pair_from_str(matches, arg_who);
+					let key_pair = sr25519_core::Pair::from(who.clone());
+					let top: TrustedOperation =
+						TrustedGetter::game(sr25519_core::Public::from(who.public()).into())
+							.sign(&KeyPair::Sr25519(key_pair))
+							.into();
+					let res = perform_operation(matches, &top);
+					debug!("received result for game");
+					if let Some(v) = res {
+						if let Ok(game) =
+							pallet_connectfour::Game::<Hash, AccountId>::decode(&mut v.as_slice())
+						{
+							println!("game state for {:?} ", game.id);
+							println!(
+								"player {}: {:?}",
+								game.players[0].to_ss58check(),
+								game.states[0]
+							);
+							println!(
+								"player {}: {:?}",
+								game.players[1].to_ss58check(),
+								game.states[1]
+							);
+						} else {
+							println!("could not decode game. maybe hasn't been set? {:x?}", v);
+						}
+					} else {
+						println!("could not fetch game");
+					};
+
+					Ok(())
+				}),
+		)
 		.into_cmd("trusted")
 }
 

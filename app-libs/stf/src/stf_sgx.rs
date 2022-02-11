@@ -176,6 +176,17 @@ impl Stf {
 					Self::shield_funds(who, value)?;
 					Ok(())
 				},
+				TrustedCall::play_turn(sender, column) => {
+					let origin = sgx_runtime::Origin::signed(sender.clone());
+					debug!("connectfour choose ({:x?}, {:?})", sender.encode(), column);
+					sgx_runtime::RpsCall::<Runtime>::choose(column.clone(), [0u8; 32])
+						.dispatch_bypass_filter(origin.clone())
+						.map_err(|e| {
+							error!("dispatch error {:?}", e);
+							StfError::Dispatch("rps_choose".to_string())
+						})?;
+					Ok(())
+				},
 			}?;
 			increment_nonce(&sender);
 			Ok(())
@@ -253,6 +264,7 @@ impl Stf {
 			TrustedCall::balance_transfer(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_unshield(_, _, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_shield(_, _, _) => debug!("No storage updates needed..."),
+			TrustedCall::play_turn(_, _, _) => debug!("No storage updates needed..."),
 		};
 		key_hashes
 	}
@@ -355,5 +367,39 @@ impl SidechainExt for Stf {
 
 	fn set_timestamp<S: SidechainSystemExt>(ext: &mut S, timestamp: &Timestamp) {
 		ext.set_timestamp(timestamp)
+	}
+}
+
+pub fn get_game_id(who: &AccountId) -> Option<Hash> {
+	if let Some(infovec) = sp_io::storage::get(&storage_map_key(
+		"ConnectFour",
+		"PlayerGame",
+		who,
+		&StorageHasher::Identity,
+	)) {
+		if let Ok(info) = Hash::decode(&mut infovec.as_slice()) {
+			Some(info)
+		} else {
+			None
+		}
+	} else {
+		None
+	}
+}
+
+pub fn get_game(game_id: Hash) -> Option<Game> {
+	if let Some(infovec) = sp_io::storage::get(&storage_map_key(
+		"ConnectFour",
+		"Games",
+		&game_id,
+		&StorageHasher::Identity,
+	)) {
+		if let Ok(info) = Game::decode(&mut infovec.as_slice()) {
+			Some(info)
+		} else {
+			None
+		}
+	} else {
+		None
 	}
 }
