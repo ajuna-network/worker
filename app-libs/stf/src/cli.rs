@@ -402,8 +402,8 @@ pub fn cmd<'a>(
 				}),
 		)
 		.add_cmd(
-			Command::new("get-game")
-				.description("query game state for account in keystore")
+			Command::new("get-board")
+				.description("query board state for account in keystore")
 				.options(|app| {
 					app.arg(
 						Arg::with_name("accountid")
@@ -423,15 +423,15 @@ pub fn cmd<'a>(
 							.sign(&KeyPair::Sr25519(key_pair))
 							.into();
 					let res = perform_operation(matches, &top);
-					debug!("received result for game");
+					debug!("received result for board");
 					if let Some(v) = res {
-						if let Ok(game) = crate::SgxBoardStruct::decode(&mut v.as_slice()) {
-							println!("Found game {:?}", game);
+						if let Ok(board) = crate::SgxBoardStruct::decode(&mut v.as_slice()) {
+							println!("Found board {:?}", board);
 						} else {
-							println!("could not decode game. maybe hasn't been set? {:x?}", v);
+							println!("could not decode board. maybe hasn't been set? {:x?}", v);
 						}
 					} else {
-						println!("could not fetch game");
+						println!("could not fetch board");
 					};
 
 					Ok(())
