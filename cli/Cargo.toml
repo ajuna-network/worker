@@ -43,5 +43,6 @@ itp-node-api-extensions = { path = "../core-primitives/node-api-extensions" }
 itp-sgx-crypto = { path = "../core-primitives/sgx/crypto" }
 itp-types = { path = "../core-primitives/types" }
 itp-utils = { path = "../core-primitives/utils" }
+itp-registry-storage = { path = "../core-primitives/registry-storage" }
 ita-stf = { path = "../app-libs/stf" }
 itc-rpc-client = { path = "../core/rpc-client" }
