@@ -5,6 +5,8 @@ use sp_std::prelude::Vec;
 
 use itp_storage::{storage_map_key, StorageHasher};
 
+pub const REGISTRY: &str = "GameRegistry";
+
 pub struct RegistryStorage;
 
 // Separate the prefix from the rest because in our case we changed the storage prefix due to
@@ -17,7 +19,7 @@ pub trait StoragePrefix {
 
 impl StoragePrefix for RegistryStorage {
 	fn prefix() -> &'static str {
-		"Registry"
+		REGISTRY
 	}
 }
 
