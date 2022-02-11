@@ -2079,6 +2079,7 @@ dependencies = [
  "ita-stf",
  "itc-rpc-client",
  "itp-node-api-extensions",
+ "itp-registry-storage",
  "itp-sgx-crypto",
  "itp-types",
  "itp-utils",
