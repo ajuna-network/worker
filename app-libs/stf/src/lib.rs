@@ -47,13 +47,7 @@ pub type AccountId = AccountId32;
 pub type Hash = sp_core::H256;
 pub type BalanceTransferFn = ([u8; 2], AccountId, Compact<u128>);
 
-// FIXME: Import from node
-#[derive(Encode, Decode, Clone, PartialEq, Debug)]
-pub enum SgxBoardState {
-	None,
-	Running,
-	Finished(AccountId),
-}
+pub type SgxBoardState = BoardState<AccountId>;
 pub type SgxBoardStruct = BoardStruct<Hash, AccountId, BlockNumber, SgxBoardState>;
 
 pub type ShardIdentifier = H256;
