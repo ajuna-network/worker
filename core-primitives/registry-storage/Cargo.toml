@@ -11,9 +11,14 @@ sp-std = { version = "4.0.0-dev", default-features = false, git = "https://githu
 #local deps
 itp-storage = { path = "../storage", default-features = false }
 
+# node deps
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "update-substrate-5" }
+
+
 [features]
 default = ["std"]
 std = [
     "sp-std/std",
     "itp-storage/std",
+    "pallet-ajuna-gameregistry/std",
 ]

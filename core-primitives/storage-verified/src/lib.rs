@@ -15,6 +15,8 @@
 
 */
 
+//! Basic storage access abstraction
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(all(feature = "std", feature = "sgx"))]
@@ -31,7 +33,6 @@ pub mod sgx_reexport_prelude {
 #[cfg(all(not(feature = "std"), feature = "sgx"))]
 use crate::sgx_reexport_prelude::*;
 
-/// Basic storage access abstraction
 use codec::Decode;
 use core::result::Result as StdResult;
 use itp_ocall_api::EnclaveOnChainOCallApi;

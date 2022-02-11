@@ -36,6 +36,8 @@ sp-runtime = { version = "5.0.0", default-features = false, git = "https://githu
 #remove as soon as we can import beefy-merkle-tree:
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "update-substrate-5" }
+
 [features]
 default = ["std"]
 std = [
@@ -47,6 +49,7 @@ std = [
     "itp-ocall-api/std",
     "itp-registry-storage/std",
     "itp-stf-executor/std",
+    "pallet-ajuna-gameregistry/std",
     "itp-storage-verifier/std",
     "itp-types/std",
     # no-std compatible libraries

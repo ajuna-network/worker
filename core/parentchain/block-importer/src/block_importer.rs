@@ -30,7 +30,7 @@ use itc_parentchain_light_client::{
 use itp_extrinsics_factory::CreateExtrinsics;
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
 use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
-use itp_settings::node::{PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE};
+use itp_settings::node::{ACK_GAME, GAME_REGISTRY_MODULE, PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE};
 use itp_stf_executor::traits::{StfExecuteShieldFunds, StfExecuteTrustedCall, StfUpdateState};
 use itp_storage_verifier::GetStorageVerified;
 use itp_types::{OpaqueCall, H256};
@@ -39,7 +39,9 @@ use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
 };
-use std::{marker::PhantomData, sync::Arc, vec::Vec};
+use std::{marker::PhantomData, sync::Arc, vec, vec::Vec};
+use pallet_ajuna_gameregistry::Queue;
+use pallet_ajuna_gameregistry::game::GameEngine;
 
 /// Parentchain block import implementation.
 pub struct ParentchainBlockImporter<
@@ -176,11 +178,33 @@ impl<
 				},
 				Err(_) => error!("Error executing relevant extrinsics"),
 			};
-			let queue_game: Option<u64> = self
+			let queue_game: Option<Queue<H256>> = self
 				.ocall_api
 				.get_storage_verified(RegistryStorage::queue_game(), block.header())?
 				.into_tuple()
 				.1;
+			match queue_game {
+				Some(_) => {
+					error!("YEAHHHHH! FOUND QUEUE GAME!!!!!!!!! ");
+					let game_engine = GameEngine::new(1u8, 1u8);
+					let games = Vec::<H256>::new();
+					let opaque_call =
+						OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, ACK_GAME], &game_engine, games));
+					let calls = vec![opaque_call];
+
+					// Create extrinsic for acknowledge game.
+					let ack_game_extrinsic =
+						self.extrinsics_factory.create_extrinsics(calls.as_slice())?;
+
+					// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
+					self.validator_accessor.execute_mut_on_validator(|v| {
+						v.send_extrinsics(self.ocall_api.as_ref(), ack_game_extrinsic)
+					})?;
+				},
+				None => {
+					error!("Nothing found");
+				},
+			}
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.
