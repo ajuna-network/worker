@@ -20,8 +20,8 @@ use crate::test_genesis::test_genesis_setup;
 
 use crate::{
 	helpers::{
-		account_data, account_nonce, ensure_root, get_account_info, increment_nonce, root,
-		validate_nonce,
+		account_data, account_nonce, ensure_root, get_account_info, get_board_for, increment_nonce,
+		root, validate_nonce,
 	},
 	AccountData, AccountId, Getter, Index, ParentchainHeader, PublicGetter, ShardIdentifier, State,
 	StateTypeDiff, Stf, StfError, StfResult, TrustedCall, TrustedCallSigned, TrustedGetter,
@@ -101,6 +101,12 @@ impl Stf {
 					} else {
 						None
 					},
+				TrustedGetter::board(who) =>
+					if let Some(game) = get_board_for(who) {
+						Some(game.encode())
+					} else {
+						None
+					},
 			},
 			Getter::public(g) => match g {
 				PublicGetter::some_value => Some(42u32.encode()),
@@ -176,10 +182,10 @@ impl Stf {
 					Self::shield_funds(who, value)?;
 					Ok(())
 				},
-				TrustedCall::play_turn(sender, column) => {
+				TrustedCall::connectfour_play_turn(sender, column) => {
 					let origin = sgx_runtime::Origin::signed(sender.clone());
 					debug!("connectfour choose ({:x?}, {:?})", sender.encode(), column);
-					sgx_runtime::RpsCall::<Runtime>::choose(column.clone(), [0u8; 32])
+					sgx_runtime::ConnectfourCall::<Runtime>::play_turn { column }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| {
 							error!("dispatch error {:?}", e);
@@ -264,7 +270,7 @@ impl Stf {
 			TrustedCall::balance_transfer(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_unshield(_, _, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_shield(_, _, _) => debug!("No storage updates needed..."),
-			TrustedCall::play_turn(_, _, _) => debug!("No storage updates needed..."),
+			TrustedCall::connectfour_play_turn(_, _) => debug!("No storage updates needed..."),
 		};
 		key_hashes
 	}
@@ -367,39 +373,5 @@ impl SidechainExt for Stf {
 
 	fn set_timestamp<S: SidechainSystemExt>(ext: &mut S, timestamp: &Timestamp) {
 		ext.set_timestamp(timestamp)
-	}
-}
-
-pub fn get_game_id(who: &AccountId) -> Option<Hash> {
-	if let Some(infovec) = sp_io::storage::get(&storage_map_key(
-		"ConnectFour",
-		"PlayerGame",
-		who,
-		&StorageHasher::Identity,
-	)) {
-		if let Ok(info) = Hash::decode(&mut infovec.as_slice()) {
-			Some(info)
-		} else {
-			None
-		}
-	} else {
-		None
-	}
-}
-
-pub fn get_game(game_id: Hash) -> Option<Game> {
-	if let Some(infovec) = sp_io::storage::get(&storage_map_key(
-		"ConnectFour",
-		"Games",
-		&game_id,
-		&StorageHasher::Identity,
-	)) {
-		if let Ok(info) = Game::decode(&mut infovec.as_slice()) {
-			Some(info)
-		} else {
-			None
-		}
-	} else {
-		None
 	}
 }

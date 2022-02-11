@@ -35,6 +35,8 @@ pub use my_node_runtime::Index;
 
 use codec::{Compact, Decode, Encode};
 use derive_more::Display;
+use itp_types::BlockNumber;
+use pallet_ajuna_connectfour::{BoardState, BoardStruct};
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::string::String;
@@ -44,6 +46,15 @@ pub type AuthorityId = <Signature as Verify>::Signer;
 pub type AccountId = AccountId32;
 pub type Hash = sp_core::H256;
 pub type BalanceTransferFn = ([u8; 2], AccountId, Compact<u128>);
+
+// FIXME: Import from node
+#[derive(Encode, Decode, Clone, PartialEq, Debug)]
+pub enum SgxBoardState {
+	None,
+	Running,
+	Finished(AccountId),
+}
+pub type SgxBoardStruct = BoardStruct<Hash, AccountId, BlockNumber, SgxBoardState>;
 
 pub type ShardIdentifier = H256;
 
@@ -209,7 +220,7 @@ pub enum TrustedGetter {
 	free_balance(AccountId),
 	reserved_balance(AccountId),
 	nonce(AccountId),
-	game(AccountId),
+	board(AccountId),
 }
 
 impl TrustedGetter {
@@ -218,7 +229,7 @@ impl TrustedGetter {
 			TrustedGetter::free_balance(account) => account,
 			TrustedGetter::reserved_balance(account) => account,
 			TrustedGetter::nonce(account) => account,
-			TrustedGetter::game(account) => account,
+			TrustedGetter::board(account) => account,
 		}
 	}
 

@@ -2210,6 +2210,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pallet-ajuna-connectfour",
  "pallet-balances",
  "parity-scale-codec",
  "sc-keystore",

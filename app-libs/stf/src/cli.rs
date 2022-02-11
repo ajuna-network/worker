@@ -391,7 +391,7 @@ pub fn cmd<'a>(
 						0
 					};
 					debug!("got nonce: {:?}", nonce);
-					let top: TrustedOperation = TrustedCall::rps_choose(
+					let top: TrustedOperation = TrustedCall::connectfour_play_turn(
 						sr25519_core::Public::from(player.public()).into(),
 						column,
 					)
@@ -419,26 +419,14 @@ pub fn cmd<'a>(
 					let who = get_pair_from_str(matches, arg_who);
 					let key_pair = sr25519_core::Pair::from(who.clone());
 					let top: TrustedOperation =
-						TrustedGetter::game(sr25519_core::Public::from(who.public()).into())
+						TrustedGetter::board(sr25519_core::Public::from(who.public()).into())
 							.sign(&KeyPair::Sr25519(key_pair))
 							.into();
 					let res = perform_operation(matches, &top);
 					debug!("received result for game");
 					if let Some(v) = res {
-						if let Ok(game) =
-							pallet_connectfour::Game::<Hash, AccountId>::decode(&mut v.as_slice())
-						{
-							println!("game state for {:?} ", game.id);
-							println!(
-								"player {}: {:?}",
-								game.players[0].to_ss58check(),
-								game.states[0]
-							);
-							println!(
-								"player {}: {:?}",
-								game.players[1].to_ss58check(),
-								game.states[1]
-							);
+						if let Ok(game) = crate::SgxBoardStruct::decode(&mut v.as_slice()) {
+							println!("Found game {:?}", game);
 						} else {
 							println!("could not decode game. maybe hasn't been set? {:x?}", v);
 						}
