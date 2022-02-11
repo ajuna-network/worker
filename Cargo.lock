@@ -134,7 +134,7 @@ dependencies = [
 [[package]]
 name = "ajuna-runtime"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#1246019a4dfa05618f2b3cd28898611265992a33"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -4077,7 +4077,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#1246019a4dfa05618f2b3cd28898611265992a33"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4092,7 +4092,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#1246019a4dfa05618f2b3cd28898611265992a33"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4107,7 +4107,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#1246019a4dfa05618f2b3cd28898611265992a33"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#8cafe65bbac82d8aa05de0ccec0d003e4441b43a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5408,7 +5408,7 @@ dependencies = [
 [[package]]
 name = "sc-keystore"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/substrate.git?branch=master#59649dd117969467d8046df86afe56810f596545"
+source = "git+https://github.com/paritytech/substrate.git?branch=master#9a6d706d8db00abb6ba183839ec98ecd9924b1f8"
 dependencies = [
  "async-trait",
  "hex",
@@ -6396,7 +6396,7 @@ dependencies = [
 [[package]]
 name = "sp-keyring"
 version = "5.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=master#59649dd117969467d8046df86afe56810f596545"
+source = "git+https://github.com/paritytech/substrate.git?branch=master#9a6d706d8db00abb6ba183839ec98ecd9924b1f8"
 dependencies = [
  "lazy_static",
  "sp-core",
@@ -6452,7 +6452,7 @@ dependencies = [
 [[package]]
 name = "sp-rpc"
 version = "5.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=master#59649dd117969467d8046df86afe56810f596545"
+source = "git+https://github.com/paritytech/substrate.git?branch=master#9a6d706d8db00abb6ba183839ec98ecd9924b1f8"
 dependencies = [
  "rustc-hash",
  "serde 1.0.136",
