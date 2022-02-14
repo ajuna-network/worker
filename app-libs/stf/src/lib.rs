@@ -35,6 +35,8 @@ pub use my_node_runtime::Index;
 
 use codec::{Compact, Decode, Encode};
 use derive_more::Display;
+use itp_types::BlockNumber;
+use pallet_ajuna_connectfour::{BoardState, BoardStruct};
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::string::String;
@@ -44,6 +46,9 @@ pub type AuthorityId = <Signature as Verify>::Signer;
 pub type AccountId = AccountId32;
 pub type Hash = sp_core::H256;
 pub type BalanceTransferFn = ([u8; 2], AccountId, Compact<u128>);
+
+pub type SgxBoardState = BoardState<AccountId>;
+pub type SgxBoardStruct = BoardStruct<Hash, AccountId, BlockNumber, SgxBoardState>;
 
 pub type ShardIdentifier = H256;
 
@@ -173,6 +178,7 @@ pub enum TrustedCall {
 	balance_transfer(AccountId, AccountId, Balance),
 	balance_unshield(AccountId, AccountId, Balance, ShardIdentifier), // (AccountIncognito, BeneficiaryPublicAccount, Amount, Shard)
 	balance_shield(AccountId, AccountId, Balance), // (Root, AccountIncognito, Amount)
+	connectfour_play_turn(AccountId, u8),
 }
 
 impl TrustedCall {
@@ -182,6 +188,7 @@ impl TrustedCall {
 			TrustedCall::balance_transfer(account, _, _) => account,
 			TrustedCall::balance_unshield(account, _, _, _) => account,
 			TrustedCall::balance_shield(account, _, _) => account,
+			TrustedCall::connectfour_play_turn(account, _) => account,
 		}
 	}
 
@@ -207,6 +214,7 @@ pub enum TrustedGetter {
 	free_balance(AccountId),
 	reserved_balance(AccountId),
 	nonce(AccountId),
+	board(AccountId),
 }
 
 impl TrustedGetter {
@@ -215,6 +223,7 @@ impl TrustedGetter {
 			TrustedGetter::free_balance(account) => account,
 			TrustedGetter::reserved_balance(account) => account,
 			TrustedGetter::nonce(account) => account,
+			TrustedGetter::board(account) => account,
 		}
 	}
 

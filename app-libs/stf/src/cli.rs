@@ -330,6 +330,112 @@ pub fn cmd<'a>(
 					Ok(())
 				}),
 		)
+		.add_cmd(
+			Command::new("play-turn")
+				.description("Player turn of connect four")
+				.options(|app| {
+					app.setting(AppSettings::ColoredHelp)
+						.arg(
+							Arg::with_name("player")
+								.takes_value(true)
+								.required(true)
+								.value_name("SS58")
+								.help("player's AccountId in ss58check format"),
+						)
+						.arg(
+							Arg::with_name("column")
+								.takes_value(true)
+								.required(true)
+								.value_name("u8")
+								.help("play stone in column, must be in the range of 1 to 7"),
+						)
+				})
+				.runner(move |_args: &str, matches: &ArgMatches<'_>| {
+					let arg_player = matches.value_of("player").unwrap();
+					let column = matches
+						.value_of("column")
+						.unwrap()
+						.parse()
+						.expect("amount can be converted to u8");
+
+					if !(1..=7).contains(&column) {
+						panic!("Game only allows columns in the range of 1 to 7");
+					}
+
+					let player = get_pair_from_str(matches, arg_player);
+					let direct: bool = matches.is_present("direct");
+
+					info!("player ss58 is {}", player.public().to_ss58check());
+					info!("column choice is {:?}", column);
+
+					println!(
+						"send trusted call play-turn from {} with column {:?}",
+						player.public(),
+						column
+					);
+					let (mrenclave, shard) = get_identifiers(matches);
+					// get nonce
+					let top: TrustedOperation = TrustedGetter::nonce(player.public().into())
+						.sign(&KeyPair::Sr25519(player.clone()))
+						.into();
+					let res = perform_operation(matches, &top);
+					let nonce: Index = if let Some(n) = res {
+						if let Ok(nonce) = Index::decode(&mut n.as_slice()) {
+							nonce
+						} else {
+							info!("could not decode value. maybe hasn't been set? {:x?}", n);
+							0
+						}
+					} else {
+						0
+					};
+					debug!("got nonce: {:?}", nonce);
+					let top: TrustedOperation = TrustedCall::connectfour_play_turn(
+						sr25519_core::Public::from(player.public()).into(),
+						column,
+					)
+					.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
+					.into_trusted_operation(direct);
+					let _ = perform_operation(matches, &top);
+					Ok(())
+				}),
+		)
+		.add_cmd(
+			Command::new("get-board")
+				.description("query board state for account in keystore")
+				.options(|app| {
+					app.arg(
+						Arg::with_name("accountid")
+							.takes_value(true)
+							.required(true)
+							.value_name("SS58")
+							.help("AccountId in ss58check format"),
+					)
+				})
+				.runner(move |_args: &str, matches: &ArgMatches<'_>| {
+					let arg_who = matches.value_of("accountid").unwrap();
+					debug!("arg_who = {:?}", arg_who);
+					let who = get_pair_from_str(matches, arg_who);
+					let key_pair = sr25519_core::Pair::from(who.clone());
+					let top: TrustedOperation =
+						TrustedGetter::board(sr25519_core::Public::from(who.public()).into())
+							.sign(&KeyPair::Sr25519(key_pair))
+							.into();
+					let res = perform_operation(matches, &top);
+					debug!("received result for board");
+					if let Some(v) = res {
+						if let Ok(board) = crate::SgxBoardStruct::decode(&mut v.as_slice()) {
+							println!("Found board {:?}", board);
+						} else {
+							println!("could not decode board. maybe hasn't been set? {:x?}", v);
+						}
+					} else {
+						println!("could not fetch board");
+					};
+
+					Ok(())
+				}),
+		)
 		.into_cmd("trusted")
 }
 
