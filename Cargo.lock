@@ -2224,6 +2224,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log 0.4.17",
+ "pallet-ajuna-connectfour",
  "pallet-balances",
  "parity-scale-codec",
  "sc-keystore",
@@ -4203,6 +4204,7 @@ name = "pallet-ajuna-connectfour"
 version = "0.1.0"
 source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-ajuna-matchmaker",

@@ -1115,6 +1115,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
+ "pallet-ajuna-connectfour",
  "pallet-balances",
  "parity-scale-codec",
  "sgx-externalities",
