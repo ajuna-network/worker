@@ -119,6 +119,21 @@ pub enum TrustedCommands {
 		/// amount to be transferred
 		amount: Balance,
 	},
+
+	/// Player turn of connect four
+	PlayTurn {
+		/// Player's AccountId in ss58check format
+		player: String,
+
+		/// Play stone in column, must be in the range of 1 to 7
+		column: u8,
+	},
+
+	/// Query board state for account in keystore
+	GetBoard {
+		/// AccountId in ss58check format
+		account: String,
+	},
 }
 
 pub fn match_trusted_commands(cli: &Cli, trusted_args: &TrustedArgs) {
@@ -132,6 +147,9 @@ pub fn match_trusted_commands(cli: &Cli, trusted_args: &TrustedArgs) {
 		TrustedCommands::Balance { account } => balance(cli, trusted_args, account),
 		TrustedCommands::UnshieldFunds { from, to, amount } =>
 			unshield_funds(cli, trusted_args, from, to, amount),
+		TrustedCommands::PlayTurn { player, column } =>
+			play_turn(cli, trusted_args, player, column),
+		TrustedCommands::GetBoard { account } => get_board(cli, trusted_args, account),
 	}
 }
 
@@ -240,4 +258,42 @@ fn unshield_funds(
 			.sign(&KeyPair::Sr25519(from), nonce, &mrenclave, &shard)
 			.into_trusted_operation(trusted_args.direct);
 	let _ = perform_operation(cli, trusted_args, &top);
+}
+
+fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, player: &str, column: u8) {
+	if !(1..=7).contains(&column) {
+		panic!("Game only allows columns in the range of 1 to 7");
+	}
+
+	let player = get_pair_from_str(trusted_args, player);
+	info!("player ss58 is {}", player.public().to_ss58check());
+	info!("column choice is {:?}", column);
+
+	println!("send trusted call play-turn from {} with column {:?}", player.public(), column);
+	let (mrenclave, shard) = get_identifiers(trusted_args);
+	let nonce = get_layer_two_nonce!(player, cli, trusted_args);
+
+	let top: TrustedOperation = TrustedCall::connectfour_play_turn(player.public().into(), column)
+		.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
+		.into_trusted_operation(trusted_args.direct);
+	let _ = perform_operation(cli, trusted_args, &top);
+}
+
+fn get_board(cli: &Cli, trusted_args: &TrustedArgs, account: &str) {
+	debug!("arg_who = {:?}", account);
+	let account = get_pair_from_str(trusted_args, account);
+	let top: TrustedOperation = TrustedGetter::board(account.public().into())
+		.sign(&KeyPair::Sr25519(account))
+		.into();
+	let res = perform_operation(cli, trusted_args, &top);
+	debug!("received result for board");
+	if let Some(v) = res {
+		if let Ok(board) = crate::SgxBoardStruct::decode(&mut v.as_slice()) {
+			println!("Found board {:?}", board);
+		} else {
+			println!("could not decode board. maybe hasn't been set? {:x?}", v);
+		}
+	} else {
+		println!("could not fetch board");
+	};
 }
