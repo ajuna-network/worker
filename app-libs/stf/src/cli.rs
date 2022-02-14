@@ -347,7 +347,7 @@ pub fn cmd<'a>(
 								.takes_value(true)
 								.required(true)
 								.value_name("u8")
-								.help("play stone in column, must be in the range of [0,7]"),
+								.help("play stone in column, must be in the range of 1 to 7"),
 						)
 				})
 				.runner(move |_args: &str, matches: &ArgMatches<'_>| {
@@ -358,9 +358,10 @@ pub fn cmd<'a>(
 						.parse()
 						.expect("amount can be converted to u8");
 
-					if column >= 8 {
-						panic!("Game only allows columns smaller then 8");
+					if !(1..=7).contains(&column) {
+						panic!("Game only allows columns in the range of 1 to 7");
 					}
+
 					let player = get_pair_from_str(matches, arg_player);
 					let direct: bool = matches.is_present("direct");
 
@@ -368,17 +369,15 @@ pub fn cmd<'a>(
 					info!("column choice is {:?}", column);
 
 					println!(
-						"send trusted call play_turn from {} with column {:?}",
+						"send trusted call play-turn from {} with column {:?}",
 						player.public(),
 						column
 					);
 					let (mrenclave, shard) = get_identifiers(matches);
 					// get nonce
-					let key_pair = sr25519_core::Pair::from(player.clone());
-					let top: TrustedOperation =
-						TrustedGetter::nonce(sr25519_core::Public::from(player.public()).into())
-							.sign(&KeyPair::Sr25519(key_pair.clone()))
-							.into();
+					let top: TrustedOperation = TrustedGetter::nonce(player.public().into())
+						.sign(&KeyPair::Sr25519(player.clone()))
+						.into();
 					let res = perform_operation(matches, &top);
 					let nonce: Index = if let Some(n) = res {
 						if let Ok(nonce) = Index::decode(&mut n.as_slice()) {
@@ -395,7 +394,7 @@ pub fn cmd<'a>(
 						sr25519_core::Public::from(player.public()).into(),
 						column,
 					)
-					.sign(&KeyPair::Sr25519(key_pair), nonce, &mrenclave, &shard)
+					.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
 					.into_trusted_operation(direct);
 					let _ = perform_operation(matches, &top);
 					Ok(())

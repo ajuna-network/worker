@@ -42,7 +42,7 @@ std = [
     "substrate-api-client",
     "substrate-client-keystore",
     "pallet-ajuna-connectfour/std",
-    ]
+]
 test = []
 
 [dependencies]
