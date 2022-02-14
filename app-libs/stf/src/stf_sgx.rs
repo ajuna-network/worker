@@ -20,8 +20,8 @@ use crate::test_genesis::test_genesis_setup;
 
 use crate::{
 	helpers::{
-		account_data, account_nonce, ensure_root, get_account_info, increment_nonce, root,
-		validate_nonce,
+		account_data, account_nonce, ensure_root, get_account_info, get_board_for, increment_nonce,
+		root, validate_nonce,
 	},
 	AccountData, AccountId, Getter, Index, ParentchainHeader, PublicGetter, ShardIdentifier, State,
 	StateTypeDiff, Stf, StfError, StfResult, TrustedCall, TrustedCallSigned, TrustedGetter,
@@ -101,6 +101,12 @@ impl Stf {
 					} else {
 						None
 					},
+				TrustedGetter::board(who) =>
+					if let Some(game) = get_board_for(who) {
+						Some(game.encode())
+					} else {
+						None
+					},
 			},
 			Getter::public(g) => match g {
 				PublicGetter::some_value => Some(42u32.encode()),
@@ -174,6 +180,17 @@ impl Stf {
 					ensure_root(root)?;
 					debug!("balance_shield({:x?}, {})", who.encode(), value);
 					Self::shield_funds(who, value)?;
+					Ok(())
+				},
+				TrustedCall::connectfour_play_turn(sender, column) => {
+					let origin = sgx_runtime::Origin::signed(sender.clone());
+					debug!("connectfour choose ({:x?}, {:?})", sender.encode(), column);
+					sgx_runtime::ConnectfourCall::<Runtime>::play_turn { column }
+						.dispatch_bypass_filter(origin.clone())
+						.map_err(|e| {
+							error!("dispatch error {:?}", e);
+							StfError::Dispatch("rps_choose".to_string())
+						})?;
 					Ok(())
 				},
 			}?;
@@ -253,6 +270,7 @@ impl Stf {
 			TrustedCall::balance_transfer(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_unshield(_, _, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_shield(_, _, _) => debug!("No storage updates needed..."),
+			TrustedCall::connectfour_play_turn(_, _) => debug!("No storage updates needed..."),
 		};
 		key_hashes
 	}
