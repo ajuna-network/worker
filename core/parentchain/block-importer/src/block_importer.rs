@@ -32,6 +32,7 @@ use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
 use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
 use itp_settings::node::{ACK_GAME, GAME_REGISTRY_MODULE, PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE};
 use itp_stf_executor::traits::{StfExecuteShieldFunds, StfExecuteTrustedCall, StfUpdateState};
+use itp_stf_state_handler::query_shard_state::QueryShardState;
 use itp_storage_verifier::GetStorageVerified;
 use itp_types::{OpaqueCall, H256};
 use log::*;
@@ -51,6 +52,7 @@ pub struct ParentchainBlockImporter<
 	StfExecutor,
 	ExtrinsicsFactory,
 	IndirectCallsExecutor,
+	StateHandler,
 > where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -59,12 +61,14 @@ pub struct ParentchainBlockImporter<
 	StfExecutor: StfUpdateState + StfExecuteTrustedCall + StfExecuteShieldFunds,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
+	StateHandler: QueryShardState,
 {
 	validator_accessor: Arc<ValidatorAccessor>,
 	ocall_api: Arc<OCallApi>,
 	stf_executor: Arc<StfExecutor>,
 	extrinsics_factory: Arc<ExtrinsicsFactory>,
 	indirect_calls_executor: Arc<IndirectCallsExecutor>,
+	file_state_handler: Arc<StateHandler>,
 	_phantom: PhantomData<ParentchainBlock>,
 }
 
@@ -75,6 +79,7 @@ impl<
 		StfExecutor,
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
+		StateHandler,
 	>
 	ParentchainBlockImporter<
 		ParentchainBlock,
@@ -83,6 +88,7 @@ impl<
 		StfExecutor,
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
+		StateHandler,
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -91,6 +97,7 @@ impl<
 	StfExecutor: StfUpdateState + StfExecuteTrustedCall + StfExecuteShieldFunds,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
+	StateHandler: QueryShardState,
 {
 	pub fn new(
 		validator_accessor: Arc<ValidatorAccessor>,
@@ -98,6 +105,7 @@ impl<
 		stf_executor: Arc<StfExecutor>,
 		extrinsics_factory: Arc<ExtrinsicsFactory>,
 		indirect_calls_executor: Arc<IndirectCallsExecutor>,
+		file_state_handler: Arc<StateHandler>,
 	) -> Self {
 		ParentchainBlockImporter {
 			validator_accessor,
@@ -106,6 +114,7 @@ impl<
 			extrinsics_factory,
 			indirect_calls_executor,
 			_phantom: Default::default(),
+			file_state_handler,
 		}
 	}
 }
@@ -117,6 +126,7 @@ impl<
 		StfExecutor,
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
+		StateHandler,
 	> ImportParentchainBlocks
 	for ParentchainBlockImporter<
 		ParentchainBlock,
@@ -125,6 +135,7 @@ impl<
 		StfExecutor,
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
+		StateHandler,
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -133,6 +144,7 @@ impl<
 	StfExecutor: StfUpdateState + StfExecuteTrustedCall + StfExecuteShieldFunds,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
+	StateHandler: QueryShardState,
 {
 	type SignedBlockType = SignedBlockG<ParentchainBlock>;
 
@@ -188,8 +200,9 @@ impl<
 					error!("YEAHHHHH! FOUND QUEUE GAME!!!!!!!!! ");
 					let game_engine = GameEngine::new(1u8, 1u8);
 					let games = Vec::<H256>::new();
+					let shards = self.file_state_handler.list_shards().unwrap();
 					let opaque_call =
-						OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, ACK_GAME], &game_engine, games));
+						OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, ACK_GAME], &game_engine, games, shards[0]));
 					let calls = vec![opaque_call];
 
 					// Create extrinsic for acknowledge game.
