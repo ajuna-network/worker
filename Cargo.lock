@@ -2319,6 +2319,7 @@ dependencies = [
  "itp-sgx-crypto",
  "itp-stf-executor",
  "itp-types",
+ "its-validateer-fetch",
  "log 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "parity-scale-codec",
  "sgx_tstd",

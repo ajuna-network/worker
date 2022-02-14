@@ -17,18 +17,23 @@
 
 //! Execute indirect calls, i.e. extrinsics extracted from parentchain blocks
 
-use crate::error::Result;
 use codec::{Decode, Encode};
+use log::*;
+use sp_core::blake2_256;
+use sp_runtime::traits::{Block as ParentchainBlockTrait, Header as ParentchainHeaderTrait};
+use std::{sync::Arc, vec::Vec};
+use substrate_api_client::UncheckedExtrinsicV4;
+
 use ita_stf::{AccountId, TrustedCallSigned};
-use itp_settings::node::{ACK_GAME, CALL_WORKER, GAME_REGISTRY_MODULE, SHIELD_FUNDS, TEEREX_MODULE};
+use itp_settings::node::{
+	ACK_GAME, CALL_WORKER, GAME_REGISTRY_MODULE, SHIELD_FUNDS, TEEREX_MODULE,
+};
 use itp_sgx_crypto::ShieldingCrypto;
 use itp_stf_executor::traits::{StatePostProcessing, StfExecuteShieldFunds, StfExecuteTrustedCall};
 use itp_types::{AckGameFn, CallWorkerFn, OpaqueCall, ShardIdentifier, ShieldFundsFn, H256};
-use log::*;
-use sp_core::blake2_256;
-use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
-use std::{sync::Arc, vec::Vec};
-use substrate_api_client::UncheckedExtrinsicV4;
+use its_validateer_fetch::ValidateerFetch;
+
+use crate::error::Result;
 
 /// Trait to execute the indirect calls found in the extrinsics of a block.
 pub trait ExecuteIndirectCalls {
@@ -43,18 +48,25 @@ pub trait ExecuteIndirectCalls {
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>;
 }
 
-pub struct IndirectCallsExecutor<ShieldingKey, StfExecutor> {
+pub struct IndirectCallsExecutor<ShieldingKey, StfExecutor, ValidateerFetcher> {
 	shielding_key: ShieldingKey,
 	stf_executor: Arc<StfExecutor>,
+	ocall_api: Arc<ValidateerFetcher>,
 }
 
-impl<ShieldingKey, StfExecutor> IndirectCallsExecutor<ShieldingKey, StfExecutor>
+impl<ShieldingKey, StfExecutor, ValidateerFetcher>
+	IndirectCallsExecutor<ShieldingKey, StfExecutor, ValidateerFetcher>
 where
 	ShieldingKey: ShieldingCrypto<Error = itp_sgx_crypto::Error>,
 	StfExecutor: StfExecuteTrustedCall + StfExecuteShieldFunds,
+	ValidateerFetcher: ValidateerFetch,
 {
-	pub fn new(authority: ShieldingKey, stf_executor: Arc<StfExecutor>) -> Self {
-		IndirectCallsExecutor { shielding_key: authority, stf_executor }
+	pub fn new(
+		authority: ShieldingKey,
+		stf_executor: Arc<StfExecutor>,
+		ocall_api: Arc<ValidateerFetcher>,
+	) -> Self {
+		IndirectCallsExecutor { shielding_key: authority, stf_executor, ocall_api }
 	}
 
 	fn handle_shield_funds_xt(&self, xt: &UncheckedExtrinsicV4<ShieldFundsFn>) -> Result<()> {
@@ -72,7 +84,15 @@ where
 		Ok(())
 	}
 
-	fn handle_ack_game_xt(&self, xt: &UncheckedExtrinsicV4<AckGameFn>) -> Result<()> {
+	fn handle_ack_game_xt<ParentchainBlock>(
+		&self,
+		_xt: &UncheckedExtrinsicV4<AckGameFn>,
+		block: &ParentchainBlock,
+	) -> Result<()>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
+	{
+		let _x = self.ocall_api.current_validateers(block.header());
 		error!("JUHUUUUUUUUUUUUUUU");
 		Ok(())
 	}
@@ -94,11 +114,12 @@ where
 	}
 }
 
-impl<ShieldingKey, StfExecutor> ExecuteIndirectCalls
-	for IndirectCallsExecutor<ShieldingKey, StfExecutor>
+impl<ShieldingKey, StfExecutor, ValidateerFetcher> ExecuteIndirectCalls
+	for IndirectCallsExecutor<ShieldingKey, StfExecutor, ValidateerFetcher>
 where
 	ShieldingKey: ShieldingCrypto<Error = itp_sgx_crypto::Error>,
 	StfExecutor: StfExecuteTrustedCall + StfExecuteShieldFunds,
+	ValidateerFetcher: ValidateerFetch,
 {
 	fn execute_indirect_calls_in_extrinsics<ParentchainBlock>(
 		&self,
@@ -127,10 +148,10 @@ where
 
 			// Found Ack_Game extrinsic in block.
 			if let Ok(xt) =
-			UncheckedExtrinsicV4::<AckGameFn>::decode(&mut xt_opaque.encode().as_slice())
+				UncheckedExtrinsicV4::<AckGameFn>::decode(&mut xt_opaque.encode().as_slice())
 			{
 				if xt.function.0 == [GAME_REGISTRY_MODULE, ACK_GAME] {
-					if let Err(e) = self.handle_ack_game_xt(&xt) {
+					if let Err(e) = self.handle_ack_game_xt(&xt, block) {
 						error!("Error performing acknowledge game. Error: {:?}", e);
 					} else {
 						// Cache successfully executed shielding call.
@@ -138,7 +159,6 @@ where
 					}
 				}
 			};
-
 
 			// Found CallWorker extrinsic in block.
 			if let Ok(xt) =

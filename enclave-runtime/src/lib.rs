@@ -532,7 +532,9 @@ pub unsafe extern "C" fn init_light_client(
 	let extrinsics_factory =
 		Arc::new(ExtrinsicsFactory::new(genesis_hash, signer.clone(), GLOBAL_NONCE_CACHE.clone()));
 	let indirect_calls_executor =
-		Arc::new(IndirectCallsExecutor::new(shielding_key, stf_executor.clone()));
+		Arc::new(IndirectCallsExecutor::new(shielding_key,
+											stf_executor.clone(),
+											ocall_api.clone()));
 	let parentchain_block_importer = ParentchainBlockImporter::new(
 		validator_access,
 		ocall_api.clone(),
