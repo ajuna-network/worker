@@ -539,6 +539,7 @@ pub unsafe extern "C" fn init_light_client(
 		stf_executor.clone(),
 		extrinsics_factory,
 		indirect_calls_executor,
+		file_state_handler.clone(),
 	);
 	let block_queue = BlockImportQueue::<SignedBlock>::default();
 	let block_import_dispatcher =

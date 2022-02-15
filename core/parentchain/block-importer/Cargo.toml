@@ -19,6 +19,7 @@ itp-ocall-api = { path = "../../../core-primitives/ocall-api", default-features 
 itp-registry-storage = { path = "../../../core-primitives/registry-storage", default-features = false }
 itp-settings = { path = "../../../core-primitives/settings" }
 itp-stf-executor = { path = "../../../core-primitives/stf-executor", default-features = false }
+itp-stf-state-handler = { path = "../../../core-primitives/stf-state-handler", default-features = false }
 itp-storage-verifier = { path = "../../../core-primitives/storage-verified", default-features = false }
 itp-types = { path = "../../../core-primitives/types", default-features = false }
 
@@ -36,6 +37,8 @@ sp-runtime = { version = "5.0.0", default-features = false, git = "https://githu
 #remove as soon as we can import beefy-merkle-tree:
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "update-substrate-5" }
+
 [features]
 default = ["std"]
 std = [
@@ -47,6 +50,8 @@ std = [
     "itp-ocall-api/std",
     "itp-registry-storage/std",
     "itp-stf-executor/std",
+    "itp-stf-state-handler/std",
+    "pallet-ajuna-gameregistry/std",
     "itp-storage-verifier/std",
     "itp-types/std",
     # no-std compatible libraries
@@ -65,6 +70,7 @@ sgx = [
     "itc-parentchain-light-client/sgx",
     "itp-extrinsics-factory/sgx",
     "itp-stf-executor/sgx",
+    "itp-stf-state-handler/sgx",
     "itp-storage-verifier/sgx",
     "itp-types/sgx",
     # sgx enabled external libraries
