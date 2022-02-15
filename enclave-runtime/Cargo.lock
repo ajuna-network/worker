@@ -3094,7 +3094,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master#b1968d0866f53d6387606bc4d3d306f80450a021"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=master#5063174549c1464e5a5e08ba0a8e88c837888326"
 dependencies = [
  "derive_more",
  "environmental",
@@ -3109,7 +3109,7 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master#b1968d0866f53d6387606bc4d3d306f80450a021"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=master#5063174549c1464e5a5e08ba0a8e88c837888326"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -3616,7 +3616,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "5.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master#b1968d0866f53d6387606bc4d3d306f80450a021"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=master#5063174549c1464e5a5e08ba0a8e88c837888326"
 dependencies = [
  "environmental",
  "hash-db",
