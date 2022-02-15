@@ -1,8 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::prelude::Vec;
 use itp_storage::{storage_map_key, StorageHasher};
 use pallet_ajuna_gameregistry::game::GameEngine;
+use sp_std::prelude::Vec;
 
 pub const REGISTRY: &str = "GameRegistry";
 

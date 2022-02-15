@@ -18,8 +18,7 @@
 //! Imports parentchain blocks and executes any indirect calls found in the extrinsics.
 
 use log::*;
-use pallet_ajuna_gameregistry::game::GameEngine;
-use pallet_ajuna_gameregistry::Queue;
+use pallet_ajuna_gameregistry::{game::GameEngine, Queue};
 use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
@@ -29,19 +28,21 @@ use std::{marker::PhantomData, sync::Arc, vec, vec::Vec};
 use ita_stf::ParentchainHeader;
 use itc_parentchain_indirect_calls_executor::ExecuteIndirectCalls;
 use itc_parentchain_light_client::{
-	BlockNumberOps, concurrent_access::ValidatorAccess, LightClientState, Validator,
+	concurrent_access::ValidatorAccess, BlockNumberOps, LightClientState, Validator,
 };
 use itp_extrinsics_factory::CreateExtrinsics;
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
 use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
-use itp_settings::node::{ACK_GAME, GAME_REGISTRY_MODULE, PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE};
+use itp_settings::node::{
+	ACK_GAME, GAME_REGISTRY_MODULE, PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE,
+};
 use itp_stf_executor::traits::{StfExecuteShieldFunds, StfExecuteTrustedCall, StfUpdateState};
 use itp_stf_state_handler::query_shard_state::QueryShardState;
 use itp_storage_verifier::GetStorageVerified;
-use itp_types::{H256, OpaqueCall};
+use itp_types::{OpaqueCall, H256};
 
 use crate::{
-	beefy_merkle_tree::{Keccak256, merkle_root},
+	beefy_merkle_tree::{merkle_root, Keccak256},
 	error::Result,
 	ImportParentchainBlocks,
 };
@@ -210,8 +211,12 @@ impl<
 					}
 					//FIXME: we currently only take the first shard. How we handle sharding in general?
 					let shard = self.file_state_handler.list_shards()?[0];
-					let opaque_call =
-						OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, ACK_GAME], &game_engine, games, shard));
+					let opaque_call = OpaqueCall::from_tuple(&(
+						[GAME_REGISTRY_MODULE, ACK_GAME],
+						&game_engine,
+						games,
+						shard,
+					));
 					let calls = vec![opaque_call];
 
 					// Create extrinsic for acknowledge game.
