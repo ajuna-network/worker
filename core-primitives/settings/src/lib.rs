@@ -107,6 +107,8 @@ pub mod node {
 	pub static PROCESSED_PARENTCHAIN_BLOCK: u8 = 3u8;
 	pub static SHIELD_FUNDS: u8 = 4u8;
 	pub static UNSHIELD_FUNDS: u8 = 5u8;
+	pub static GAME_REGISTRY_MODULE: u8 = 13u8;
+	pub static ACK_GAME: u8 = 2u8;
 	// Sidechain module values
 	pub static SIDECHAIN_MODULE: u8 = 20u8;
 	pub static PROPOSED_SIDECHAIN_BLOCK: u8 = 0u8;
