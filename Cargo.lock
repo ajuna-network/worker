@@ -2296,9 +2296,11 @@ dependencies = [
  "itp-registry-storage",
  "itp-settings",
  "itp-stf-executor",
+ "itp-stf-state-handler",
  "itp-storage-verifier",
  "itp-types",
  "log 0.4.17",
+ "pallet-ajuna-gameregistry",
  "parity-scale-codec",
  "sgx_tstd",
  "sgx_types",
@@ -2608,6 +2610,7 @@ name = "itp-registry-storage"
 version = "0.8.0"
 dependencies = [
  "itp-storage",
+ "pallet-ajuna-gameregistry",
  "parity-scale-codec",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
 ]
@@ -2835,6 +2838,7 @@ version = "0.8.0"
 dependencies = [
  "chrono",
  "itp-storage",
+ "pallet-ajuna-gameregistry",
  "parity-scale-codec",
  "primitive-types",
  "serde 1.0.137",
