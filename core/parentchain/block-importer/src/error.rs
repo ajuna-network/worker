@@ -36,6 +36,8 @@ pub enum Error {
 	LightClient(#[from] itc_parentchain_light_client::error::Error),
 	#[error("Storage verified error: {0}")]
 	StorageVerified(#[from] itp_storage_verifier::Error),
+	#[error("State handling error: {0}")]
+	StateHandler(#[from] itp_stf_state_handler::error::Error),
 	#[error(transparent)]
 	Other(#[from] Box<dyn std::error::Error + Sync + Send + 'static>),
 }
