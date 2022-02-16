@@ -182,6 +182,21 @@ impl Stf {
 					Self::shield_funds(who, value)?;
 					Ok(())
 				},
+				TrustedCall::new_game(root, player_one, player_two) => {
+					let origin = sgx_runtime::Origin::signed(root.clone());
+					error!(
+						"collect four new_game ({:x?}, {:x?})",
+						player_one.encode(),
+						player_two.encode()
+					);
+					sgx_runtime::ConnectfourCall::<Runtime>::new_game {
+						player_one: player_one.clone(),
+						player_two: player_two.clone(),
+					}
+					.dispatch_bypass_filter(origin)
+					.map_err(|_| StfError::Dispatch("connectfour_new_game".to_string()))?;
+					Ok(())
+				},
 				TrustedCall::connectfour_play_turn(sender, column) => {
 					let origin = sgx_runtime::Origin::signed(sender.clone());
 					debug!("connectfour choose ({:x?}, {:?})", sender.encode(), column);
@@ -270,6 +285,7 @@ impl Stf {
 			TrustedCall::balance_transfer(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_unshield(_, _, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_shield(_, _, _) => debug!("No storage updates needed..."),
+			TrustedCall::new_game(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::connectfour_play_turn(_, _) => debug!("No storage updates needed..."),
 		};
 		key_hashes

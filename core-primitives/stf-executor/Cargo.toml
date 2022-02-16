@@ -16,6 +16,7 @@ sgx-externalities = { default-features = false, git = "https://github.com/ajuna-
 # local dependencies
 ita-stf = { path = "../../app-libs/stf", default-features = false }
 itp-ocall-api = { path = "../ocall-api", default-features = false }
+itp-registry-storage = { path = "../registry-storage", default-features = false }
 itp-stf-state-handler = { path = "../stf-state-handler", default-features = false }
 itp-storage = { path = "../storage", default-features = false }
 itp-storage-verifier = { path = "../storage-verified", default-features = false }
@@ -35,6 +36,9 @@ codec = { package = "parity-scale-codec", version = "2.0.0", default-features = 
 # substrate dependencies
 sp-core = { version = "5.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-runtime = { version = "5.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master"}
+
+# node deps
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "update-substrate-5" }
 
 # dev dependencies
 itp-test = { path = "../test", default-features = false, optional = true }
