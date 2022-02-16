@@ -202,7 +202,7 @@ impl<
 				Some(mut u) => {
 					//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
 					let game_engine = GameEngine::new(1u8, 1u8);
-					let mut games = Vec::new();
+					let mut games = Vec::<H256>::new();
 					loop {
 						match u.dequeue() {
 							Some(g) => games.push(g),
