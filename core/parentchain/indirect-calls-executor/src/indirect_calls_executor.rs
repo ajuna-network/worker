@@ -88,10 +88,10 @@ where
 
 		error!("found {:?} games", games.len());
 
-		games.iter().map(|game| {
+		for game in games {
 			self.stf_executor
-				.execute_new_game(game_engine.clone(), game.clone(), shard, block)
-		});
+				.execute_new_game(game_engine.clone(), game.clone(), shard, block);
+		}
 		Ok(())
 	}
 

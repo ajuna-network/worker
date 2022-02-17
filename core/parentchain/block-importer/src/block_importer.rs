@@ -193,40 +193,42 @@ impl<
 				},
 				Err(_) => error!("Error executing relevant extrinsics"),
 			};
-			let queue_game: Option<Queue<H256>> = self
+
+			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
+			let maybe_queue: Option<Queue<H256>> = self
 				.ocall_api
 				.get_storage_verified(RegistryStorage::queue_game(), block.header())?
 				.into_tuple()
 				.1;
-			match queue_game {
-				Some(mut u) => {
-					//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
-					let game_engine = GameEngine::new(1u8, 1u8);
-					let mut games = Vec::new();
-					loop {
-						match u.dequeue() {
-							Some(g) => games.push(g),
-							None => break,
+			match maybe_queue {
+				Some(mut queue) => {
+					//FIXME: if this would be a separate function, we could return here upon if queue.is_empty() check.
+					if !queue.is_empty() {
+						//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
+						let game_engine = GameEngine::new(1u8, 1u8);
+						let mut games = Vec::<H256>::new();
+						while let Some(game) = queue.dequeue() {
+							games.push(game)
 						}
+						//FIXME: we currently only take the first shard. How we handle sharding in general?
+						let shard = self.file_state_handler.list_shards()?[0];
+						let opaque_call = OpaqueCall::from_tuple(&(
+							[GAME_REGISTRY_MODULE, ACK_GAME],
+							&game_engine,
+							games,
+							shard,
+						));
+						let calls = vec![opaque_call];
+
+						// Create extrinsic for acknowledge game.
+						let ack_game_extrinsic =
+							self.extrinsics_factory.create_extrinsics(calls.as_slice())?;
+
+						// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
+						self.validator_accessor.execute_mut_on_validator(|v| {
+							v.send_extrinsics(self.ocall_api.as_ref(), ack_game_extrinsic)
+						})?;
 					}
-					//FIXME: we currently only take the first shard. How we handle sharding in general?
-					let shard = self.file_state_handler.list_shards()?[0];
-					let opaque_call = OpaqueCall::from_tuple(&(
-						[GAME_REGISTRY_MODULE, ACK_GAME],
-						&game_engine,
-						games,
-						shard,
-					));
-					let calls = vec![opaque_call];
-
-					// Create extrinsic for acknowledge game.
-					let ack_game_extrinsic =
-						self.extrinsics_factory.create_extrinsics(calls.as_slice())?;
-
-					// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
-					self.validator_accessor.execute_mut_on_validator(|v| {
-						v.send_extrinsics(self.ocall_api.as_ref(), ack_game_extrinsic)
-					})?;
 				},
 				None => {
 					debug!("No game queued in GameRegistry pallet.");
