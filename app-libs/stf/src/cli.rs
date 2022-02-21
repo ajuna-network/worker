@@ -430,13 +430,13 @@ pub fn cmd<'a>(
 							println!("Board state: {:?}", board.board_state);
 							println!("Board:");
 							for row in 0..6 {
-								for column in  0..7 {
+								for column in 0..7 {
 									print!(" {} ", board.board[column][row]);
 								}
 								println!()
 							}
 							println!("=====================");
-							for column in  0..7 {
+							for column in 0..7 {
 								print!(" {} ", column);
 							}
 							println!();

@@ -15,9 +15,9 @@
 
 */
 
-use alloc::format;
 #[cfg(feature = "test")]
 use crate::test_genesis::test_genesis_setup;
+use alloc::format;
 
 use crate::{
 	helpers::{
