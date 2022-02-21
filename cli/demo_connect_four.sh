@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # setup:
+# build ajuna node with skip-ias-check
+#   cargo build --release --features skip-ias-check
+#
 # run ajuna node
 #   target/release/ajuna  --dev --tmp --ws-port <NODEPORT> --port 30385 --rpc-port <RPCPORT>
 #
 # run worker
 #   rm light_client_db.bin
 #   rm -r shards
+#   rm -r sidechain_db
 #   export RUST_LOG=integritee_service=info,ita_stf=debug
 #   integritee-service init_shard
 #   integritee-service shielding-key
@@ -16,10 +20,10 @@
 # then run this script
 
 # usage:
-#  export RUST_LOG_LOG=integritee-cli=info,ita_stf=info
-#  demo_connect_four.sh -p <NODEPORT> -P <WORKERPORT> -m file
+#  export RUST_LOG=integritee-cli=info,ita_stf=info
+#  demo_connect_four.sh -p <NODEPORT> -P <WORKERPORT> -m <FILENAME>
 #
-# if -m file is set, the mrenclave will be read from file
+# if -m <FILENAME> is set, the mrenclave will be read from file <FILENAME>
 
 while getopts ":m:p:P:" opt; do
     case $opt in
@@ -42,7 +46,7 @@ RPORT=${RPORT:-2000}
 echo "Using node-port ${NPORT}"
 echo "Using trusted-worker-port ${RPORT}"
 
-AMOUNTSHIELD=1000
+BALANCE=1000
 
 CLIENT="./../bin/integritee-cli -p ${NPORT} -P ${RPORT}"
 
@@ -68,12 +72,12 @@ ACCOUNTBOB=//Bob
 echo "  Bob's account = ${ACCOUNTBOB}"
 echo ""
 
-echo "* Issue ${AMOUNTSHIELD} tokens to Alice's account"
-${CLIENT} trusted set-balance ${ACCOUNTALICE} ${AMOUNTSHIELD} --mrenclave=${MRENCLAVE} --direct
+echo "* Issue ${BALANCE} tokens to Alice's account"
+${CLIENT} trusted set-balance ${ACCOUNTALICE} ${BALANCE} --mrenclave=${MRENCLAVE} --direct
 echo ""
 
-echo "* Issue ${AMOUNTSHIELD} tokens to Bob's account"
-${CLIENT} trusted set-balance ${ACCOUNTBOB} ${AMOUNTSHIELD} --mrenclave=${MRENCLAVE} --direct
+echo "* Issue ${BALANCE} tokens to Bob's account"
+${CLIENT} trusted set-balance ${ACCOUNTBOB} ${BALANCE} --mrenclave=${MRENCLAVE} --direct
 echo ""
 
 echo "Queue Game for Alice (Player 1)"
