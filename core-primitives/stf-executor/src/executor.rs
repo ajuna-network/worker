@@ -15,15 +15,20 @@
 
 */
 
-use crate::{
-	error::{Error, Result},
-	traits::{
-		StatePostProcessing, StateUpdateProposer, StfExecuteGenericUpdate, StfExecuteShieldFunds,
-		StfExecuteTimedGettersBatch, StfExecuteTrustedCall, StfUpdateState,
-	},
-	BatchExecutionResult, ExecutedOperation, ExecutionStatus,
-};
 use codec::{Decode, Encode};
+use log::*;
+use pallet_ajuna_gameregistry::game::{GameEngine, GameEntry, GameState};
+use sgx_externalities::SgxExternalitiesTrait;
+use sp_core::ed25519;
+use sp_runtime::{
+	app_crypto::sp_core::blake2_256,
+	traits::{Block as ParentchainBlockTrait, Header as HeaderTrait},
+};
+use std::{
+	collections::BTreeMap, fmt::Debug, format, marker::PhantomData, result::Result as StdResult,
+	sync::Arc, time::Duration, vec::Vec,
+};
+
 use ita_stf::{
 	hash::TrustedOperationOrHash,
 	stf_sgx::{shards_key_hash, storage_hashes_to_update_per_shard},
@@ -31,17 +36,19 @@ use ita_stf::{
 	TrustedCallSigned, TrustedGetterSigned, TrustedOperation,
 };
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
+use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
 use itp_stf_state_handler::{handle_state::HandleState, query_shard_state::QueryShardState};
 use itp_storage::StorageEntryVerified;
 use itp_time_utils::duration_now;
-use itp_types::{Amount, OpaqueCall, H256};
-use log::*;
-use sgx_externalities::SgxExternalitiesTrait;
-use sp_core::ed25519;
-use sp_runtime::{app_crypto::sp_core::blake2_256, traits::Header as HeaderTrait};
-use std::{
-	collections::BTreeMap, fmt::Debug, format, marker::PhantomData, result::Result as StdResult,
-	sync::Arc, time::Duration, vec::Vec,
+use itp_types::{Amount, BlockNumber, OpaqueCall, H256};
+
+use crate::{
+	error::{Error, Result},
+	traits::{
+		StatePostProcessing, StateUpdateProposer, StfExecuteGenericUpdate, StfExecuteShieldFunds,
+		StfExecuteTimedGettersBatch, StfExecuteTrustedCall, StfUpdateState,
+	},
+	BatchExecutionResult, ExecutedOperation, ExecutionStatus,
 };
 
 pub struct StfExecutor<OCallApi, StateHandler, ExternalitiesT> {
@@ -200,6 +207,50 @@ where
 		self.state_handler
 			.write_after_mutation(state, state_lock, shard)
 			.map_err(|e| e.into())
+	}
+
+	fn execute_new_game<ParentchainBlock>(
+		&self,
+		game_engine: GameEngine,
+		game: H256,
+		shard: &ShardIdentifier,
+		block: &ParentchainBlock,
+	) -> Result<H256>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
+	{
+		let game_entry: Option<
+			GameEntry<H256, AccountId, GameEngine, GameState<AccountId>, BlockNumber>,
+		> = self
+			.ocall_api
+			.get_storage_verified(RegistryStorage::game_registry(game), block.header())?
+			.into_tuple()
+			.1;
+		match game_entry {
+			Some(u) => {
+				let (state_lock, mut state) = self.state_handler.load_for_mutation(shard)?;
+				let root = Stf::get_root(&mut state);
+				let nonce = Stf::account_nonce(&mut state, &root);
+
+				let players = u.players();
+				let player_one = players[0].clone();
+				let player_two = players[1].clone();
+				let trusted_call = TrustedCallSigned::new(
+					TrustedCall::new_game(root, player_one, player_two),
+					nonce,
+					ed25519::Signature::from_raw([0u8; 64]).into(), //don't care about signature here
+				);
+
+				Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
+					.map_err::<Error, _>(|e| e.into())?;
+
+				self.state_handler.write(state, state_lock, shard).map_err(|e| e.into())
+			},
+			None => {
+				error!("No game entry found for game {}", game);
+				Ok(game)
+			},
+		}
 	}
 }
 
