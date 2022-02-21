@@ -425,7 +425,7 @@ pub fn cmd<'a>(
 					debug!("received result for board");
 					if let Some(v) = res {
 						if let Ok(board) = crate::SgxBoardStruct::decode(&mut v.as_slice()) {
-							println!("Last turn: {}", board.last_turn);
+							println!("Block number: {}", board.last_turn);
 							println!("Next player: {}", board.next_player);
 							println!("Board state: {:?}", board.board_state);
 							println!("Board:");
