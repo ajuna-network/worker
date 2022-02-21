@@ -226,7 +226,6 @@ where
 				let players = u.players();
 				let player_one = players[0].clone();
 				let player_two = players[1].clone();
-				error!("found two player {:?} and {:?}", player_one, player_one);
 				let trusted_call = TrustedCallSigned::new(
 					TrustedCall::new_game(root, player_one, player_two),
 					nonce,

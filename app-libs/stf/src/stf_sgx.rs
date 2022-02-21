@@ -15,6 +15,7 @@
 
 */
 
+use alloc::format;
 #[cfg(feature = "test")]
 use crate::test_genesis::test_genesis_setup;
 
@@ -184,7 +185,7 @@ impl Stf {
 				},
 				TrustedCall::new_game(root, player_one, player_two) => {
 					let origin = sgx_runtime::Origin::signed(root.clone());
-					error!(
+					debug!(
 						"collect four new_game ({:x?}, {:x?})",
 						player_one.encode(),
 						player_two.encode()
@@ -194,7 +195,7 @@ impl Stf {
 						player_two: player_two.clone(),
 					}
 					.dispatch_bypass_filter(origin)
-					.map_err(|_| StfError::Dispatch("connectfour_new_game".to_string()))?;
+					.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::connectfour_play_turn(sender, column) => {
@@ -202,10 +203,7 @@ impl Stf {
 					debug!("connectfour choose ({:x?}, {:?})", sender.encode(), column);
 					sgx_runtime::ConnectfourCall::<Runtime>::play_turn { column }
 						.dispatch_bypass_filter(origin.clone())
-						.map_err(|e| {
-							error!("dispatch error {:?}", e);
-							StfError::Dispatch("rps_choose".to_string())
-						})?;
+						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 			}?;

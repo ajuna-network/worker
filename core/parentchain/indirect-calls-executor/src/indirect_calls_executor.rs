@@ -86,7 +86,7 @@ where
 	{
 		let (_call, game_engine, games, shard) = &xt.function;
 
-		error!("found {:?} games", games.len());
+		info!("found {:?} games", games.len());
 
 		for game in games {
 			self.stf_executor

@@ -121,7 +121,7 @@ where
 
 	fn send(&mut self, status: TrustedOperationStatus) {
 		if let Err(e) = self.rpc_response_sender.update_status_event(self.hash().clone(), status) {
-			error!("failed to send status update to rpc client: {:?}", e);
+			error!("failed to send status update to client: {:?}", e);
 		}
 	}
 }
