@@ -89,8 +89,22 @@ where
 		Ok(())
 	}
 
-	fn handle_ack_game_xt(&self, xt: &UncheckedExtrinsicV4<AckGameFn>) -> Result<()> {
-		error!("JUHUUUUUUUUUUUUUUU");
+	fn handle_ack_game_xt<ParentchainBlock>(
+		&self,
+		xt: &UncheckedExtrinsicV4<AckGameFn>,
+		block: &ParentchainBlock,
+	) -> Result<()>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
+	{
+		let (_call, game_engine, games, shard) = &xt.function;
+
+		info!("found {:?} games", games.len());
+
+		for game in games {
+			self.stf_executor
+				.execute_new_game(game_engine.clone(), game.clone(), shard, block);
+		}
 		Ok(())
 	}
 }
@@ -133,7 +147,7 @@ where
 				UncheckedExtrinsicV4::<AckGameFn>::decode(&mut xt_opaque.encode().as_slice())
 			{
 				if xt.function.0 == [GAME_REGISTRY_MODULE, ACK_GAME] {
-					if let Err(e) = self.handle_ack_game_xt(&xt) {
+					if let Err(e) = self.handle_ack_game_xt(&xt, block) {
 						error!("Error performing acknowledge game. Error: {:?}", e);
 					} else {
 						// Cache successfully executed shielding call.

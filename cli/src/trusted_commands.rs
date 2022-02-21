@@ -289,7 +289,21 @@ fn get_board(cli: &Cli, trusted_args: &TrustedArgs, account: &str) {
 	debug!("received result for board");
 	if let Some(v) = res {
 		if let Ok(board) = crate::SgxBoardStruct::decode(&mut v.as_slice()) {
-			println!("Found board {:?}", board);
+			println!("Last turn in block number: {}", board.last_turn);
+			println!("Next player: {}", board.next_player);
+			println!("Board state: {:?}", board.board_state);
+			println!("Board:");
+			for row in 0..6 {
+				for column in 0..7 {
+					print!(" {} ", board.board[column][row]);
+				}
+				println!()
+			}
+			println!("=====================");
+			for column in 0..7 {
+				print!(" {} ", column);
+			}
+			println!();
 		} else {
 			println!("could not decode board. maybe hasn't been set? {:x?}", v);
 		}

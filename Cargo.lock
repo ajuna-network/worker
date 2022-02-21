@@ -2655,6 +2655,7 @@ version = "0.8.0"
 dependencies = [
  "ita-stf",
  "itp-ocall-api",
+ "itp-registry-storage",
  "itp-stf-state-handler",
  "itp-storage",
  "itp-storage-verifier",
@@ -2662,6 +2663,7 @@ dependencies = [
  "itp-time-utils",
  "itp-types",
  "log 0.4.17",
+ "pallet-ajuna-gameregistry",
  "parity-scale-codec",
  "sgx-externalities",
  "sgx_tstd",
