@@ -17,8 +17,13 @@
 
 //! Execute indirect calls, i.e. extrinsics extracted from parentchain blocks
 
-use crate::error::Result;
 use codec::{Decode, Encode};
+use log::*;
+use sp_core::blake2_256;
+use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
+use std::{sync::Arc, vec::Vec};
+use substrate_api_client::UncheckedExtrinsicV4;
+
 use ita_stf::{AccountId, TrustedCallSigned};
 use itp_settings::node::{
 	ACK_GAME, CALL_WORKER, GAME_REGISTRY_MODULE, SHIELD_FUNDS, TEEREX_MODULE,
@@ -26,11 +31,8 @@ use itp_settings::node::{
 use itp_sgx_crypto::ShieldingCrypto;
 use itp_stf_executor::traits::{StatePostProcessing, StfExecuteShieldFunds, StfExecuteTrustedCall};
 use itp_types::{AckGameFn, CallWorkerFn, OpaqueCall, ShardIdentifier, ShieldFundsFn, H256};
-use log::*;
-use sp_core::blake2_256;
-use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
-use std::{sync::Arc, vec::Vec};
-use substrate_api_client::UncheckedExtrinsicV4;
+
+use crate::error::Result;
 
 /// Trait to execute the indirect calls found in the extrinsics of a block.
 pub trait ExecuteIndirectCalls {
@@ -74,8 +76,22 @@ where
 		Ok(())
 	}
 
-	fn handle_ack_game_xt(&self, xt: &UncheckedExtrinsicV4<AckGameFn>) -> Result<()> {
-		error!("JUHUUUUUUUUUUUUUUU");
+	fn handle_ack_game_xt<ParentchainBlock>(
+		&self,
+		xt: &UncheckedExtrinsicV4<AckGameFn>,
+		block: &ParentchainBlock,
+	) -> Result<()>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
+	{
+		let (_call, game_engine, games, shard) = &xt.function;
+
+		info!("found {:?} games", games.len());
+
+		for game in games {
+			self.stf_executor
+				.execute_new_game(game_engine.clone(), game.clone(), shard, block);
+		}
 		Ok(())
 	}
 
@@ -132,7 +148,7 @@ where
 				UncheckedExtrinsicV4::<AckGameFn>::decode(&mut xt_opaque.encode().as_slice())
 			{
 				if xt.function.0 == [GAME_REGISTRY_MODULE, ACK_GAME] {
-					if let Err(e) = self.handle_ack_game_xt(&xt) {
+					if let Err(e) = self.handle_ack_game_xt(&xt, block) {
 						error!("Error performing acknowledge game. Error: {:?}", e);
 					} else {
 						// Cache successfully executed shielding call.

@@ -178,6 +178,7 @@ pub enum TrustedCall {
 	balance_transfer(AccountId, AccountId, Balance),
 	balance_unshield(AccountId, AccountId, Balance, ShardIdentifier), // (AccountIncognito, BeneficiaryPublicAccount, Amount, Shard)
 	balance_shield(AccountId, AccountId, Balance), // (Root, AccountIncognito, Amount)
+	new_game(AccountId, AccountId, AccountId),
 	connectfour_play_turn(AccountId, u8),
 }
 
@@ -188,6 +189,7 @@ impl TrustedCall {
 			TrustedCall::balance_transfer(account, _, _) => account,
 			TrustedCall::balance_unshield(account, _, _, _) => account,
 			TrustedCall::balance_shield(account, _, _) => account,
+			TrustedCall::new_game(account, _, _) => account,
 			TrustedCall::connectfour_play_turn(account, _) => account,
 		}
 	}
