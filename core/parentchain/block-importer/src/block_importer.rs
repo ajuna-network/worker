@@ -234,6 +234,12 @@ impl<
 					debug!("No game queued in GameRegistry pallet.");
 				},
 			}
+
+			info!(
+				"Successfully imported parentchain block (number: {}, hash: {})",
+				block.header().number,
+				block.header().hash()
+			);
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.
@@ -258,9 +264,8 @@ fn create_processed_parentchain_block_call(block_hash: H256, extrinsics: Vec<H25
 
 #[cfg(test)]
 pub mod tests {
-	use codec::Encode;
-
 	use super::*;
+	use codec::Encode;
 
 	#[test]
 	fn ensure_empty_extrinsic_vec_triggers_zero_filled_merkle_root() {

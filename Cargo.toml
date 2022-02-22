@@ -5,7 +5,6 @@ members = [
     "cli",
     "core/direct-rpc-server",
     "core/parentchain/block-import-dispatcher",
-    "core/parentchain/block-import-queue",
     "core/parentchain/block-importer",
     "core/parentchain/indirect-calls-executor",
     "core/parentchain/light-client",
@@ -14,11 +13,13 @@ members = [
     "core/rpc-client",
     "core/rpc-server",
     "core/tls-websocket-server",
-    "core-primitives/node-api-extensions",
+    "core-primitives/block-import-queue",
     "core-primitives/component-container",
     "core-primitives/enclave-api",
     "core-primitives/enclave-api/ffi",
+    "core-primitives/enclave-metrics",
     "core-primitives/extrinsics-factory",
+    "core-primitives/node-api-extensions",
     "core-primitives/nonce-cache",
     "core-primitives/ocall-api",
     "core-primitives/primitives-cache",
@@ -70,6 +71,10 @@ sgx_crypto_helper = { version = "1.1.4", git = "https://github.com/haerdib/incub
 
 #[patch."https://github.com/ajuna-network/ajuna-node"]
 #my-node-runtime = { package = "ajuna-runtime", path = "../ajuna-node/runtime" }
+
+#[patch."https://github.com/scs/substrate-api-client"]
+#substrate-api-client = { path = "../substrate-api-client" }
+#substrate-client-keystore = { path = "../substrate-api-client/client-keystore" }
 
 #[patch."https://github.com/scs/substrate-api-client"]
 #substrate-api-client = { path = "../substrate-api-client" }
