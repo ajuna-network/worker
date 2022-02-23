@@ -1,16 +1,16 @@
 {
   "node": {
-    "bin": "../integritee-node/target/release/integritee-node",
+    "bin": "../ajuna-node/target/release/ajuna",
     "flags": [
       "--tmp",
       "--dev",
       "-lruntime=info",
       "--ws-port",
-      "9990",
+      "9985",
       "--port",
-      "30390",
+      "30385",
       "--rpc-port",
-      "8990"
+      "9995"
     ]
   },
   "workers": [
@@ -20,7 +20,7 @@
         "-P",
         "2090",
         "-p",
-        "9990",
+        "9985",
         "-r",
         "3490",
         "-w",
@@ -37,7 +37,7 @@
         "-P",
         "3090",
         "-p",
-        "9990",
+        "9985",
         "-r",
         "3590",
         "-w",
