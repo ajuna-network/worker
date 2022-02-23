@@ -75,18 +75,22 @@ echo ""
 echo "* Issue ${BALANCE} tokens to Alice's account"
 ${CLIENT} trusted set-balance ${ACCOUNTALICE} ${BALANCE} --mrenclave=${MRENCLAVE} --direct
 echo ""
+sleep 1
 
 echo "* Issue ${BALANCE} tokens to Bob's account"
 ${CLIENT} trusted set-balance ${ACCOUNTBOB} ${BALANCE} --mrenclave=${MRENCLAVE} --direct
 echo ""
+sleep 1
 
 echo "Queue Game for Alice (Player 1)"
 ${CLIENT} queue-game ${ACCOUNTALICE}
 echo ""
+sleep 1
 
 echo "Queue Game for Bob (Player 2)"
 ${CLIENT} queue-game ${ACCOUNTBOB}
 echo ""
+sleep 1
 
 echo "waiting"
 sleep 45
