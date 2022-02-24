@@ -1673,6 +1673,7 @@ dependencies = [
  "its-top-pool-executor",
  "its-validateer-fetch",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
+ "pallet-ajuna-connectfour",
  "sgx-externalities",
  "sgx_tstd",
  "sp-core",
@@ -4058,7 +4059,7 @@ version = "1.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ee73e6e4924fe940354b8d4d98cad5231175d615cd855b758adc658c0aac6a0"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "static_assertions",
 ]
 

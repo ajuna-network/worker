@@ -42,12 +42,15 @@ use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
 use sgx_externalities::SgxExternalities;
+use sgx_externalities::SgxExternalitiesTrait;
 use sp_core::Pair;
 use sp_runtime::{
 	generic::SignedBlock as SignedParentchainBlock,
 	traits::{Block as ParentchainBlockTrait, Header},
 };
+use pallet_ajuna_connectfour::BoardState;
 use std::{marker::PhantomData, sync::Arc, vec::Vec};
+use ita_stf::helpers::get_board_for;
 
 /// Implements `BlockImport`.
 #[derive(Clone)]
@@ -163,16 +166,27 @@ impl<
 	fn create_finish_game_extrinsic(
 		&self,
 		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
-	) {
-		let calls = self.top_pool_executor.get_trusted_calls(&sidechain_block.shard_id()).unwrap();
+	) -> Result<(), ConsensusError>
+	{
+		let calls = self.top_pool_executor.get_trusted_calls(&sidechain_block.shard_id())
+			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 		for call in calls {
-			if let TrustedCall::connectfour_play_turn(_a, _b) = call.call {
+			if let TrustedCall::connectfour_play_turn(account, _b) = call.call {
 				error!("ey! someone made a turn!");
 				let shard = &sidechain_block.shard_id();
-				let state = self.state_handler.load_initialized(shard);
-				//	.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
+				let mut state = self.state_handler.load_initialized(shard)
+					.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
+				let res = state.execute_with(|| get_board_for(account));
+				if let Some(board) = res {
+					if let BoardState::Finished(_) = board.board_state {
+						error!("GAME FINISHED");
+					}
+				} else {
+					error!("could not decode board. maybe hasn't been set? {:x?}", res);
+				}
 			}
 		}
+		Ok(())
 	}
 }
 

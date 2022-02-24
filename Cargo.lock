@@ -2861,6 +2861,7 @@ dependencies = [
  "its-top-pool-executor",
  "its-validateer-fetch",
  "log 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pallet-ajuna-connectfour",
  "parity-scale-codec",
  "sgx-externalities",
  "sgx_tstd",
