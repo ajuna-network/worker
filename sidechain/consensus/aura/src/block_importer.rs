@@ -21,7 +21,7 @@
 pub use its_consensus_common::BlockImport;
 
 use crate::{AuraVerifier, SidechainBlockTrait};
-use ita_stf::hash::TrustedOperationOrHash;
+use ita_stf::{hash::TrustedOperationOrHash, TrustedCall};
 use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 	PeekParentchainBlockImportQueue, TriggerParentchainBlockImport,
 };
@@ -35,7 +35,7 @@ use itp_storage_verifier::GetStorageVerified;
 use itp_types::H256;
 use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
-	Block as BlockTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait,
+	Block as BlockTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait, SignedBlock,
 };
 use its_state::SidechainDB;
 use its_top_pool_executor::TopPoolCallOperator;
@@ -158,6 +158,21 @@ impl<
 
 	pub(crate) fn block_author_is_self(&self, block_author: &SignedSidechainBlock::Public) -> bool {
 		self.authority.public() == *block_author
+	}
+
+	fn create_finish_game_extrinsic(
+		&self,
+		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
+	) {
+		let calls = self.top_pool_executor.get_trusted_calls(&sidechain_block.shard_id()).unwrap();
+		for call in calls {
+			if let TrustedCall::connectfour_play_turn(_a, _b) = call.call {
+				error!("ey! someone made a turn!");
+				let shard = &sidechain_block.shard_id();
+				let state = self.state_handler.load_initialized(shard);
+				//	.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
+			}
+		}
 	}
 }
 
@@ -317,6 +332,8 @@ impl<
 
 	fn cleanup(&self, signed_sidechain_block: &SignedSidechainBlock) -> Result<(), ConsensusError> {
 		let sidechain_block = signed_sidechain_block.block();
+
+		self.create_finish_game_extrinsic(&sidechain_block);
 
 		// If the block has been proposed by this enclave, remove all successfully applied
 		// trusted calls from the top pool.
