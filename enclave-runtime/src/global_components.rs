@@ -91,6 +91,8 @@ pub type EnclaveSidechainBlockImporter = SidechainBlockImporter<
 	Aes,
 	EnclaveTopPoolOperationHandler,
 	EnclaveParentchainBlockImportDispatcher,
+	EnclaveExtrinsicsFactory,
+	ValidatorAccessor<ParentchainBlock>,
 >;
 pub type EnclaveSidechainBlockImportQueue = BlockImportQueue<SignedSidechainBlock>;
 pub type EnclaveSidechainBlockSyncer =

@@ -108,6 +108,7 @@ pub mod node {
 
 	pub static GAME_REGISTRY_MODULE: u8 = 13u8;
 	pub static ACK_GAME: u8 = 2u8;
+	pub static FINISH_GAME: u8 = 4u8;
 	// bump this to be consistent with integritee-node runtime
 	pub static RUNTIME_SPEC_VERSION: u32 = 100;
 	pub static RUNTIME_TRANSACTION_VERSION: u32 = 1;
