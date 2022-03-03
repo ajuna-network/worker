@@ -2213,7 +2213,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#e5e89cf3606ed624cb957552f52552ba38b49740"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#c32d74bee111ccb561e48d437ebff67539187357"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2227,7 +2227,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#e5e89cf3606ed624cb957552f52552ba38b49740"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#c32d74bee111ccb561e48d437ebff67539187357"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2242,7 +2242,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "4.0.0-dev"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#e5e89cf3606ed624cb957552f52552ba38b49740"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=update-substrate-5#c32d74bee111ccb561e48d437ebff67539187357"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -3094,7 +3094,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master#b1968d0866f53d6387606bc4d3d306f80450a021"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=master#5063174549c1464e5a5e08ba0a8e88c837888326"
 dependencies = [
  "derive_more",
  "environmental",
@@ -3109,7 +3109,7 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master#b1968d0866f53d6387606bc4d3d306f80450a021"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=master#5063174549c1464e5a5e08ba0a8e88c837888326"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -3616,7 +3616,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "5.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=integritee-network-master#b1968d0866f53d6387606bc4d3d306f80450a021"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=master#5063174549c1464e5a5e08ba0a8e88c837888326"
 dependencies = [
  "environmental",
  "hash-db",
@@ -4058,7 +4058,7 @@ version = "1.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ee73e6e4924fe940354b8d4d98cad5231175d615cd855b758adc658c0aac6a0"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "static_assertions",
 ]
 
