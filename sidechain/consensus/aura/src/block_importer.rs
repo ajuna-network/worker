@@ -20,9 +20,10 @@
 // Reexport BlockImport trait which implements fn block_import()
 pub use its_consensus_common::BlockImport;
 
-use crate::{AuraVerifier, SidechainBlockTrait};
+use crate::{std::string::ToString, AuraVerifier, SidechainBlockTrait};
 use ita_stf::{
-	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, TrustedCall,
+	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxBoardStruct,
+	TrustedCall,
 };
 use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 	PeekParentchainBlockImportQueue, TriggerParentchainBlockImport,
@@ -38,7 +39,7 @@ use itp_settings::{
 use itp_sgx_crypto::StateCrypto;
 use itp_stf_executor::ExecutedOperation;
 use itp_stf_state_handler::handle_state::HandleState;
-use itp_types::{OpaqueCall, H256};
+use itp_types::{OpaqueCall, ShardIdentifier, H256};
 use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
 	Block as BlockTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait, SignedBlock,
@@ -180,59 +181,69 @@ impl<
 		self.authority.public() == *block_author
 	}
 
-	fn create_finish_game_extrinsic(
+	fn check_for_finished_game(
 		&self,
 		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
 	) -> Result<(), ConsensusError> {
+		let shard = &sidechain_block.shard_id();
 		let calls = self
 			.top_pool_executor
 			.get_trusted_calls(&sidechain_block.shard_id())
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 		for call in calls {
 			if let TrustedCall::connectfour_play_turn(account, _b) = call.call {
-				let shard = &sidechain_block.shard_id();
 				let mut state = self
 					.state_handler
 					.load_initialized(shard)
 					.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
-				let res = state.execute_with(|| get_board_for(account));
-				if let Some(board) = res {
+				if let Some(board) = state.execute_with(|| get_board_for(account)) {
 					if let BoardState::Finished(_) = board.board_state {
-						// player 1 is red, player 2 is blue
-						// the winner is not the next player
-						let winner = match board.next_player {
-							1 => board.blue.clone(),
-							_ => board.red.clone(),
-						};
-
-						let opaque_call = OpaqueCall::from_tuple(&(
-							[GAME_REGISTRY_MODULE, FINISH_GAME],
-							shard,
-							winner,
-						));
-
-						let calls = vec![opaque_call];
-
-						// Create extrinsic for acknowledge game.
-						let finish_game_extrinsic = self
-							.extrinsics_factory
-							.create_extrinsics(calls.as_slice())
-							.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
-
-						// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
-						self.validator_accessor
-							.execute_mut_on_validator(|v| {
-								v.send_extrinsics(self.ocall_api.as_ref(), finish_game_extrinsic)
-							})
-							.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
-						error!("sending extrinsic finisch game")
+						self.send_game_finished_extrinsic(sidechain_block, &shard, board)
 					}
 				} else {
-					error!("could not decode board. maybe hasn't been set? {:x?}", res);
+					error!("could not decode board. maybe hasn't been set?");
 				}
 			}
 		}
 		Ok(())
+	}
+
+	fn send_game_finished_extrinsic(
+		&self,
+		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
+		shard: &&ShardIdentifier,
+		board: SgxBoardStruct,
+	) {
+		// player 1 is red, player 2 is blue
+		// the winner is not the next player
+		let winner = match board.next_player {
+			1 => board.blue.clone(),
+			2 => board.red.clone(),
+			_ =>
+				return Err(ConsensusError::BadSidechainBlock(
+					sidechain_block.hash(),
+					"Unknown player, could not get the Winner.".to_string(),
+				)),
+		};
+
+		let opaque_call =
+			OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, FINISH_GAME], shard, winner));
+
+		let calls = vec![opaque_call];
+
+		// Create extrinsic for finish game.
+		let finish_game_extrinsic = self
+			.extrinsics_factory
+			.create_extrinsics(calls.as_slice())
+			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
+
+		// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
+		self.validator_accessor
+			.execute_mut_on_validator(|v| {
+				v.send_extrinsics(self.ocall_api.as_ref(), finish_game_extrinsic)
+			})
+			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
+		trace!("sending extrinsic finisch game")
 	}
 }
 
@@ -399,7 +410,7 @@ impl<
 	fn cleanup(&self, signed_sidechain_block: &SignedSidechainBlock) -> Result<(), ConsensusError> {
 		let sidechain_block = signed_sidechain_block.block();
 
-		self.create_finish_game_extrinsic(&sidechain_block)?;
+		self.check_for_finished_game(&sidechain_block)?;
 
 		// If the block has been proposed by this enclave, remove all successfully applied
 		// trusted calls from the top pool.

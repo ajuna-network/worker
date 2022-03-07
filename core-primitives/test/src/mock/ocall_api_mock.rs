@@ -33,6 +33,8 @@ use sp_runtime::{AccountId32, OpaqueExtrinsic};
 use sp_std::prelude::*;
 use std::collections::HashMap;
 
+/// This struct is the same as OnchainMock but
+/// implements EnclaveOnChainOCallApi instead of GetStorageVerified.
 #[derive(Default, Clone, Debug)]
 pub struct OcallApiMock {
 	inner: HashMap<Vec<u8>, Vec<u8>>,
@@ -130,10 +132,6 @@ impl EnclaveMetricsOCallApi for OcallApiMock {
 	}
 }
 
-// We cannot implement EnclaveOnChainOCallApi specifically here, because OnchainMock already
-// implements `GetStorageVerified`. And all implementers of `EnclaveOnChainOCallApi` automatically
-// implement GetStorageVerified too (-> see `core-primitives/storage-verified/src/lib.rs`),
-// so it results in duplicate implementations.
 impl EnclaveOnChainOCallApi for OcallApiMock {
 	fn send_to_parentchain(&self, _extrinsics: Vec<OpaqueExtrinsic>) -> SgxResult<()> {
 		Ok(())
