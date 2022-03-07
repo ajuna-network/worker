@@ -23,7 +23,7 @@ pub use its_consensus_common::BlockImport;
 use crate::{std::string::ToString, AuraVerifier, SidechainBlockTrait};
 use ita_stf::{
 	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxBoardStruct,
-	TrustedCall,
+	TrustedCall, TrustedCallSigned,
 };
 use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 	PeekParentchainBlockImportQueue, TriggerParentchainBlockImport,
@@ -181,28 +181,42 @@ impl<
 		self.authority.public() == *block_author
 	}
 
-	fn check_for_finished_game(
+	fn detect_play_turn_calls(
 		&self,
 		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
 	) -> Result<(), ConsensusError> {
 		let shard = &sidechain_block.shard_id();
+		let top_hashes = sidechain_block.signed_top_hashes();
 		let calls = self
 			.top_pool_executor
 			.get_trusted_calls(&sidechain_block.shard_id())
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
+
 		for call in calls {
-			if let TrustedCall::connectfour_play_turn(account, _b) = call.call {
-				let mut state = self
-					.state_handler
-					.load_initialized(shard)
-					.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
-				if let Some(board) = state.execute_with(|| get_board_for(account)) {
-					if let BoardState::Finished(_) = board.board_state {
-						self.send_game_finished_extrinsic(sidechain_block, &shard, board)
-					}
-				} else {
-					error!("could not decode board. maybe hasn't been set?");
+			if top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(&call)) {
+				self.check_for_game_finished(sidechain_block, &shard, &call)?;
+			}
+		}
+		Ok(())
+	}
+
+	fn check_for_game_finished(
+		&self,
+		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
+		shard: &&ShardIdentifier,
+		call: &TrustedCallSigned,
+	) -> Result<(), ConsensusError> {
+		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
+			let mut state = self
+				.state_handler
+				.load_initialized(shard)
+				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
+			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
+				if let BoardState::Finished(_) = board.board_state {
+					self.send_game_finished_extrinsic(sidechain_block, &shard, board)?;
 				}
+			} else {
+				error!("could not decode board. maybe hasn't been set?");
 			}
 		}
 		Ok(())
@@ -213,7 +227,7 @@ impl<
 		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
 		shard: &&ShardIdentifier,
 		board: SgxBoardStruct,
-	) {
+	) -> Result<(), ConsensusError> {
 		// player 1 is red, player 2 is blue
 		// the winner is not the next player
 		let winner = match board.next_player {
@@ -243,7 +257,8 @@ impl<
 				v.send_extrinsics(self.ocall_api.as_ref(), finish_game_extrinsic)
 			})
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
-		trace!("sending extrinsic finisch game")
+		trace!("extrinsic finish game sent");
+		Ok(())
 	}
 }
 
@@ -410,7 +425,7 @@ impl<
 	fn cleanup(&self, signed_sidechain_block: &SignedSidechainBlock) -> Result<(), ConsensusError> {
 		let sidechain_block = signed_sidechain_block.block();
 
-		self.check_for_finished_game(&sidechain_block)?;
+		self.detect_play_turn_calls(&sidechain_block)?;
 
 		// If the block has been proposed by this enclave, remove all successfully applied
 		// trusted calls from the top pool.
