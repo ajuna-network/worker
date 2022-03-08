@@ -39,7 +39,7 @@ use itp_settings::{
 use itp_sgx_crypto::StateCrypto;
 use itp_stf_executor::ExecutedOperation;
 use itp_stf_state_handler::handle_state::HandleState;
-use itp_types::{OpaqueCall, ShardIdentifier, H256};
+use itp_types::{OpaqueCall, H256};
 use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
 	Block as BlockTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait, SignedBlock,
@@ -181,53 +181,54 @@ impl<
 		self.authority.public() == *block_author
 	}
 
-	fn detect_play_turn_calls(
+	fn get_calls_in_block(
 		&self,
-		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
-	) -> Result<(), ConsensusError> {
+		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+	) -> Result<Vec<TrustedCallSigned>, ConsensusError> {
 		let shard = &sidechain_block.shard_id();
 		let top_hashes = sidechain_block.signed_top_hashes();
 		let calls = self
 			.top_pool_executor
-			.get_trusted_calls(&sidechain_block.shard_id())
+			.get_trusted_calls(shard)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
-		for call in calls {
-			if top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(&call)) {
-				self.check_for_game_finished(sidechain_block, &shard, &call)?;
-			}
-		}
-		Ok(())
+		Ok(calls
+			.iter()
+			.filter(|call| {
+				top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(&call))
+			})
+			.map(|call| call.clone())
+			.collect())
 	}
 
-	fn check_for_game_finished(
+	fn get_board_if_game_finished(
 		&self,
-		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
-		shard: &&ShardIdentifier,
+		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
 		call: &TrustedCallSigned,
-	) -> Result<(), ConsensusError> {
+	) -> Result<Option<SgxBoardStruct>, ConsensusError> {
+		let shard = &sidechain_block.shard_id();
 		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
-				.load_initialized(shard)
+				.load_initialized(&shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
 				if let BoardState::Finished(_) = board.board_state {
-					self.send_game_finished_extrinsic(sidechain_block, &shard, board)?;
+					return Ok(Some(board))
 				}
 			} else {
 				error!("could not decode board. maybe hasn't been set?");
 			}
 		}
-		Ok(())
+		Ok(None)
 	}
 
 	fn send_game_finished_extrinsic(
 		&self,
-		sidechain_block: &&<SignedSidechainBlock as SignedBlock>::Block,
-		shard: &&ShardIdentifier,
+		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
 		board: SgxBoardStruct,
 	) -> Result<(), ConsensusError> {
+		let shard = &sidechain_block.shard_id();
 		// player 1 is red, player 2 is blue
 		// the winner is not the next player
 		let winner = match board.next_player {
@@ -425,7 +426,11 @@ impl<
 	fn cleanup(&self, signed_sidechain_block: &SignedSidechainBlock) -> Result<(), ConsensusError> {
 		let sidechain_block = signed_sidechain_block.block();
 
-		self.detect_play_turn_calls(&sidechain_block)?;
+		for call in self.get_calls_in_block(sidechain_block)? {
+			if let Some(board) = self.get_board_if_game_finished(sidechain_block, &call)? {
+				self.send_game_finished_extrinsic(sidechain_block, board)?;
+			}
+		}
 
 		// If the block has been proposed by this enclave, remove all successfully applied
 		// trusted calls from the top pool.
