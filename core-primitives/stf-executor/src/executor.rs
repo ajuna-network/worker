@@ -211,7 +211,6 @@ where
 
 	fn execute_new_game<ParentchainBlock>(
 		&self,
-		game_engine: GameEngine,
 		game: H256,
 		shard: &ShardIdentifier,
 		block: &ParentchainBlock,
