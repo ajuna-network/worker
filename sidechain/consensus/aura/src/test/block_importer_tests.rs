@@ -15,7 +15,11 @@
 
 */
 
-use crate::{block_importer::BlockImporter, test::fixtures::validateer, ShardIdentifierFor};
+use crate::{
+	block_importer::BlockImporter,
+	test::{fixtures::validateer, mocks::onchain_mock::OnchainMock},
+	ShardIdentifierFor,
+};
 use codec::Encode;
 use core::assert_matches::assert_matches;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
@@ -26,7 +30,7 @@ use itp_test::{
 		parentchain_block_builder::ParentchainBlockBuilder,
 		parentchain_header_builder::ParentchainHeaderBuilder,
 	},
-	mock::{handle_state_mock::HandleStateMock, onchain_mock::OnchainMock},
+	mock::handle_state_mock::HandleStateMock,
 };
 use itp_time_utils::duration_now;
 use itp_types::{Block as ParentchainBlock, Header as ParentchainHeader, H256};
@@ -89,6 +93,8 @@ fn test_fixtures(
 		top_pool_call_operator.clone(),
 		parentchain_block_import_trigger,
 		ocall_api,
+		Arc::new(ExtrinsicsFactoryMock::default()),
+		Arc::new(ValidatorAccessMock::default()),
 	);
 
 	(block_importer, state_handler, top_pool_call_operator)

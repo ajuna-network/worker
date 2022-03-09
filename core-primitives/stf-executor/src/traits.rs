@@ -21,7 +21,6 @@ use ita_stf::{
 	AccountId, ParentchainHeader, ShardIdentifier, TrustedCallSigned, TrustedGetterSigned,
 };
 use itp_types::{Amount, OpaqueCall, H256};
-use pallet_ajuna_gameregistry::game::GameEngine;
 use sgx_externalities::SgxExternalitiesTrait;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header as HeaderTrait};
 use std::{fmt::Debug, result::Result as StdResult, time::Duration, vec::Vec};
@@ -43,7 +42,6 @@ pub trait StfExecuteShieldFunds {
 
 	fn execute_new_game<ParentchainBlock>(
 		&self,
-		game_engine: GameEngine,
 		game: H256,
 		shard: &ShardIdentifier,
 		block: &ParentchainBlock,

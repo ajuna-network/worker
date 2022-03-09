@@ -20,11 +20,13 @@
 
 use crate::test::mocks::rpc_responder_mock::RpcResponderMock;
 use itc_parentchain::block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
+use itc_parentchain_light_client::mocks::validator_access_mock::ValidatorAccessMock;
+use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
 use itp_sgx_crypto::Aes;
 use itp_stf_executor::executor::StfExecutor;
 use itp_test::mock::{
 	handle_state_mock::HandleStateMock, metrics_ocall_mock::MetricsOCallMock,
-	onchain_mock::OnchainMock,
+	ocall_api_mock::OcallApiMock,
 };
 use itp_types::{Block as ParentchainBlock, SignedBlock as SignedParentchainBlock};
 use its_sidechain::{
@@ -54,7 +56,7 @@ pub type TestStateHandler = HandleStateMock;
 
 pub type TestSidechainDb = SidechainDB<SidechainBlock, SgxExternalities>;
 
-pub type TestOCallApi = OnchainMock;
+pub type TestOCallApi = OcallApiMock;
 
 pub type TestParentchainBlockImportTrigger =
 	TriggerParentchainBlockImportMock<SignedParentchainBlock>;
@@ -85,4 +87,6 @@ pub type TestBlockImporter = BlockImporter<
 	Aes,
 	TestTopPoolExecutor,
 	TestParentchainBlockImportTrigger,
+	ExtrinsicsFactoryMock,
+	ValidatorAccessMock,
 >;

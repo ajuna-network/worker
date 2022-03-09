@@ -535,10 +535,10 @@ pub unsafe extern "C" fn init_light_client(
 	let indirect_calls_executor =
 		Arc::new(IndirectCallsExecutor::new(shielding_key, stf_executor.clone()));
 	let parentchain_block_importer = ParentchainBlockImporter::new(
-		validator_access,
+		validator_access.clone(),
 		ocall_api.clone(),
 		stf_executor.clone(),
-		extrinsics_factory,
+		extrinsics_factory.clone(),
 		indirect_calls_executor,
 		file_state_handler.clone(),
 	);
@@ -561,6 +561,8 @@ pub unsafe extern "C" fn init_light_client(
 		top_pool_executor,
 		parentchain_block_import_dispatcher,
 		ocall_api.clone(),
+		extrinsics_factory,
+		validator_access,
 	));
 
 	let sidechain_block_syncer =
