@@ -97,13 +97,12 @@ where
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-		let (_call, game_engine, games, shard) = &xt.function;
+		let (_call, _game_engine, games, shard) = &xt.function;
 
 		info!("found {:?} games", games.len());
 
 		for game in games {
-			self.stf_executor
-				.execute_new_game(game_engine.clone(), game.clone(), shard, block);
+			self.stf_executor.execute_new_game(game.clone(), shard, block)?;
 		}
 		Ok(())
 	}
