@@ -74,7 +74,7 @@ impl Config {
 	pub fn trusted_worker_url_external(&self) -> String {
 		match &self.trusted_external_worker_address {
 			Some(external_address) => external_address.to_string(),
-			None => format!("wss://{}:{}", self.worker_ip, self.trusted_worker_port),
+			None => format!("ws://{}:{}", self.worker_ip, self.trusted_worker_port),
 		}
 	}
 
@@ -189,7 +189,7 @@ mod test {
 	fn check_correct_config_assignment_for_given_input() {
 		let node_ip = "ws://12.1.58.1";
 		let node_port = "111111";
-		let trusted_ext_addr = "wss://1.1.1.2:700";
+		let trusted_ext_addr = "ws://1.1.1.2:700";
 		let trusted_port = "7119";
 		let untrusted_ext_addr = "ws://1.723.3.1:11";
 		let untrusted_port = "9119";
@@ -253,7 +253,7 @@ mod test {
 
 		assert_eq!(
 			config.trusted_worker_url_external(),
-			format!("wss://{}:{}", expected_worker_ip, trusted_port)
+			format!("ws://{}:{}", expected_worker_ip, trusted_port)
 		);
 		assert_eq!(
 			config.untrusted_worker_url_external(),
@@ -264,7 +264,7 @@ mod test {
 
 	#[test]
 	fn external_addresses_are_returned_correctly_if_set() {
-		let trusted_ext_addr = "wss://1.1.1.2:700";
+		let trusted_ext_addr = "ws://1.1.1.2:700";
 		let untrusted_ext_addr = "ws://1.723.3.1:11";
 		let mu_ra_ext_addr = "1.1.3.1:1000";
 
@@ -299,7 +299,7 @@ mod test {
 
 	#[test]
 	fn ensure_port_is_added_to_url_without_port() {
-		let url = "wss://hello";
+		let url = "ws://hello";
 		let port = "0";
 
 		let resulting_url = add_port_if_necessary(url, port);

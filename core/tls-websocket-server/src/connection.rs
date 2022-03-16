@@ -28,20 +28,18 @@ use std::{
 };
 use tungstenite::{accept, Message, WebSocket};
 
-type RustlsStream = rustls::StreamOwned<ServerSession, TcpStream>;
-type RustlsWebSocket = WebSocket<RustlsStream>;
+type TungsteniteWebSocket = WebSocket<TcpStream>;
 
 pub struct TungsteniteWsConnection {
-	web_socket: RustlsWebSocket,
+	web_socket: TungsteniteWebSocket,
 }
 
 impl TungsteniteWsConnection {
 	pub fn connect(
 		tcp_stream: TcpStream,
-		server_session: ServerSession,
+		_server_session: ServerSession,
 	) -> WebSocketResult<TungsteniteWsConnection> {
-		let tls_stream = rustls::StreamOwned::new(server_session, tcp_stream);
-		let web_socket = accept(tls_stream).map_err(|_| WebSocketError::HandShakeError)?;
+		let web_socket = accept(tcp_stream).map_err(|_| WebSocketError::HandShakeError)?;
 
 		Ok(TungsteniteWsConnection { web_socket })
 	}
