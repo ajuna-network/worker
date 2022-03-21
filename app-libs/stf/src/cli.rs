@@ -401,6 +401,53 @@ pub fn cmd<'a>(
 				}),
 		)
 		.add_cmd(
+			Command::new("get-nonce")
+				.description("Get nonce for account")
+				.options(|app| {
+					app.setting(AppSettings::ColoredHelp)
+						.arg(
+							Arg::with_name("account")
+								.takes_value(true)
+								.required(true)
+								.value_name("SS58")
+								.help("account's AccountId in ss58check format"),
+						)
+				})
+				.runner(move |_args: &str, matches: &ArgMatches<'_>| {
+					let arg_account = matches.value_of("account").unwrap();
+					let account = get_pair_from_str(matches, arg_account);
+					info!("account ss58 is {}", account.public().to_ss58check());
+					
+					println!(
+						"send trusted getter nonce from {}",
+						account.public(),
+					);
+					
+					// get nonce
+					let tg = TrustedGetter::nonce(account.public().into());
+					println!("TrustedGetter encoded: {:?}", tg.encode());
+					println!("TrustedGetter signed and wrapped into a TrustedOperation");
+					let top: TrustedOperation = tg 
+						.sign(&KeyPair::Sr25519(account.clone()))
+						.into();
+					
+					println!("TrustedOperation encoded: {:?}", top.encode());
+					let res = perform_operation(matches, &top);
+					let nonce: Index = if let Some(n) = res {
+						if let Ok(nonce) = Index::decode(&mut n.as_slice()) {
+							nonce
+						} else {
+							info!("could not decode value. maybe hasn't been set? {:x?}", n);
+							0
+						}
+					} else {
+						0
+					};
+					println!("got nonce: {:?}", nonce);
+					Ok(())
+				}),
+		)
+		.add_cmd(
 			Command::new("get-board")
 				.description("query board state for account in keystore")
 				.options(|app| {

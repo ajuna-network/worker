@@ -494,6 +494,7 @@ fn perform_trusted_operation(matches: &ArgMatches<'_>, top: &TrustedOperation) -
 
 fn get_state(matches: &ArgMatches<'_>, getter: TrustedOperation) -> Option<Vec<u8>> {
 	// TODO: ensure getter is signed?
+	println!("get_state called");
 	let (_operation_call_encoded, operation_call_encrypted) = match encode_encrypt(matches, getter)
 	{
 		Ok((encoded, encrypted)) => (encoded, encrypted),
@@ -502,6 +503,10 @@ fn get_state(matches: &ArgMatches<'_>, getter: TrustedOperation) -> Option<Vec<u
 			return None
 		},
 	};
+
+	println!("encoded operation call: {:?}", _operation_call_encoded);
+	println!("operation call encrypted: {:?}", operation_call_encrypted);
+	
 	let shard = read_shard(matches).unwrap();
 
 	// compose jsonrpc call
