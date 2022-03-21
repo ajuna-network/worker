@@ -425,13 +425,24 @@ pub fn cmd<'a>(
 					
 					// get nonce
 					let tg = TrustedGetter::nonce(account.public().into());
-					println!("TrustedGetter encoded: {:?}", tg.encode());
+					println!("TrustedGetter encoded: 0x{}", 
+								tg
+								.encode()
+								.iter()
+								.map(|b| format!("{:02x}", b))
+								.collect::<String>());
 					println!("TrustedGetter signed and wrapped into a TrustedOperation");
 					let top: TrustedOperation = tg 
 						.sign(&KeyPair::Sr25519(account.clone()))
 						.into();
 					
-					println!("TrustedOperation encoded: {:?}", top.encode());
+					println!("TrustedOperation encoded: 0x{}", 
+								top
+								.encode()
+								.iter()
+								.map(|b| format!("{:02x}", b))
+								.collect::<String>());
+					
 					let res = perform_operation(matches, &top);
 					let nonce: Index = if let Some(n) = res {
 						if let Ok(nonce) = Index::decode(&mut n.as_slice()) {

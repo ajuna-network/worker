@@ -504,8 +504,19 @@ fn get_state(matches: &ArgMatches<'_>, getter: TrustedOperation) -> Option<Vec<u
 		},
 	};
 
-	println!("encoded operation call: {:?}", _operation_call_encoded);
-	println!("operation call encrypted: {:?}", operation_call_encrypted);
+	println!("encoded operation call: 0x{}", 
+				_operation_call_encoded
+				.encode()
+				.iter()
+				.map(|b| format!("{:02x}", b))
+				.collect::<String>());
+
+	println!("operation call encrypted: 0x{}", 
+				operation_call_encrypted
+				.encode()
+				.iter()
+				.map(|b| format!("{:02x}", b))
+				.collect::<String>());
 	
 	let shard = read_shard(matches).unwrap();
 
