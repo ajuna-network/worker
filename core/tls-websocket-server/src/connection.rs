@@ -19,6 +19,8 @@
 use crate::sgx_reexport_prelude::*;
 
 use crate::{WebSocketConnection, WebSocketError, WebSocketResult};
+use codec::Decode;
+use itp_types::{DirectRequestStatus, RpcResponse, RpcReturnValue, TrustedOperationStatus};
 use log::*;
 use rustls::ServerSession;
 use std::{
@@ -77,6 +79,18 @@ impl WebSocketConnection for TungsteniteWsConnection {
 
 		let response = (initial_call)(request.as_str());
 
+		// Very dirty trick to skip submitted Update
+		if let Ok(rpc_response) = serde_json::from_str::<RpcResponse>(&response) {
+			if let Ok(return_value) = RpcReturnValue::decode(&mut rpc_response.result.as_slice()) {
+				if return_value.status
+					== DirectRequestStatus::TrustedOperationStatus(
+						TrustedOperationStatus::Submitted,
+					) {
+					debug!("Got TrustedOperationStatus::Submitted, not seding an response");
+					return Ok(response)
+				}
+			}
+		}
 		self.write_message(response.as_str())?;
 
 		debug!("successfully processed web socket request");

@@ -1338,9 +1338,12 @@ dependencies = [
 name = "itc-tls-websocket-server"
 version = "0.8.0"
 dependencies = [
+ "itp-types",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "mio",
+ "parity-scale-codec",
  "rustls 0.19.0 (git+https://github.com/mesalock-linux/rustls?branch=mesalock_sgx)",
+ "serde_json 1.0.78",
  "sgx_tstd",
  "sgx_types",
  "thiserror 1.0.9",
