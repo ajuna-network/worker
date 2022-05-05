@@ -22,9 +22,11 @@ use codec::Decode;
 use itp_ocall_api::EnclaveSidechainOCallApi;
 use itp_sgx_crypto::StateCrypto;
 use its_primitives::traits::{
-	Block as SidechainBlockT, ShardIdentifierFor, SignedBlock as SignedSidechainBlockTrait,
+	Block as SidechainBlockTrait, BlockData, Header as HeaderTrait, ShardIdentifierFor,
+	SignedBlock as SignedSidechainBlockTrait,
 };
 use its_state::{LastBlockExt, SidechainState};
+use log::*;
 use sp_runtime::traits::Block as ParentchainBlockTrait;
 use std::vec::Vec;
 
@@ -108,13 +110,23 @@ where
 		parentchain_header: &ParentchainBlock::Header,
 	) -> Result<ParentchainBlock::Header, Error> {
 		let sidechain_block = signed_sidechain_block.block().clone();
-		let shard = sidechain_block.shard_id();
+		let shard = sidechain_block.header().shard_id();
+
+		debug!(
+			"Attempting to import sidechain block (number: {}, parentchain hash: {:?})",
+			signed_sidechain_block.block().header().block_number(),
+			signed_sidechain_block.block().block_data().layer_one_head()
+		);
 
 		let peeked_parentchain_header =
-			self.peek_parentchain_header(&sidechain_block, parentchain_header)?;
+			self.peek_parentchain_header(&sidechain_block, parentchain_header)
+				.unwrap_or_else(|e| {
+					warn!("Could not peek parentchain block, returning latest parentchain block ({:?})", e);
+					parentchain_header.clone()
+				});
 
 		let block_import_params = self.verify_import(&shard, |state| {
-			let mut verifier = self.verifier(state);
+			let verifier = self.verifier(state);
 
 			verifier.verify(
 				signed_sidechain_block.clone(),
@@ -128,7 +140,7 @@ where
 
 		self.apply_state_update(&shard, |mut state| {
 			let update = state_update_from_encrypted(
-				block_import_params.block().state_payload(),
+				block_import_params.block().block_data().encrypted_state_diff(),
 				self.state_key(),
 			)?;
 

@@ -43,6 +43,8 @@ enclave {
 			[out, size=value_size] uint8_t* value, uint32_t value_size
 		);
 
+        public sgx_status_t init_enclave_sidechain_components();
+
         public sgx_status_t init_direct_invocation_server(
             [in, size=server_addr_size] uint8_t* server_addr, uint32_t server_addr_size
         );
@@ -52,6 +54,10 @@ enclave {
             [in, size=authority_list_size] uint8_t* authority_list, size_t authority_list_size,
             [in, size=authority_proof_size] uint8_t* authority_proof, size_t authority_proof_size,
             [out, size=latest_header_size] uint8_t* latest_header, size_t latest_header_size
+        );
+
+        public sgx_status_t init_shard(
+            [in, size=shard_size] uint8_t* shard, uint32_t shard_size
         );
 
         public sgx_status_t trigger_parentchain_block_import();

@@ -25,7 +25,7 @@ use crate::{
 use codec::{Decode, Encode};
 use itp_types::{BlockHash, ShardIdentifier};
 use its_peer_fetch::FetchBlocksFromPeer;
-use its_primitives::types::SignedBlock as SignedSidechainBlock;
+use its_primitives::{traits::Block, types::SignedBlock as SignedSidechainBlock};
 use its_storage::BlockStorage;
 use log::*;
 use std::sync::Arc;
@@ -86,13 +86,17 @@ where
 		if !signed_blocks.is_empty() {
 			info!(
 				"Enclave produced sidechain blocks: {:?}",
-				signed_blocks.iter().map(|b| b.block.block_number).collect::<Vec<u64>>()
+				signed_blocks
+					.iter()
+					.map(|b| b.block.header().block_number)
+					.collect::<Vec<u64>>()
 			);
 		} else {
 			debug!("Enclave did not produce sidechain blocks");
 		}
 
 		// FIXME: When & where should peers be updated?
+		debug!("Updating peers..");
 		if let Err(e) = self.peer_updater.update_peers() {
 			error!("Error updating peers: {:?}", e);
 		// Fixme: returning an error here results in a `HeaderAncestryMismatch` error.
@@ -101,6 +105,7 @@ where
 			info!("Successfully updated peers");
 		}
 
+		debug!("Gossiping sidechain blocks..");
 		if let Err(e) = self.block_gossiper.gossip_blocks(signed_blocks) {
 			error!("Error gossiping blocks: {:?}", e);
 		// Fixme: returning an error here results in a `HeaderAncestryMismatch` error.
