@@ -37,7 +37,7 @@ sp-runtime = { version = "6.0.0", default-features = false, git = "https://githu
 #remove as soon as we can import beefy-merkle-tree:
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 
-pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "update-substrate-5" }
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "validateer-setup" }
 
 [features]
 default = ["std"]
@@ -71,7 +71,6 @@ sgx = [
     "itp-extrinsics-factory/sgx",
     "itp-stf-executor/sgx",
     "itp-stf-state-handler/sgx",
-    "itp-storage-verifier/sgx",
     "itp-types/sgx",
     # sgx enabled external libraries
     "thiserror_sgx",
