@@ -99,7 +99,7 @@ pub mod enclave {
 pub mod node {
 	// you may have to update these indices upon new builds of the runtime
 	// you can get the index from metadata, counting modules starting with zero
-	pub static TEEREX_MODULE: u8 = 9u8;
+	pub static TEEREX_MODULE: u8 = 19u8;
 	pub static REGISTER_ENCLAVE: u8 = 0u8;
 	//pub static UNREGISTER_ENCLAVE: u8 = 1u8;
 	pub static CALL_WORKER: u8 = 2u8;
