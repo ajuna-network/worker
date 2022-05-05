@@ -2,7 +2,6 @@
 
 use itp_storage::{storage_map_key, StorageHasher};
 use itp_types::H256;
-use pallet_ajuna_gameregistry::game::GameEngine;
 use sp_std::prelude::Vec;
 
 pub const REGISTRY: &str = "GameRegistry";
@@ -30,8 +29,7 @@ pub trait RegistryStorageKeys {
 
 impl<S: StoragePrefix> RegistryStorageKeys for S {
 	fn queue_game() -> Vec<u8> {
-		let game_engine = GameEngine::new(1u8, 1u8);
-		storage_map_key(Self::prefix(), "GameQueues", &game_engine, &StorageHasher::Identity)
+		storage_map_key(Self::prefix(), "GameQueues", &StorageHasher::Identity)
 	}
 
 	fn game_registry(game: H256) -> Vec<u8> {

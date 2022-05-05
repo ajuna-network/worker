@@ -18,7 +18,7 @@
 //! Imports parentchain blocks and executes any indirect calls found in the extrinsics.
 
 use log::*;
-use pallet_ajuna_gameregistry::{game::GameEngine, Queue};
+use pallet_ajuna_gameregistry::Queue;
 use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
@@ -205,7 +205,6 @@ impl<
 					//FIXME: if this would be a separate function, we could return here upon if queue.is_empty() check.
 					if !queue.is_empty() {
 						//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
-						let game_engine = GameEngine::new(1u8, 1u8);
 						let mut games = Vec::<H256>::new();
 						while let Some(game) = queue.dequeue() {
 							games.push(game)
@@ -214,7 +213,6 @@ impl<
 						let shard = self.file_state_handler.list_shards()?[0];
 						let opaque_call = OpaqueCall::from_tuple(&(
 							[GAME_REGISTRY_MODULE, ACK_GAME],
-							&game_engine,
 							games,
 							shard,
 						));
