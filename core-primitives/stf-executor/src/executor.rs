@@ -17,7 +17,7 @@
 
 use codec::{Decode, Encode};
 use log::*;
-use pallet_ajuna_gameregistry::game::{GameEntry, GameState};
+use pallet_ajuna_gameregistry::game::{GameEngine, GameEntry, GameState};
 use sgx_externalities::SgxExternalitiesTrait;
 use sp_core::ed25519;
 use sp_runtime::{
@@ -211,11 +211,13 @@ where
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-		let game_entry: Option<GameEntry<H256, AccountId, GameState<AccountId>, BlockNumber>> =
-			self.ocall_api
-				.get_storage_verified(RegistryStorage::game_registry(game), block.header())?
-				.into_tuple()
-				.1;
+		let game_entry: Option<
+			GameEntry<H256, AccountId, GameEngine, GameState<AccountId>, BlockNumber>,
+		> = self
+			.ocall_api
+			.get_storage_verified(RegistryStorage::game_registry(game), block.header())?
+			.into_tuple()
+			.1;
 		match game_entry {
 			Some(u) => {
 				let (state_lock, mut state) = self.state_handler.load_for_mutation(shard)?;
