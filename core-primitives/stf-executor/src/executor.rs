@@ -236,7 +236,9 @@ where
 				Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
 					.map_err::<Error, _>(|e| e.into())?;
 
-				self.state_handler.write(state, state_lock, shard).map_err(|e| e.into())
+				self.state_handler
+					.write_after_mutation(state, state_lock, shard)
+					.map_err(|e| e.into())
 			},
 			None => {
 				error!("No game entry found for game {}", game);

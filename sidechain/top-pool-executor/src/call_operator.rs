@@ -86,7 +86,7 @@ where
 
 	fn get_trusted_call_hash(&self, call: &TrustedCallSigned) -> H256 {
 		let top: TrustedOperation = TrustedOperation::direct_call(call.clone());
-		self.rpc_author.hash_of(&top)
+		self.top_pool_author.hash_of(&top)
 	}
 
 	fn remove_calls_from_pool(
