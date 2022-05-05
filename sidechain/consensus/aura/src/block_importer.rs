@@ -192,7 +192,7 @@ impl<
 		&self,
 		sidechain_block: &SignedSidechainBlock::Block,
 	) -> Result<Vec<TrustedCallSigned>, ConsensusError> {
-		let shard = &sidechain_block.shard_id();
+		let shard = &sidechain_block.header().shard_id();
 		let top_hashes = sidechain_block.signed_top_hashes();
 		let calls = self
 			.top_pool_executor
@@ -213,7 +213,7 @@ impl<
 		sidechain_block: &SignedSidechainBlock::Block,
 		call: &TrustedCallSigned,
 	) -> Result<Option<SgxBoardStruct>, ConsensusError> {
-		let shard = &sidechain_block.shard_id();
+		let shard = &sidechain_block.header().shard_id();
 		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
@@ -235,7 +235,7 @@ impl<
 		sidechain_block: &SignedSidechainBlock::Block,
 		board: SgxBoardStruct,
 	) -> Result<(), ConsensusError> {
-		let shard = &sidechain_block.shard_id();
+		let shard = &sidechain_block.header().shard_id();
 		// player 1 is red, player 2 is blue
 		// the winner is not the next player
 		let winner = match board.next_player {
