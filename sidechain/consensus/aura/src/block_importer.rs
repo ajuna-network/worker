@@ -217,7 +217,7 @@ impl<
 		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
-				.load_initialized(&shard)
+				.load(&shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
 				if let BoardState::Finished(_) = board.board_state {
