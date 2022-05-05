@@ -39,6 +39,7 @@ use itp_settings::{
 use itp_sgx_crypto::StateCrypto;
 use itp_stf_executor::ExecutedOperation;
 use itp_stf_state_handler::handle_state::HandleState;
+use itp_storage_verifier::GetStorageVerified;
 use itp_types::{OpaqueCall, H256};
 use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
@@ -189,7 +190,7 @@ impl<
 
 	fn get_calls_in_block(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 	) -> Result<Vec<TrustedCallSigned>, ConsensusError> {
 		let shard = &sidechain_block.shard_id();
 		let top_hashes = sidechain_block.signed_top_hashes();
@@ -209,7 +210,7 @@ impl<
 
 	fn get_board_if_game_finished(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 		call: &TrustedCallSigned,
 	) -> Result<Option<SgxBoardStruct>, ConsensusError> {
 		let shard = &sidechain_block.shard_id();
@@ -231,7 +232,7 @@ impl<
 
 	fn send_game_finished_extrinsic(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 		board: SgxBoardStruct,
 	) -> Result<(), ConsensusError> {
 		let shard = &sidechain_block.shard_id();
@@ -302,6 +303,7 @@ impl<
 		HeaderTrait<ShardIdentifier = H256>,
 	OCallApi: EnclaveSidechainOCallApi
 		+ ValidateerFetch
+		+ GetStorageVerified
 		+ EnclaveMetricsOCallApi
 		+ Send
 		+ Sync
