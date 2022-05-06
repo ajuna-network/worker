@@ -33,6 +33,8 @@ pub mod types {
 	pub type ParentchainHeader = sgx_runtime::Header;
 	#[cfg(all(not(feature = "sgx"), feature = "std"))]
 	pub type BlockNumber = u32;
+	#[cfg(all(not(feature = "std"), feature = "sgx"))]
+	pub type BlockNumber = sgx_runtime::BlockNumber;
 	#[cfg(all(not(feature = "sgx"), feature = "std"))]
 	pub type ParentchainHeader = generic::Header<BlockNumber, BlakeTwo256>;
 
