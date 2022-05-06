@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # setup:
-# build ajuna node with skip-ias-check
+# build ajuna node with skip-ias-check on branch "validateer-setup"
 #   cargo build --release --features skip-ias-check
 #
 # run ajuna node
@@ -12,18 +12,18 @@
 #   rm -r shards
 #   rm -r sidechain_db
 #   export RUST_LOG=integritee_service=info,ita_stf=debug
-#   integritee-service init_shard
-#   integritee-service shielding-key
-#   integritee-service signing-key
-#   integritee-service -P <WORKERPORT> -p <NODEPORT> -r 3485 run --dev --skip-ra
+#   ./integritee-service init-shard
+#   ./integritee-service shielding-key
+#   ./integritee-service signing-key
+#   ./integritee-service -P <WORKERPORT> -p <NODEPORT> -r <REMOTE-ATTESTATION-PORT> run --dev --skip-ra
 #
 # then run this script
 
 # usage:
 #  export RUST_LOG=integritee-cli=info,ita_stf=info
-#  demo_connect_four.sh -p <NODEPORT> -A <WORKER1PORT> -B <WORKER2PORT> -m <FILENAME>
+#  demo_connect_four.sh -p <NODEPORT> -A <WORKER1PORT> -B <WORKER2PORT> -m file
 #
-# if -m <FILENAME> is set, the mrenclave will be read from file <FILENAME>
+# if -m file is set, the mrenclave will be read from file  ~/mrenclave.b58
 
 while getopts ":m:p:A:B:" opt; do
     case $opt in
@@ -169,6 +169,3 @@ sleep 5
 echo "Board after end of game (queried by Alice via Worker 1)"
 ${CLIENTWORKER2} trusted get-board ${ACCOUNTBOB} --direct --mrenclave=${MRENCLAVE}
 echo ""
-
-
-
