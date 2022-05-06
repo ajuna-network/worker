@@ -20,7 +20,7 @@
 // Reexport BlockImport trait which implements fn block_import()
 pub use its_consensus_common::BlockImport;
 
-use crate::{std::string::ToString, AuraVerifier, SidechainBlockTrait};
+use crate::{AuraVerifier, SidechainBlockTrait};
 use ita_stf::{
 	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxBoardStruct,
 	TrustedCall, TrustedCallSigned,
@@ -55,7 +55,7 @@ use sp_core::Pair;
 use sp_runtime::{
 	generic::SignedBlock as SignedParentchainBlock, traits::Block as ParentchainBlockTrait,
 };
-use std::{marker::PhantomData, sync::Arc, vec::Vec};
+use std::{marker::PhantomData, string::ToString, sync::Arc, vec::Vec};
 
 /// Implements `BlockImport`.
 #[derive(Clone)]

@@ -15,15 +15,11 @@
 
 */
 
-use crate::{
-	block_importer::BlockImporter,
-	test::{fixtures::validateer, mocks::onchain_mock::OnchainMock},
-	ShardIdentifierFor,
-};
+use crate::{block_importer::BlockImporter, test::fixtures::validateer, ShardIdentifierFor};
 use codec::Encode;
 use core::assert_matches::assert_matches;
-use itc_parentchain::light_client::mocks::validator_access_mock::ValidatorAccessMock;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
+use itc_parentchain_light_client::mocks::validator_access_mock::ValidatorAccessMock;
 use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
 use itp_sgx_crypto::{aes::Aes, StateCrypto};
 use itp_stf_state_handler::handle_state::HandleState;
@@ -32,7 +28,7 @@ use itp_test::{
 		parentchain_block_builder::ParentchainBlockBuilder,
 		parentchain_header_builder::ParentchainHeaderBuilder,
 	},
-	mock::handle_state_mock::HandleStateMock,
+	mock::{handle_state_mock::HandleStateMock, ocall_api_mock::OcallApiMock},
 };
 use itp_time_utils::{duration_now, now_as_u64};
 use itp_types::{Block as ParentchainBlock, Header as ParentchainHeader, H256};
@@ -62,7 +58,7 @@ type TestBlockImporter = BlockImporter<
 	Pair,
 	ParentchainBlock,
 	SignedSidechainBlock,
-	OnchainMock,
+	OcallApiMock,
 	TestSidechainState,
 	HandleStateMock,
 	Aes,
@@ -90,7 +86,7 @@ fn test_fixtures(
 	let state_handler = Arc::new(HandleStateMock::from_shard(shard()).unwrap());
 	let top_pool_call_operator = Arc::new(TestTopPoolCallOperator::default());
 	let ocall_api = Arc::new(
-		OnchainMock::default()
+		OcallApiMock::default()
 			.with_validateer_set(Some(vec![validateer(Keyring::Alice.public().into())])),
 	);
 
