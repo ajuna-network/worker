@@ -58,7 +58,7 @@ type TestBlockImporter = BlockImporter<
 	Pair,
 	ParentchainBlock,
 	SignedSidechainBlock,
-	OcallApiMock,
+	OnchainMock,
 	TestSidechainState,
 	HandleStateMock,
 	Aes,
@@ -86,7 +86,7 @@ fn test_fixtures(
 	let state_handler = Arc::new(HandleStateMock::from_shard(shard()).unwrap());
 	let top_pool_call_operator = Arc::new(TestTopPoolCallOperator::default());
 	let ocall_api = Arc::new(
-		OcallApiMock::default()
+		OnchainMock::default()
 			.with_validateer_set(Some(vec![validateer(Keyring::Alice.public().into())])),
 	);
 
