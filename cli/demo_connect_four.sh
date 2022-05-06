@@ -7,7 +7,7 @@
 # run ajuna node
 #   target/release/ajuna  --dev --tmp --ws-port <NODEPORT> --port 30385 --rpc-port <RPCPORT>
 #
-# run worker
+# run worker inside the bin folder:
 #   rm light_client_db.bin
 #   rm -r shards
 #   rm -r sidechain_db
