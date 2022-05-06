@@ -22,7 +22,9 @@ use crate::{
 };
 use codec::Encode;
 use core::assert_matches::assert_matches;
+use itc_parentchain::light_client::mocks::validator_access_mock::ValidatorAccessMock;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
+use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
 use itp_sgx_crypto::{aes::Aes, StateCrypto};
 use itp_stf_state_handler::handle_state::HandleState;
 use itp_test::{
@@ -66,6 +68,8 @@ type TestBlockImporter = BlockImporter<
 	Aes,
 	TestTopPoolCallOperator,
 	TestParentchainBlockImportTrigger,
+	ExtrinsicsFactoryMock,
+	ValidatorAccessMock,
 >;
 
 fn state_key() -> Aes {

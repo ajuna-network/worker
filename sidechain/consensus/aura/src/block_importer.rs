@@ -45,7 +45,7 @@ use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
 	BlockData, Header as HeaderTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait,
 };
-use its_state::SidechainDB;
+use its_state::{SidechainDB, SidechainState};
 use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
@@ -193,7 +193,7 @@ impl<
 		sidechain_block: &SignedSidechainBlock::Block,
 	) -> Result<Vec<TrustedCallSigned>, ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
-		let top_hashes = sidechain_block.signed_top_hashes();
+		let top_hashes = sidechain_block.block_data().signed_top_hashes();
 		let calls = self
 			.top_pool_executor
 			.get_trusted_calls(shard)
@@ -318,6 +318,7 @@ impl<
 		+ Sync,
 	ExtrinsicsFactory: CreateExtrinsics,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
+	SidechainDB<SignedSidechainBlock::Block, SgxExternalities>: SidechainState,
 {
 	type Verifier = AuraVerifier<
 		Authority,

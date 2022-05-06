@@ -76,7 +76,6 @@ pub type EnclaveStfExecutor = StfExecutor<EnclaveOCallApi, EnclaveStateHandler, 
 pub type EnclaveExtrinsicsFactory = ExtrinsicsFactory<Pair, NonceCache>;
 pub type EnclaveIndirectCallsExecutor = IndirectCallsExecutor<Rsa3072KeyPair, EnclaveStfExecutor>;
 pub type EnclaveValidatorAccessor = ValidatorAccessor<ParentchainBlock>;
-pub type StateHandler = GlobalFileStateHandler;
 pub type EnclaveParentChainBlockImporter = ParentchainBlockImporter<
 	ParentchainBlock,
 	EnclaveValidatorAccessor,
@@ -84,7 +83,7 @@ pub type EnclaveParentChainBlockImporter = ParentchainBlockImporter<
 	EnclaveStfExecutor,
 	EnclaveExtrinsicsFactory,
 	EnclaveIndirectCallsExecutor,
-	StateHandler,
+	EnclaveStateHandler,
 >;
 pub type EnclaveParentchainBlockImportQueue = BlockImportQueue<SignedParentchainBlock>;
 pub type EnclaveParentchainBlockImportDispatcher =

@@ -88,6 +88,9 @@ pub fn produce_sidechain_block_and_import_it() {
 	let top_pool_operation_handler =
 		Arc::new(TestTopPoolExecutor::new(top_pool_author.clone(), stf_executor.clone()));
 	let parentchain_block_import_trigger = Arc::new(TestParentchainBlockImportTrigger::default());
+	let extrinsics_factory = Arc::new(ExtrinsicsFactoryMock::default());
+	let validator_access = Arc::new(ValidatorAccessMock::default());
+
 	let block_importer = Arc::new(TestBlockImporter::new(
 		state_handler.clone(),
 		state_key,
@@ -95,14 +98,12 @@ pub fn produce_sidechain_block_and_import_it() {
 		top_pool_operation_handler.clone(),
 		parentchain_block_import_trigger.clone(),
 		ocall_api.clone(),
-		Arc::new(ExtrinsicsFactoryMock::default()),
-		Arc::new(ValidatorAccessMock::default()),
+		extrinsics_factory.clone(),
+		validator_access.clone(),
 	));
 	let block_composer = Arc::new(TestBlockComposer::new(signer.clone(), state_key));
 	let proposer_environment =
 		ProposerFactory::new(top_pool_operation_handler, stf_executor.clone(), block_composer);
-	let extrinsics_factory = ExtrinsicsFactoryMock::default();
-	let validator_access = ValidatorAccessMock::default();
 
 	info!("Create trusted operations..");
 	let sender = endowed_account();
@@ -180,8 +181,8 @@ pub fn produce_sidechain_block_and_import_it() {
 		blocks,
 		opaque_calls,
 		propose_to_block_import_ocall_api,
-		&validator_access,
-		&extrinsics_factory,
+		validator_access.as_ref(),
+		extrinsics_factory.as_ref(),
 	)
 	.unwrap();
 
