@@ -36,12 +36,11 @@ use ita_stf::{
 	TrustedCallSigned, TrustedGetterSigned,
 };
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
+use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
 use itp_stf_state_handler::{handle_state::HandleState, query_shard_state::QueryShardState};
 use itp_storage::StorageEntryVerified;
 use itp_time_utils::duration_now;
 use itp_types::{Amount, BlockNumber, OpaqueCall, H256};
-use itp_registry_storage::RegistryStorage;
-use itp_registry_storage::RegistryStorageKeys;
 
 use crate::{
 	error::{Error, Result},
