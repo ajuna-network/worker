@@ -28,7 +28,7 @@ use itp_test::{
 		parentchain_block_builder::ParentchainBlockBuilder,
 		parentchain_header_builder::ParentchainHeaderBuilder,
 	},
-	mock::{handle_state_mock::HandleStateMock, ocall_api_mock::OcallApiMock},
+	mock::{handle_state_mock::HandleStateMock, onchain_mock::OnchainMock},
 };
 use itp_time_utils::{duration_now, now_as_u64};
 use itp_types::{Block as ParentchainBlock, Header as ParentchainHeader, H256};

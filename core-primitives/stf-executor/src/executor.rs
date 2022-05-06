@@ -35,13 +35,13 @@ use ita_stf::{
 	AccountId, ParentchainHeader, ShardIdentifier, StateTypeDiff, Stf, TrustedCall,
 	TrustedCallSigned, TrustedGetterSigned,
 };
-use itp_ocall_api::EnclaveAttestationOCallApi;
-use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
+use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
 use itp_stf_state_handler::{handle_state::HandleState, query_shard_state::QueryShardState};
 use itp_storage::StorageEntryVerified;
-use itp_storage_verifier::GetStorageVerified;
 use itp_time_utils::duration_now;
 use itp_types::{Amount, BlockNumber, OpaqueCall, H256};
+use itp_registry_storage::RegistryStorage;
+use itp_registry_storage::RegistryStorageKeys;
 
 use crate::{
 	error::{Error, Result},
@@ -60,7 +60,7 @@ pub struct StfExecutor<OCallApi, StateHandler, ExternalitiesT> {
 
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
 	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
@@ -130,7 +130,7 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecuteTrustedCall
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
 	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
@@ -173,7 +173,7 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecuteShieldFunds
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
 	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
@@ -251,7 +251,7 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfUpdateState
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
 	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256> + QueryShardState,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
@@ -319,7 +319,7 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StateUpdateProposer
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
 	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
@@ -380,7 +380,7 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecuteTimedGettersBatch
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
 	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {

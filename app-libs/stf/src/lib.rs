@@ -29,9 +29,9 @@ extern crate sgx_tstd as std;
 extern crate alloc;
 
 #[cfg(feature = "std")]
-use my_node_runtime::Balance;
-#[cfg(feature = "std")]
-pub use my_node_runtime::Index;
+pub use my_node_runtime::{Balance, Index};
+#[cfg(feature = "sgx")]
+pub use sgx_runtime::{Balance, Index};
 
 use codec::{Compact, Decode, Encode};
 use derive_more::Display;
@@ -103,7 +103,6 @@ pub mod stf_sgx_primitives;
 
 #[cfg(feature = "sgx")]
 pub mod stf_sgx;
-
 #[cfg(all(feature = "test", feature = "sgx"))]
 pub mod test_genesis;
 

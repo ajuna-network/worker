@@ -26,7 +26,7 @@ use itp_sgx_crypto::Aes;
 use itp_stf_executor::executor::StfExecutor;
 use itp_test::mock::{
 	handle_state_mock::HandleStateMock, metrics_ocall_mock::MetricsOCallMock,
-	ocall_api_mock::OcallApiMock,
+	onchain_mock::OnchainMock,
 };
 use itp_top_pool::basic_pool::BasicPool;
 use itp_top_pool_author::{
@@ -56,7 +56,7 @@ pub type TestStateHandler = HandleStateMock;
 
 pub type TestSidechainDb = SidechainDB<SidechainBlock, SgxExternalities>;
 
-pub type TestOCallApi = OcallApiMock;
+pub type TestOCallApi = OnchainMock;
 
 pub type TestParentchainBlockImportTrigger =
 	TriggerParentchainBlockImportMock<SignedParentchainBlock>;

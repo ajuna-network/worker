@@ -35,7 +35,6 @@ use itp_settings::node::{
 };
 use itp_stf_executor::traits::{StfExecuteShieldFunds, StfExecuteTrustedCall, StfUpdateState};
 use itp_stf_state_handler::query_shard_state::QueryShardState;
-use itp_storage_verifier::GetStorageVerified;
 use itp_types::{OpaqueCall, H256};
 use log::*;
 use pallet_ajuna_gameregistry::{game::GameEngine, Queue};
@@ -141,7 +140,7 @@ impl<
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
-	OCallApi: EnclaveOnChainOCallApi + EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveOnChainOCallApi + EnclaveAttestationOCallApi,
 	StfExecutor: StfUpdateState + StfExecuteTrustedCall + StfExecuteShieldFunds,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,

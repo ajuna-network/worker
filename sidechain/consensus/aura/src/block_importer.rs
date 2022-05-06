@@ -20,7 +20,7 @@
 // Reexport BlockImport trait which implements fn block_import()
 pub use its_consensus_common::BlockImport;
 
-use crate::{AuraVerifier, SidechainBlockTrait};
+use crate::{AuraVerifier, EnclaveOnChainOCallApi, SidechainBlockTrait};
 use ita_stf::{
 	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxBoardStruct,
 	TrustedCall, TrustedCallSigned,
@@ -31,7 +31,7 @@ use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 use itc_parentchain_light_client::{concurrent_access::ValidatorAccess, Validator};
 use itp_enclave_metrics::EnclaveMetric;
 use itp_extrinsics_factory::CreateExtrinsics;
-use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveOnChainOCallApi, EnclaveSidechainOCallApi};
+use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveSidechainOCallApi};
 use itp_settings::{
 	node::{FINISH_GAME, GAME_REGISTRY_MODULE},
 	sidechain::SLOT_DURATION,
@@ -39,7 +39,6 @@ use itp_settings::{
 use itp_sgx_crypto::StateCrypto;
 use itp_stf_executor::ExecutedOperation;
 use itp_stf_state_handler::handle_state::HandleState;
-use itp_storage_verifier::GetStorageVerified;
 use itp_types::{OpaqueCall, H256};
 use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
@@ -303,7 +302,7 @@ impl<
 		HeaderTrait<ShardIdentifier = H256>,
 	OCallApi: EnclaveSidechainOCallApi
 		+ ValidateerFetch
-		+ GetStorageVerified
+		+ EnclaveOnChainOCallApi
 		+ EnclaveMetricsOCallApi
 		+ Send
 		+ Sync
