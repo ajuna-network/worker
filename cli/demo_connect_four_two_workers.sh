@@ -5,7 +5,7 @@
 #   cargo build --release --features skip-ias-check
 #
 # run ajuna node
-#   target/release/ajuna  --dev --tmp --ws-port <NODEPORT> --port 30385 --rpc-port <RPCPORT>
+#   target/release/ajuna  --dev --tmp --ws-port <NODEPORT>
 #
 # run worker inside the bin folder:
 #   rm light_client_db.bin
