@@ -24,6 +24,7 @@ use codec::{Decode, Encode};
 use ita_stf::ShardIdentifier;
 use itc_rpc_client::direct_client::DirectApi;
 use itp_node_api_extensions::{PalletTeerexApi, TEEREX};
+use itp_registry_storage::REGISTRY;
 use log::*;
 use my_node_runtime::{Balance, BalancesCall, Call, Event, Hash};
 use sp_application_crypto::{ed25519, sr25519};
@@ -110,6 +111,12 @@ pub enum Commands {
 		shard: String,
 	},
 
+	/// Sign up for a game queue, ready to be matched.
+	QueueGame {
+		/// sender's AccountId in ss58check format
+		who: String,
+	},
+
 	/// trusted calls to worker enclave
 	#[clap(after_help = "stf subcommands depend on the stf crate this has been built against")]
 	Trusted(TrustedArgs),
@@ -128,6 +135,7 @@ pub fn match_command(cli: &Cli) {
 		Commands::Listen { events, blocks } => listen(cli, events, blocks),
 		Commands::ShieldFunds { from, to, amount, shard } =>
 			shield_funds(cli, from, to, amount, shard),
+		Commands::QueueGame { who } => queue_game(cli, who),
 		Commands::Trusted(trusted) => trusted_commands::match_trusted_commands(cli, trusted),
 	};
 }
@@ -368,4 +376,17 @@ fn shield_funds(cli: &Cli, arg_from: &str, arg_to: &str, amount: &Balance, shard
 
 	let tx_hash = chain_api.send_extrinsic(xt.hex_encode(), XtStatus::Finalized).unwrap();
 	println!("[+] TrustedOperation got finalized. Hash: {:?}\n", tx_hash);
+}
+
+fn queue_game(cli: &Cli, who: &str) {
+	let account = get_pair_from_str(who);
+	info!("Queueing player: {}", account.public().to_ss58check());
+
+	let chain_api = get_chain_api(cli).set_signer(sr25519_core::Pair::from(account));
+
+	// compose the extrinsic
+	let xt: UncheckedExtrinsicV4<([u8; 2])> = compose_extrinsic!(chain_api, REGISTRY, "queue");
+
+	let tx_hash = chain_api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();
+	println!("[+] Successfully registered player in game queue. Extrinsic Hash: {:?}\n", tx_hash);
 }

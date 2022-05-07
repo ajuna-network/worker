@@ -74,12 +74,12 @@ echo "  Bob's account = ${ACCOUNTBOB}"
 echo ""
 
 echo "* Issue ${BALANCE} tokens to Alice's account"
-${CLIENT} trusted set-balance ${ACCOUNTALICE} ${BALANCE} --mrenclave=${MRENCLAVE} --direct
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct set-balance ${ACCOUNTALICE} ${BALANCE}
 echo ""
 sleep 1
 
 echo "* Issue ${BALANCE} tokens to Bob's account"
-${CLIENT} trusted set-balance ${ACCOUNTBOB} ${BALANCE} --mrenclave=${MRENCLAVE} --direct
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct set-balance ${ACCOUNTBOB} ${BALANCE}
 echo ""
 sleep 1
 
@@ -97,22 +97,22 @@ echo "waiting"
 sleep 45
 
 echo "Turn for Alice (Player 1)"
-${CLIENT} trusted play-turn ${ACCOUNTALICE} 3 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct play-turn ${ACCOUNTALICE} 3
 echo ""
 sleep 1
 
 echo "Turn for Bob (Player 2)"
-${CLIENT} trusted play-turn ${ACCOUNTBOB} 4 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct play-turn ${ACCOUNTBOB} 4
 echo ""
 sleep 1
 
 echo "Turn for Alice (Player 1)"
-${CLIENT} trusted play-turn ${ACCOUNTALICE} 2 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct play-turn ${ACCOUNTALICE} 2
 echo ""
 sleep 1
 
 echo "Turn for Bob (Player 2)"
-${CLIENT} trusted play-turn ${ACCOUNTBOB} 3 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct play-turn ${ACCOUNTBOB} 3
 echo ""
 sleep 1
 
@@ -120,28 +120,27 @@ echo "waiting"
 sleep 5
 
 echo "Board after 2 turns"
-${CLIENT} trusted get-board ${ACCOUNTBOB} --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} get-board ${ACCOUNTBOB}
 echo ""
 sleep 1
 
 
 echo "Turn for Alice (Player 1)"
-${CLIENT} trusted play-turn ${ACCOUNTALICE} 2 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct play-turn ${ACCOUNTALICE} 2
 echo ""
 sleep 1
 
 echo "Turn for Bob (Player 2)"
-${CLIENT} trusted play-turn ${ACCOUNTBOB} 5 --direct --mrenclave=${MRENCLAVE}
-echo ""
+${CLIENT} trusted  --mrenclave ${MRENCLAVE} --direct play-turn ${ACCOUNTBOB} 5
 sleep 1
 
 echo "Turn for Alice (Player 1)"
-${CLIENT} trusted play-turn ${ACCOUNTALICE} 2 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave  ${MRENCLAVE}  --direct  play-turn ${ACCOUNTALICE} 2
 echo ""
 sleep 1
 
 echo "Turn for Bob (Player 2)"
-${CLIENT} trusted play-turn ${ACCOUNTBOB} 1 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} --direct  play-turn ${ACCOUNTBOB} 1
 echo ""
 sleep 1
 
@@ -149,12 +148,12 @@ echo "waiting"
 sleep 5
 
 echo "Board after 4 turns"
-${CLIENT} trusted get-board ${ACCOUNTBOB} --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} get-board ${ACCOUNTBOB}
 echo ""
 sleep 1
 
 echo "Turn for Alice  (Player 1)"
-${CLIENT} trusted play-turn ${ACCOUNTALICE} 2 --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave  ${MRENCLAVE} --direct  play-turn ${ACCOUNTALICE} 2
 echo ""
 sleep 1
 
@@ -162,5 +161,5 @@ echo "waiting"
 sleep 5
 
 echo "Board after end of game"
-${CLIENT} trusted get-board ${ACCOUNTBOB} --direct --mrenclave=${MRENCLAVE}
+${CLIENT} trusted --mrenclave ${MRENCLAVE} get-board ${ACCOUNTBOB}
 echo ""
