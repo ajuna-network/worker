@@ -42,7 +42,7 @@ use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
 };
-use std::{format, marker::PhantomData, sync::Arc, vec, vec::Vec};
+use std::{format, marker::PhantomData, sync::Arc, vec::Vec};
 
 /// Parentchain block import implementation.
 pub struct ParentchainBlockImporter<
@@ -200,7 +200,6 @@ impl<
 				.1;
 			match maybe_queue {
 				Some(mut queue) => {
-					//FIXME: if this would be a separate function, we could return here upon if queue.is_empty() check.
 					if !queue.is_empty() {
 						//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
 						let game_engine = GameEngine::new(1u8, 1u8);
@@ -210,22 +209,14 @@ impl<
 						}
 						//FIXME: we currently only take the first shard. How we handle sharding in general?
 						let shard = self.file_state_handler.list_shards()?[0];
-						let opaque_call = OpaqueCall::from_tuple(&(
+						let ack_game_call = OpaqueCall::from_tuple(&(
 							[GAME_REGISTRY_MODULE, ACK_GAME],
 							&game_engine,
 							games,
 							shard,
 						));
-						let calls = vec![opaque_call];
 
-						// Create extrinsic for acknowledge game.
-						let ack_game_extrinsic =
-							self.extrinsics_factory.create_extrinsics(calls.as_slice())?;
-
-						// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
-						self.validator_accessor.execute_mut_on_validator(|v| {
-							v.send_extrinsics(self.ocall_api.as_ref(), ack_game_extrinsic)
-						})?;
+						calls.push(ack_game_call);
 					}
 				},
 				None => {

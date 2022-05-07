@@ -134,7 +134,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#75b4cc2bef02899b14b778cfad01f0914b8b6f12"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -145,7 +145,7 @@ dependencies = [
 [[package]]
 name = "ajuna-primitives"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#75b4cc2bef02899b14b778cfad01f0914b8b6f12"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -154,7 +154,7 @@ dependencies = [
 [[package]]
 name = "ajuna-solo-runtime"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#75b4cc2bef02899b14b778cfad01f0914b8b6f12"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "ajuna-common",
  "ajuna-primitives",
@@ -694,9 +694,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.1.16"
+version = "3.1.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f52d4f8e4a1419219935762e32913b4430f37cb0c0200ad17a89ee18c0188a9f"
+checksum = "47582c09be7c8b32c0ab3a6181825ababb713fde6fff20fc573a3870dd45c6a0"
 dependencies = [
  "atty",
  "bitflags",
@@ -2163,7 +2163,7 @@ dependencies = [
  "base58 0.1.0",
  "blake2-rfc",
  "chrono",
- "clap 3.1.16",
+ "clap 3.1.17",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "frame-system",
  "geojson",
@@ -4277,7 +4277,7 @@ checksum = "8e22443d1643a904602595ba1cd8f7d896afe56d26712531c5ff73a15b2fbf64"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#75b4cc2bef02899b14b778cfad01f0914b8b6f12"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "ajuna-common",
  "frame-benchmarking",
@@ -4293,7 +4293,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#75b4cc2bef02899b14b778cfad01f0914b8b6f12"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "ajuna-common",
  "frame-benchmarking",
@@ -4311,7 +4311,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#75b4cc2bef02899b14b778cfad01f0914b8b6f12"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -4324,7 +4324,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-runner"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#75b4cc2bef02899b14b778cfad01f0914b8b6f12"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -6876,7 +6876,7 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "4.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=master#6f3aafba3ed13dfc0b52dac1f201d4177988e67b"
+source = "git+https://github.com/paritytech/substrate.git?branch=master#f9f0b08273c41beabf5ad5f3d6262d96c947b8d9"
 
 [[package]]
 name = "sp-std"

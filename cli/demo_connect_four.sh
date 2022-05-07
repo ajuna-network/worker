@@ -21,7 +21,7 @@
 
 # usage:
 #  export RUST_LOG=integritee-cli=info,ita_stf=info
-#  demo_connect_four.sh -p <NODEPORT> -P <WORKERPORT> -m file
+#  ./demo_connect_four.sh -p <NODEPORT> -P <WORKERPORT> -m file
 #
 # if -m file is set, the mrenclave will be read from file  ~/mrenclave.b58
 
