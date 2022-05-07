@@ -2,10 +2,10 @@
 
 # setup:
 # build ajuna node with skip-ias-check on branch "validateer-setup"
-#   cargo build --release --features skip-ias-check
+#   cargo build --release --features solo,skip-ias-check
 #
 # run ajuna node
-#   ./target/release/ajuna  --dev --tmp --ws-port <NODEPORT>
+#   ./target/release/ajuna-solo  --dev --tmp --ws-port <NODEPORT>
 #
 # run worker inside the bin folder:
 #   rm light_client_db.bin
