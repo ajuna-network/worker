@@ -4,7 +4,7 @@ version = "0.8.0"
 edition = "2018"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = ["derive"] }
 derive_more = { version = "0.99.5" }
 
 # sgx deps
@@ -18,9 +18,9 @@ jsonrpc-core_sgx = { package = "jsonrpc-core", git = "https://github.com/scs/jso
 jsonrpc-core = { version = "18", optional = true }
 
 # substrate deps
-sp-core = { version = "5.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master"}
-sp-runtime = { version = "5.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master"}
-sp-std = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master"}
+sp-core = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
+sp-runtime = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
+sp-std = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
 
 # local deps
 ita-stf = { path = "../../app-libs/stf", default-features = false }
@@ -30,9 +30,7 @@ itp-teerex-storage = { path = "../teerex-storage", default-features = false }
 itp-time-utils = { path = "../time-utils", default-features = false }
 itp-types = { path = "../types", default-features = false }
 itp-ocall-api = { path = "../ocall-api", default-features = false }
-itp-storage-verifier = { path = "../storage-verified", default-features = false }
 itp-storage = { path = "../storage", default-features = false, features = ["test"] }
-its-top-pool = { path = "../../sidechain/top-pool", default-features = false }
 
 [features]
 default = ["std"]
@@ -49,8 +47,6 @@ std = [
     "itp-time-utils/std",
     "itp-types/std",
     "itp-ocall-api/std",
-    "itp-storage-verifier/std",
-    "its-top-pool/std",
     "jsonrpc-core",
 ]
 sgx = [
@@ -60,8 +56,6 @@ sgx = [
     "itp-time-utils/sgx",
     "itp-sgx-crypto/sgx",
     "itp-stf-state-handler/sgx",
-    "itp-storage-verifier/sgx",
-    "its-top-pool/sgx",
     "jsonrpc-core_sgx",
     "sgx-externalities/sgx",
 ]

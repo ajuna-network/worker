@@ -20,7 +20,7 @@
 // Reexport BlockImport trait which implements fn block_import()
 pub use its_consensus_common::BlockImport;
 
-use crate::{std::string::ToString, AuraVerifier, SidechainBlockTrait};
+use crate::{AuraVerifier, EnclaveOnChainOCallApi, SidechainBlockTrait};
 use ita_stf::{
 	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxBoardStruct,
 	TrustedCall, TrustedCallSigned,
@@ -31,7 +31,7 @@ use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 use itc_parentchain_light_client::{concurrent_access::ValidatorAccess, Validator};
 use itp_enclave_metrics::EnclaveMetric;
 use itp_extrinsics_factory::CreateExtrinsics;
-use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveOnChainOCallApi, EnclaveSidechainOCallApi};
+use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveSidechainOCallApi};
 use itp_settings::{
 	node::{FINISH_GAME, GAME_REGISTRY_MODULE},
 	sidechain::SLOT_DURATION,
@@ -42,9 +42,9 @@ use itp_stf_state_handler::handle_state::HandleState;
 use itp_types::{OpaqueCall, H256};
 use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
-	Block as BlockTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait, SignedBlock,
+	BlockData, Header as HeaderTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait,
 };
-use its_state::SidechainDB;
+use its_state::{SidechainDB, SidechainState};
 use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
@@ -54,7 +54,7 @@ use sp_core::Pair;
 use sp_runtime::{
 	generic::SignedBlock as SignedParentchainBlock, traits::Block as ParentchainBlockTrait,
 };
-use std::{marker::PhantomData, sync::Arc, vec::Vec};
+use std::{marker::PhantomData, string::ToString, sync::Arc, vec::Vec};
 
 /// Implements `BlockImport`.
 #[derive(Clone)]
@@ -112,7 +112,8 @@ impl<
 	Authority::Public: std::fmt::Debug,
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	SignedSidechainBlock: SignedBlockTrait<Public = Authority::Public> + 'static,
-	SignedSidechainBlock::Block: BlockTrait<ShardIdentifier = H256>,
+	<<SignedSidechainBlock as SignedBlockTrait>::Block as SidechainBlockTrait>::HeaderType:
+		HeaderTrait<ShardIdentifier = H256>,
 	OCallApi: EnclaveSidechainOCallApi
 		+ ValidateerFetch
 		+ EnclaveMetricsOCallApi
@@ -153,21 +154,26 @@ impl<
 		}
 	}
 
-	pub(crate) fn remove_calls_from_top_pool(
-		&self,
-		signed_top_hashes: &[H256],
-		shard: &ShardIdentifierFor<SignedSidechainBlock>,
-	) {
-		let executed_operations = signed_top_hashes
+	pub(crate) fn update_top_pool(&self, sidechain_block: &SignedSidechainBlock::Block) {
+		// FIXME: we should take the rpc author here directly #547.
+
+		// Notify pool about imported block for status updates of the calls.
+		self.top_pool_executor.on_block_imported(sidechain_block);
+
+		// Remove calls from pool.
+		let executed_operations = sidechain_block
+			.block_data()
+			.signed_top_hashes()
 			.iter()
 			.map(|hash| {
 				// Only successfully executed operations are included in a block.
 				ExecutedOperation::success(*hash, TrustedOperationOrHash::Hash(*hash), Vec::new())
 			})
 			.collect();
-		// FIXME: we should take the rpc author here directly #547
-		let unremoved_calls =
-			self.top_pool_executor.remove_calls_from_pool(shard, executed_operations);
+
+		let unremoved_calls = self
+			.top_pool_executor
+			.remove_calls_from_pool(&sidechain_block.header().shard_id(), executed_operations);
 
 		for unremoved_call in unremoved_calls {
 			error!(
@@ -183,10 +189,10 @@ impl<
 
 	fn get_calls_in_block(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 	) -> Result<Vec<TrustedCallSigned>, ConsensusError> {
-		let shard = &sidechain_block.shard_id();
-		let top_hashes = sidechain_block.signed_top_hashes();
+		let shard = &sidechain_block.header().shard_id();
+		let top_hashes = sidechain_block.block_data().signed_top_hashes();
 		let calls = self
 			.top_pool_executor
 			.get_trusted_calls(shard)
@@ -203,14 +209,14 @@ impl<
 
 	fn get_board_if_game_finished(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 		call: &TrustedCallSigned,
 	) -> Result<Option<SgxBoardStruct>, ConsensusError> {
-		let shard = &sidechain_block.shard_id();
+		let shard = &sidechain_block.header().shard_id();
 		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
-				.load_initialized(&shard)
+				.load(&shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
 				if let BoardState::Finished(_) = board.board_state {
@@ -225,10 +231,10 @@ impl<
 
 	fn send_game_finished_extrinsic(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 		board: SgxBoardStruct,
 	) -> Result<(), ConsensusError> {
-		let shard = &sidechain_block.shard_id();
+		let shard = &sidechain_block.header().shard_id();
 		// player 1 is red, player 2 is blue
 		// the winner is not the next player
 		let winner = match board.next_player {
@@ -292,9 +298,11 @@ impl<
 	Authority::Public: std::fmt::Debug,
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	SignedSidechainBlock: SignedBlockTrait<Public = Authority::Public> + 'static,
-	SignedSidechainBlock::Block: BlockTrait<ShardIdentifier = H256>,
+	<<SignedSidechainBlock as SignedBlockTrait>::Block as SidechainBlockTrait>::HeaderType:
+		HeaderTrait<ShardIdentifier = H256>,
 	OCallApi: EnclaveSidechainOCallApi
 		+ ValidateerFetch
+		+ EnclaveOnChainOCallApi
 		+ EnclaveMetricsOCallApi
 		+ Send
 		+ Sync
@@ -309,6 +317,7 @@ impl<
 		+ Sync,
 	ExtrinsicsFactory: CreateExtrinsics,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
+	SidechainDB<SignedSidechainBlock::Block, SgxExternalities>: SidechainState,
 {
 	type Verifier = AuraVerifier<
 		Authority,
@@ -341,7 +350,7 @@ impl<
 		let updated_state = mutating_function(Self::SidechainState::new(state))?;
 
 		self.state_handler
-			.write(updated_state.ext, write_lock, shard)
+			.write_after_mutation(updated_state.ext, write_lock, shard)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
 		Ok(())
@@ -357,7 +366,7 @@ impl<
 	{
 		let state = self
 			.state_handler
-			.load_initialized(shard)
+			.load(shard)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 		verifying_function(Self::SidechainState::new(state))
 	}
@@ -380,7 +389,8 @@ impl<
 		let maybe_latest_imported_block = self
 			.parentchain_block_importer
 			.import_until(|signed_parentchain_block| {
-				signed_parentchain_block.block.hash() == sidechain_block.layer_one_head()
+				signed_parentchain_block.block.hash()
+					== sidechain_block.block_data().layer_one_head()
 			})
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
@@ -394,12 +404,13 @@ impl<
 		sidechain_block: &SignedSidechainBlock::Block,
 		last_imported_parentchain_header: &ParentchainBlock::Header,
 	) -> Result<ParentchainBlock::Header, ConsensusError> {
-		if sidechain_block.layer_one_head() == last_imported_parentchain_header.hash() {
+		if sidechain_block.block_data().layer_one_head() == last_imported_parentchain_header.hash()
+		{
 			debug!("No queue peek necessary, sidechain block references latest imported parentchain block");
 			return Ok(last_imported_parentchain_header.clone())
 		}
 
-		let parentchain_header_hash_to_peek = sidechain_block.layer_one_head();
+		let parentchain_header_hash_to_peek = sidechain_block.block_data().layer_one_head();
 		let maybe_signed_parentchain_block = self
 			.parentchain_block_importer
 			.peek(|parentchain_block| {
@@ -414,8 +425,8 @@ impl<
 					format!(
 						"Failed to find parentchain header in import queue (hash: {}) that is \
 			associated with the current sidechain block that is to be imported (number: {}, hash: {})",
-						sidechain_block.layer_one_head(),
-						sidechain_block.block_number(),
+						sidechain_block.block_data().layer_one_head(),
+						sidechain_block.header().block_number(),
 						sidechain_block.hash()
 					)
 					.into(),
@@ -434,16 +445,13 @@ impl<
 
 		// If the block has been proposed by this enclave, remove all successfully applied
 		// trusted calls from the top pool.
-		if self.block_author_is_self(sidechain_block.block_author()) {
-			self.remove_calls_from_top_pool(
-				sidechain_block.signed_top_hashes(),
-				&sidechain_block.shard_id(),
-			)
+		if self.block_author_is_self(sidechain_block.block_data().block_author()) {
+			self.update_top_pool(sidechain_block)
 		}
 
 		// Send metric about sidechain block height (i.e. block number)
 		let block_height_metric =
-			EnclaveMetric::SetSidechainBlockHeight(sidechain_block.block_number());
+			EnclaveMetric::SetSidechainBlockHeight(sidechain_block.header().block_number());
 		if let Err(e) = self.ocall_api.update_metric(block_height_metric) {
 			warn!("Failed to update sidechain block height metric: {:?}", e);
 		}

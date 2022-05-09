@@ -17,14 +17,11 @@
 
 //! Imports parentchain blocks and executes any indirect calls found in the extrinsics.
 
-use log::*;
-use pallet_ajuna_gameregistry::{game::GameEngine, Queue};
-use sp_runtime::{
-	generic::SignedBlock as SignedBlockG,
-	traits::{Block as ParentchainBlockTrait, NumberFor},
+use crate::{
+	beefy_merkle_tree::{merkle_root, Keccak256},
+	error::{Error, Result},
+	ImportParentchainBlocks,
 };
-use std::{marker::PhantomData, sync::Arc, vec, vec::Vec};
-
 use ita_stf::ParentchainHeader;
 use itc_parentchain_indirect_calls_executor::ExecuteIndirectCalls;
 use itc_parentchain_light_client::{
@@ -38,14 +35,14 @@ use itp_settings::node::{
 };
 use itp_stf_executor::traits::{StfExecuteShieldFunds, StfExecuteTrustedCall, StfUpdateState};
 use itp_stf_state_handler::query_shard_state::QueryShardState;
-use itp_storage_verifier::GetStorageVerified;
 use itp_types::{OpaqueCall, H256};
-
-use crate::{
-	beefy_merkle_tree::{merkle_root, Keccak256},
-	error::Result,
-	ImportParentchainBlocks,
+use log::*;
+use pallet_ajuna_gameregistry::{game::GameEngine, Queue};
+use sp_runtime::{
+	generic::SignedBlock as SignedBlockG,
+	traits::{Block as ParentchainBlockTrait, NumberFor},
 };
+use std::{format, marker::PhantomData, sync::Arc, vec::Vec};
 
 /// Parentchain block import implementation.
 pub struct ParentchainBlockImporter<
@@ -143,7 +140,7 @@ impl<
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
-	OCallApi: EnclaveOnChainOCallApi + EnclaveAttestationOCallApi + GetStorageVerified,
+	OCallApi: EnclaveOnChainOCallApi + EnclaveAttestationOCallApi,
 	StfExecutor: StfUpdateState + StfExecuteTrustedCall + StfExecuteShieldFunds,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
@@ -197,12 +194,12 @@ impl<
 			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
 			let maybe_queue: Option<Queue<H256>> = self
 				.ocall_api
-				.get_storage_verified(RegistryStorage::queue_game(), block.header())?
+				.get_storage_verified(RegistryStorage::queue_game(), block.header())
+				.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
 				.into_tuple()
 				.1;
 			match maybe_queue {
 				Some(mut queue) => {
-					//FIXME: if this would be a separate function, we could return here upon if queue.is_empty() check.
 					if !queue.is_empty() {
 						//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
 						let game_engine = GameEngine::new(1u8, 1u8);
@@ -212,22 +209,14 @@ impl<
 						}
 						//FIXME: we currently only take the first shard. How we handle sharding in general?
 						let shard = self.file_state_handler.list_shards()?[0];
-						let opaque_call = OpaqueCall::from_tuple(&(
+						let ack_game_call = OpaqueCall::from_tuple(&(
 							[GAME_REGISTRY_MODULE, ACK_GAME],
 							&game_engine,
 							games,
 							shard,
 						));
-						let calls = vec![opaque_call];
 
-						// Create extrinsic for acknowledge game.
-						let ack_game_extrinsic =
-							self.extrinsics_factory.create_extrinsics(calls.as_slice())?;
-
-						// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
-						self.validator_accessor.execute_mut_on_validator(|v| {
-							v.send_extrinsics(self.ocall_api.as_ref(), ack_game_extrinsic)
-						})?;
+						calls.push(ack_game_call);
 					}
 				},
 				None => {

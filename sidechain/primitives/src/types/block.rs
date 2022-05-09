@@ -15,11 +15,13 @@
 
 */
 
-use crate::traits::{Block as BlockT, SignedBlock as SignedBlockT};
+use crate::{
+	traits::{Block as BlockTrait, SignedBlock as SignedBlockTrait},
+	types::{block_data::BlockData, header::Header},
+};
 use codec::{Decode, Encode};
 use sp_core::{ed25519, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
-use sp_std::vec::Vec;
 
 pub type BlockHash = H256;
 pub type BlockNumber = u64;
@@ -40,93 +42,44 @@ pub type Signature = MultiSignature;
 #[derive(PartialEq, Eq, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct SignedBlock {
+	/// Plain sidechain block without author signature.
 	pub block: Block,
-	/// block author signature
+	/// Block author signature.
 	pub signature: Signature,
 }
 
-/// simplified block structure for relay chain submission as an extrinsic
+/// Simplified block structure for relay chain submission as an extrinsic.
 #[derive(PartialEq, Eq, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct Block {
-	pub block_number: BlockNumber,
-	pub parent_hash: H256,
-	pub timestamp: u64,
-	/// Parentchain header this block is based on
-	pub layer_one_head: H256,
-	pub shard_id: ShardIdentifier,
-	///  must be registered on layer one as an enclave for the respective shard
-	pub block_author: ed25519::Public,
-	pub signed_top_hashes: Vec<H256>,
-	// encrypted state payload
-	pub state_payload: Vec<u8>,
+	/// Sidechain Header
+	pub header: Header,
+
+	/// Sidechain Block data
+	pub block_data: BlockData,
 }
 
-impl BlockT for Block {
-	type ShardIdentifier = H256;
+impl BlockTrait for Block {
+	type HeaderType = Header;
+
+	type BlockDataType = BlockData;
 
 	type Public = ed25519::Public;
 
-	///get block number
-	fn block_number(&self) -> BlockNumber {
-		self.block_number
+	fn header(&self) -> &Self::HeaderType {
+		&self.header
 	}
-	/// get parent hash of block
-	fn parent_hash(&self) -> H256 {
-		self.parent_hash
+
+	fn block_data(&self) -> &Self::BlockDataType {
+		&self.block_data
 	}
-	/// get timestamp of block
-	fn timestamp(&self) -> Timestamp {
-		self.timestamp
-	}
-	/// get layer one head of block
-	fn layer_one_head(&self) -> H256 {
-		self.layer_one_head
-	}
-	/// get shard id of block
-	fn shard_id(&self) -> Self::ShardIdentifier {
-		self.shard_id
-	}
-	/// get author of block
-	fn block_author(&self) -> &Self::Public {
-		&self.block_author
-	}
-	/// get reference of extrinisics of block
-	fn signed_top_hashes(&self) -> &[H256] {
-		&self.signed_top_hashes
-	}
-	/// get encrypted payload
-	fn state_payload(&self) -> &Vec<u8> {
-		&self.state_payload
-	}
-	/// Constructs an unsigned block
-	/// Todo: group arguments in structs.
-	#[allow(clippy::too_many_arguments)]
-	fn new(
-		author: Self::Public,
-		block_number: u64,
-		parent_hash: H256,
-		layer_one_head: H256,
-		shard: Self::ShardIdentifier,
-		signed_top_hashes: Vec<H256>,
-		encrypted_payload: Vec<u8>,
-		timestamp: Timestamp,
-	) -> Block {
-		// create block
-		Block {
-			block_number,
-			parent_hash,
-			timestamp,
-			layer_one_head,
-			signed_top_hashes,
-			shard_id: shard,
-			block_author: author,
-			state_payload: encrypted_payload,
-		}
+
+	fn new(header: Self::HeaderType, block_data: Self::BlockDataType) -> Self {
+		Self { header, block_data }
 	}
 }
 
-impl SignedBlockT for SignedBlock {
+impl SignedBlockTrait for SignedBlock {
 	type Block = Block;
 
 	type Public = ed25519::Public;
@@ -149,15 +102,16 @@ impl SignedBlockT for SignedBlock {
 
 	/// Verifies the signature of a Block
 	fn verify_signature(&self) -> bool {
-		self.block
-			.using_encoded(|p| self.signature.verify(p, &self.block.block_author.into()))
+		self.block.using_encoded(|p| {
+			self.signature.verify(p, &self.block.block_data().block_author.into())
+		})
 	}
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::traits::{Block as BlockT, SignBlock};
+	use crate::traits::{Block as BlockT, BlockData, Header, SignBlock};
 	use sp_core::Pair;
 	use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -167,16 +121,16 @@ mod tests {
 	}
 
 	fn test_block() -> Block {
-		Block::new(
+		let header = Header::new(0, H256::random(), H256::random(), Default::default());
+		let block_data = BlockData::new(
 			ed25519::Pair::from_string("//Alice", None).unwrap().public().into(),
-			0,
-			H256::random(),
-			H256::random(),
 			H256::random(),
 			Default::default(),
 			Default::default(),
 			timestamp_now(),
-		)
+		);
+
+		Block::new(header, block_data)
 	}
 
 	#[test]
@@ -198,7 +152,7 @@ mod tests {
 		let signer = ed25519::Pair::from_string("//Alice", None).unwrap();
 
 		let mut signed_block: SignedBlock = test_block().sign_block(&signer);
-		signed_block.block.block_number = 1;
+		signed_block.block.header.block_number = 1;
 
 		assert!(!signed_block.verify_signature());
 	}

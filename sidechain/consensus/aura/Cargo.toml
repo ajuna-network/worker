@@ -6,16 +6,16 @@ edition = "2018"
 
 [dependencies]
 log = { version = "0.4.14", default-features = false }
-finality-grandpa = { version = "0.14.3", default-features = false, features = ["derive-codec"] }
-sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "master" }
+finality-grandpa = { version = "0.15.0", default-features = false, features = ["derive-codec"] }
+sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "master", optional = true }
 
 # sgx deps
 sgx_tstd = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
 
 # substrate deps
-frame-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master"}
-sp-core = { version = "5.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-runtime = { version = "5.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master"}
+frame-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
+sp-core = { version = "6.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19" }
+sp-runtime = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
 
 # local deps
 ita-stf = { path = "../../../app-libs/stf", default-features = false }
@@ -28,7 +28,6 @@ itp-settings = { path = "../../../core-primitives/settings" }
 itp-sgx-crypto = { path = "../../../core-primitives/sgx/crypto", default-features = false }
 itp-stf-executor = { path = "../../../core-primitives/stf-executor", default-features = false }
 itp-stf-state-handler = { path = "../../../core-primitives/stf-state-handler", default-features = false }
-itp-storage-verifier = { path =  "../../../core-primitives/storage-verified", default-features = false }
 itp-time-utils = { path = "../../../core-primitives/time-utils", default-features = false }
 itp-types = { path = "../../../core-primitives/types", default-features = false }
 its-block-composer = { path = "../../block-composer", default-features = false }
@@ -39,17 +38,19 @@ its-state = { path = "../../state", default-features = false }
 its-top-pool-executor = { path = "../../top-pool-executor", default-features = false }
 its-validateer-fetch = { path = "../../validateer-fetch", default-features = false }
 
-pallet-ajuna-connectfour = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "update-substrate-5" }
+pallet-ajuna-connectfour = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "validateer-setup" }
 
 [dev-dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
 env_logger = "0.9.0"
 itc-parentchain-block-import-dispatcher = { path = "../../../core/parentchain/block-import-dispatcher", features = ["mocks"] }
+itc-parentchain-light-client = { path = "../../../core/parentchain/light-client", features = ["mocks"] }
+itp-extrinsics-factory = { path = "../../../core-primitives/extrinsics-factory", features = ["mocks"] }
 itp-storage = { path = "../../../core-primitives/storage" }
 itp-test = { path = "../../../core-primitives/test" }
 its-test = { path = "../../test" }
 its-top-pool-executor = { path = "../../top-pool-executor", features = ["mocks"] }
-sp-keyring = { version = "5.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master"}
+sp-keyring = { version = "6.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
 
 [features]
 default = ["std"]
@@ -61,7 +62,6 @@ std = [
    "itp-sgx-crypto/std",
    "itp-stf-executor/std",
    "itp-stf-state-handler/std",
-   "itp-storage-verifier/std",
    "itp-time-utils/std",
    "itp-types/std",
    "its-block-composer/std",
@@ -83,7 +83,6 @@ sgx = [
    "itp-sgx-crypto/sgx",
    "itp-stf-executor/sgx",
    "itp-stf-state-handler/sgx",
-   "itp-storage-verifier/sgx",
    "itp-time-utils/sgx",
    "its-block-composer/sgx",
    "its-consensus-common/sgx",

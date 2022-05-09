@@ -15,14 +15,18 @@
 
 */
 use crate::{
-	stf_sgx_primitives::types::*, AccountId, Hash, Index, SgxBoardStruct, StfError, StfResult, H256,
+	stf_sgx_primitives::types::BlockNumber, AccountId, Hash, Index, SgxBoardStruct, StfError,
+	StfResult, H256,
 };
 use codec::{Decode, Encode};
 use itp_storage::{storage_double_map_key, storage_map_key, storage_value_key, StorageHasher};
 use log::*;
-use sgx_runtime::BlockNumber;
-use sgx_tstd as std;
 use std::prelude::v1::*;
+
+#[cfg(feature = "sgx")]
+use crate::stf_sgx_primitives::types::{AccountData, AccountInfo};
+#[cfg(feature = "std")]
+use itp_types::{AccountData, AccountInfo};
 
 pub fn get_storage_value<V: Decode>(
 	storage_prefix: &'static str,

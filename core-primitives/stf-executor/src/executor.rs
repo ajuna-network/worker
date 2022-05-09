@@ -35,11 +35,10 @@ use ita_stf::{
 	AccountId, ParentchainHeader, ShardIdentifier, StateTypeDiff, Stf, TrustedCall,
 	TrustedCallSigned, TrustedGetterSigned,
 };
-use itp_ocall_api::EnclaveAttestationOCallApi;
+use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
 use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
 use itp_stf_state_handler::{handle_state::HandleState, query_shard_state::QueryShardState};
 use itp_storage::StorageEntryVerified;
-use itp_storage_verifier::GetStorageVerified;
 use itp_time_utils::duration_now;
 use itp_types::{Amount, BlockNumber, OpaqueCall, H256};
 
@@ -60,8 +59,8 @@ pub struct StfExecutor<OCallApi, StateHandler, ExternalitiesT> {
 
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
-	StateHandler: HandleState<StateT = ExternalitiesT>,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
+	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
 	pub fn new(ocall_api: Arc<OCallApi>, state_handler: Arc<StateHandler>) -> Self {
@@ -108,7 +107,7 @@ where
 
 		Stf::update_storage(state, &update_map.into());
 
-		debug!("execute STF");
+		debug!("execute STF, call with nonce {}", stf_call_signed.nonce);
 		let mut extrinsic_call_backs: Vec<OpaqueCall> = Vec::new();
 		if let Err(e) = Stf::execute(state, stf_call_signed.clone(), &mut extrinsic_call_backs) {
 			error!("Stf::execute failed: {:?}", e);
@@ -130,8 +129,8 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecuteTrustedCall
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
-	StateHandler: HandleState<StateT = ExternalitiesT>,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
+	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
 	fn execute_trusted_call<PH>(
@@ -164,7 +163,7 @@ where
 		calls.append(&mut extrinsic_callbacks);
 
 		trace!("Updating state of shard {:?}", shard);
-		self.state_handler.write(state, state_lock, shard)?;
+		self.state_handler.write_after_mutation(state, state_lock, shard)?;
 
 		Ok(maybe_call_hash)
 	}
@@ -173,8 +172,8 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecuteShieldFunds
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
-	StateHandler: HandleState<StateT = ExternalitiesT>,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
+	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
 	fn execute_shield_funds(
@@ -197,7 +196,9 @@ where
 		Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
 			.map_err::<Error, _>(|e| e.into())?;
 
-		self.state_handler.write(state, state_lock, shard).map_err(|e| e.into())
+		self.state_handler
+			.write_after_mutation(state, state_lock, shard)
+			.map_err(|e| e.into())
 	}
 
 	fn execute_new_game<ParentchainBlock>(
@@ -234,7 +235,9 @@ where
 				Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
 					.map_err::<Error, _>(|e| e.into())?;
 
-				self.state_handler.write(state, state_lock, shard).map_err(|e| e.into())
+				self.state_handler
+					.write_after_mutation(state, state_lock, shard)
+					.map_err(|e| e.into())
 			},
 			None => {
 				error!("No game entry found for game {}", game);
@@ -247,8 +250,8 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfUpdateState
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
-	StateHandler: HandleState<StateT = ExternalitiesT> + QueryShardState,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
+	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256> + QueryShardState,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
 	fn update_states(&self, header: &ParentchainHeader) -> Result<()> {
@@ -272,7 +275,7 @@ where
 			let (state_lock, mut state) = self.state_handler.load_for_mutation(&shard_id)?;
 			match Stf::update_parentchain_block(&mut state, header.clone()) {
 				Ok(_) => {
-					self.state_handler.write(state, state_lock, &shard_id)?;
+					self.state_handler.write_after_mutation(state, state_lock, &shard_id)?;
 				},
 				Err(e) => error!("Could not update parentchain block. {:?}: {:?}", shard_id, e),
 			}
@@ -302,7 +305,7 @@ where
 							error!("Could not update parentchain block. {:?}: {:?}", shard_id, e)
 						}
 
-						self.state_handler.write(state, state_lock, &shard_id)?;
+						self.state_handler.write_after_mutation(state, state_lock, &shard_id)?;
 					}
 				},
 				None => debug!("No shards are on the chain yet"),
@@ -315,8 +318,8 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StateUpdateProposer
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
-	StateHandler: HandleState<StateT = ExternalitiesT>,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
+	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
 	type Externalities = ExternalitiesT;
@@ -335,7 +338,7 @@ where
 	{
 		let ends_at = duration_now() + max_exec_duration;
 
-		let state = self.state_handler.load_initialized(shard)?;
+		let state = self.state_handler.load(shard)?;
 		let state_hash_before_execution = state_hash(&state);
 
 		// Execute any pre-processing steps.
@@ -376,8 +379,8 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecuteTimedGettersBatch
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	OCallApi: EnclaveAttestationOCallApi + GetStorageVerified,
-	StateHandler: HandleState<StateT = ExternalitiesT>,
+	OCallApi: EnclaveAttestationOCallApi + EnclaveOnChainOCallApi,
+	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
 	type Externalities = ExternalitiesT;
@@ -400,7 +403,7 @@ where
 		}
 
 		// load state once per shard
-		let mut state = self.state_handler.load_initialized(&shard)?;
+		let mut state = self.state_handler.load(&shard)?;
 
 		for trusted_getter_signed in trusted_getters.into_iter() {
 			// get state
@@ -421,7 +424,7 @@ where
 impl<OCallApi, StateHandler, ExternalitiesT> StfExecuteGenericUpdate
 	for StfExecutor<OCallApi, StateHandler, ExternalitiesT>
 where
-	StateHandler: HandleState<StateT = ExternalitiesT>,
+	StateHandler: HandleState<StateT = ExternalitiesT, HashType = H256>,
 	ExternalitiesT: SgxExternalitiesTrait + Encode,
 {
 	type Externalities = ExternalitiesT;
@@ -443,7 +446,7 @@ where
 
 		let new_state_hash = self
 			.state_handler
-			.write(new_state, state_lock, shard)
+			.write_after_mutation(new_state, state_lock, shard)
 			.map_err(|e| Error::StateHandler(e))?;
 		Ok((result, new_state_hash))
 	}

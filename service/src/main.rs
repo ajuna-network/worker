@@ -20,10 +20,8 @@
 use crate::{
 	account_funding::{setup_account_funding, EnclaveAccountInfoProvider},
 	error::Error,
-	globals::{
-		tokio_handle::{GetTokioHandle, GlobalTokioHandle},
-		worker::{GlobalWorker, Worker},
-	},
+	globals::tokio_handle::{GetTokioHandle, GlobalTokioHandle},
+	initialized_service::{set_initialized, start_is_initialized_server},
 	ocall_bridge::{
 		bridge_api::Bridge as OCallBridge, component_factory::OCallBridgeComponentFactory,
 	},
@@ -31,6 +29,7 @@ use crate::{
 	prometheus_metrics::{start_metrics_server, EnclaveMetricsReceiver, MetricsHandler},
 	sync_block_gossiper::SyncBlockGossiper,
 	utils::{check_files, extract_shard},
+	worker::Worker,
 	worker_peers_updater::WorkerPeersUpdater,
 };
 use base58::ToBase58;
@@ -48,6 +47,7 @@ use itp_enclave_api::{
 	remote_attestation::{RemoteAttestation, TlsRemoteAttestation},
 	sidechain::Sidechain,
 	teerex_api::TeerexApi,
+	Enclave,
 };
 use itp_node_api_extensions::{
 	node_api_factory::{CreateNodeApi, NodeApiFactory},
@@ -55,11 +55,10 @@ use itp_node_api_extensions::{
 };
 use itp_settings::{
 	files::{
-		ENCRYPTED_STATE_FILE, SHARDS_PATH, SHIELDING_KEY_FILE, SIDECHAIN_PURGE_INTERVAL,
-		SIDECHAIN_PURGE_LIMIT, SIDECHAIN_STORAGE_PATH, SIGNING_KEY_FILE,
+		SHIELDING_KEY_FILE, SIDECHAIN_PURGE_INTERVAL, SIDECHAIN_PURGE_LIMIT,
+		SIDECHAIN_STORAGE_PATH, SIGNING_KEY_FILE,
 	},
 	sidechain::SLOT_DURATION,
-	worker::{EXISTENTIAL_DEPOSIT_FACTOR_FOR_INIT_FUNDS, REGISTERING_FEE_FACTOR_FOR_INIT_FUNDS},
 };
 use its_consensus_slots::start_slot_worker;
 use its_peer_fetch::{
@@ -74,14 +73,13 @@ use my_node_runtime::{Event, Hash, Header};
 use sgx_types::*;
 use sp_core::{
 	crypto::{AccountId32, Ss58Codec},
-	sr25519, Pair,
+	sr25519,
 };
 use sp_finality_grandpa::VersionedAuthorityList;
 use sp_keyring::AccountKeyring;
 use std::{
 	fs::{self, File},
-	io::{stdin, Write},
-	path::{Path, PathBuf},
+	path::PathBuf,
 	str,
 	sync::{
 		mpsc::{channel, Sender},
@@ -91,7 +89,7 @@ use std::{
 	time::{Duration, Instant},
 };
 use substrate_api_client::{
-	rpc::WsRpcClient, utils::FromHexString, Api, GenericAddress, Header as HeaderTrait, XtStatus,
+	rpc::WsRpcClient, utils::FromHexString, Api, Header as HeaderTrait, XtStatus,
 };
 use teerex_primitives::ShardIdentifier;
 
@@ -100,6 +98,7 @@ mod config;
 mod enclave;
 mod error;
 mod globals;
+mod initialized_service;
 mod ocall_bridge;
 mod parentchain_block_syncer;
 mod prometheus_metrics;
@@ -112,6 +111,8 @@ mod worker_peers_updater;
 
 /// how many blocks will be synced before storing the chain db to disk
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+pub type EnclaveWorker = Worker<Config, NodeApiFactory, Enclave>;
 
 fn main() {
 	// Setup logging
@@ -132,11 +133,7 @@ fn main() {
 	info!("*** Starting service in SGX debug mode");
 
 	// build the entire dependency tree
-	let worker = Arc::new(GlobalWorker {});
 	let tokio_handle = Arc::new(GlobalTokioHandle {});
-	let sync_block_gossiper =
-		Arc::new(SyncBlockGossiper::new(tokio_handle.clone(), worker.clone()));
-	let peer_updater = Arc::new(WorkerPeersUpdater::new(worker));
 	let sidechain_blockstorage = Arc::new(
 		SidechainStorageLock::<SignedSidechainBlock>::new(PathBuf::from(&SIDECHAIN_STORAGE_PATH))
 			.unwrap(),
@@ -144,6 +141,15 @@ fn main() {
 	let node_api_factory =
 		Arc::new(NodeApiFactory::new(config.node_url(), AccountKeyring::Alice.pair()));
 	let enclave = Arc::new(enclave_init(&config).unwrap());
+	let worker = Arc::new(EnclaveWorker::new(
+		config.clone(),
+		enclave.clone(),
+		node_api_factory.clone(),
+		Vec::new(),
+	));
+	let sync_block_gossiper =
+		Arc::new(SyncBlockGossiper::new(tokio_handle.clone(), worker.clone()));
+	let peer_updater = Arc::new(WorkerPeersUpdater::new(worker));
 	let untrusted_peer_fetcher = UntrustedPeerFetcher::new(node_api_factory.clone());
 	let peer_sidechain_block_fetcher =
 		Arc::new(BlockFetcher::<SignedSidechainBlock, _>::new(untrusted_peer_fetcher));
@@ -170,13 +176,6 @@ fn main() {
 
 		let node_api =
 			node_api_factory.create_api().expect("Failed to create parentchain node API");
-
-		GlobalWorker::reset_worker(Worker::new(
-			config.clone(),
-			node_api.clone(),
-			enclave.clone(),
-			Vec::new(),
-		));
 
 		start_worker(
 			config,
@@ -229,7 +228,14 @@ fn main() {
 		println!("{}", enclave.get_mrenclave().unwrap().encode().to_base58());
 	} else if let Some(_matches) = matches.subcommand_matches("init-shard") {
 		let shard = extract_shard(_matches, enclave.as_ref());
-		init_shard(&shard);
+		match enclave.init_shard(shard.encode()) {
+			Err(e) => {
+				println!("Failed to initialize shard {:?}: {:?}", shard, e);
+			},
+			Ok(_) => {
+				println!("Successfully initialized shard {:?}", shard);
+			},
+		}
 	} else if let Some(_matches) = matches.subcommand_matches("test") {
 		if _matches.is_present("provisioning-server") {
 			println!("*** Running Enclave MU-RA TLS server\n");
@@ -309,24 +315,20 @@ fn start_worker<E, T, D>(
 	let tokio_handle = tokio_handle_getter.get_handle();
 
 	// ------------------------------------------------------------------------
-	// Start trusted worker rpc server.
-	let direct_invocation_server_addr = config.trusted_worker_url_internal();
-	let enclave_for_direct_invocation = enclave.clone();
-	thread::spawn(move || {
-		println!(
-			"[+] Trusted RPC direction invocation server listening on {}",
-			direct_invocation_server_addr
-		);
-		enclave_for_direct_invocation
-			.init_direct_invocation_server(direct_invocation_server_addr)
-			.unwrap();
-		println!("[+] RPC direction invocation server shut down");
-	});
-
-	// ------------------------------------------------------------------------
 	// Get the public key of our TEE.
 	let genesis_hash = node_api.genesis_hash.as_bytes().to_vec();
 	let tee_accountid = enclave_account(enclave.as_ref());
+
+	// ------------------------------------------------------------------------
+	// Start `is_initialized` server.
+	let untrusted_http_server_port = config
+		.try_parse_untrusted_http_server_port()
+		.expect("untrusted http server port to be a valid port number");
+	tokio_handle.spawn(async move {
+		if let Err(e) = start_is_initialized_server(untrusted_http_server_port).await {
+			error!("Unexpected error in `is_initialized` server: {:?}", e);
+		}
+	});
 
 	// ------------------------------------------------------------------------
 	// Start prometheus metrics server.
@@ -343,6 +345,39 @@ fn start_worker<E, T, D>(
 			}
 		});
 	}
+
+	// ------------------------------------------------------------------------
+	// Start trusted worker rpc server
+	let direct_invocation_server_addr = config.trusted_worker_url_internal();
+	let enclave_for_direct_invocation = enclave.clone();
+	thread::spawn(move || {
+		println!(
+			"[+] Trusted RPC direct invocation server listening on {}",
+			direct_invocation_server_addr
+		);
+		enclave_for_direct_invocation
+			.init_direct_invocation_server(direct_invocation_server_addr)
+			.unwrap();
+		println!("[+] RPC direct invocation server shut down");
+	});
+
+	// ------------------------------------------------------------------------
+	// Start untrusted worker rpc server.
+	// FIXME: this should be removed - this server should only handle untrusted things.
+	// i.e move sidechain block importing to trusted worker.
+	let enclave_for_block_gossip_rpc_server = enclave.clone();
+	let untrusted_url = config.untrusted_worker_url();
+	println!("[+] Untrusted RPC server listening on {}", &untrusted_url);
+	let sidechain_storage_for_rpc = sidechain_storage.clone();
+	let _untrusted_rpc_join_handle = tokio_handle.spawn(async move {
+		itc_rpc_server::run_server(
+			&untrusted_url,
+			enclave_for_block_gossip_rpc_server,
+			sidechain_storage_for_rpc,
+		)
+		.await
+		.unwrap();
+	});
 
 	// ------------------------------------------------------------------------
 	// Perform a remote attestation and get an unchecked extrinsic back.
@@ -389,7 +424,7 @@ fn start_worker<E, T, D>(
 	}
 
 	let last_synced_header = init_light_client(&node_api, enclave.clone()).unwrap();
-	println!("*** [+] Finished syncing light client, syncing parent chain...");
+	println!("*** [+] Finished syncing light client, syncing parentchain...");
 
 	// Syncing all parentchain blocks, this might take a while..
 	let parentchain_block_syncer =
@@ -408,24 +443,8 @@ fn start_worker<E, T, D>(
 	}
 
 	// ------------------------------------------------------------------------
-	// Start untrusted worker rpc server.
-	// FIXME: this should be removed - this server should only handle untrusted things.
-	// i.e move sidechain block importing to trusted worker.
-	let enclave_for_block_gossip_rpc_server = enclave.clone();
-	let untrusted_url = config.untrusted_worker_url();
-	println!("[+] Untrusted RPC server listening on {}", &untrusted_url);
-	let sidechain_storage_for_rpc = sidechain_storage.clone();
-	let _untrusted_rpc_join_handle = tokio_handle.spawn(async move {
-		itc_rpc_server::run_server(
-			&untrusted_url,
-			enclave_for_block_gossip_rpc_server,
-			sidechain_storage_for_rpc,
-		)
-		.await
-		.unwrap();
-	});
-
-	thread::sleep(Duration::from_secs(3));
+	// Initialize sidechain components (has to be AFTER init_light_client()
+	enclave.init_enclave_sidechain_components().unwrap();
 
 	// ------------------------------------------------------------------------
 	// Start interval sidechain block production (execution of trusted calls, sidechain block production).
@@ -495,6 +514,9 @@ fn start_worker<E, T, D>(
 			node_api.subscribe_events(sender2).unwrap();
 		})
 		.unwrap();
+
+	// Set that the service is initialized.
+	set_initialized();
 
 	println!("[+] Subscribed to events. waiting...");
 	let timeout = Duration::from_millis(10);
@@ -684,144 +706,11 @@ fn execute_trusted_calls<E: Sidechain>(enclave_api: &E) {
 	};
 }
 
-fn init_shard(shard: &ShardIdentifier) {
-	let path = format!("{}/{}", SHARDS_PATH, shard.encode().to_base58());
-	println!("initializing shard at {}", path);
-	fs::create_dir_all(path.clone()).expect("could not create dir");
-
-	let path = format!("{}/{}", path, ENCRYPTED_STATE_FILE);
-	if Path::new(&path).exists() {
-		println!("shard state exists. Overwrite? [y/N]");
-		let buffer = &mut String::new();
-		stdin().read_line(buffer).unwrap();
-		match buffer.trim() {
-			"y" | "Y" => (),
-			_ => return,
-		}
-	}
-	let mut file = fs::File::create(path).unwrap();
-	file.write_all(b"").unwrap();
-}
-
 /// Get the public signing key of the TEE.
 fn enclave_account<E: EnclaveBase>(enclave_api: &E) -> AccountId32 {
 	let tee_public = enclave_api.get_ecc_signing_pubkey().unwrap();
 	trace!("[+] Got ed25519 account of TEE = {}", tee_public.to_ss58check());
 	AccountId32::from(*tee_public.as_array_ref())
-}
-
-fn account_funding(
-	api: &mut Api<sr25519::Pair, WsRpcClient>,
-	accountid: &AccountId32,
-	extrinsic_prefix: String,
-	dev: bool,
-) -> Result<(), Error> {
-	// Account funds
-	if dev {
-		// Development mode, the faucet will ensure that the enclave has enough funds
-		ensure_account_has_funds(api, accountid)?;
-	} else {
-		// Production mode, there is no faucet.
-		let registration_fees = enclave_registration_fees(api, &extrinsic_prefix)?;
-		info!("Registration fees = {:?}", registration_fees);
-		let free_balance = api.get_free_balance(accountid)?;
-		info!("TEE's free balance = {:?}", free_balance);
-
-		let min_required_funds =
-			registration_fees.saturating_mul(REGISTERING_FEE_FACTOR_FOR_INIT_FUNDS);
-		let missing_funds = min_required_funds.saturating_sub(free_balance);
-
-		if missing_funds > 0 {
-			// If there are not enough funds, then the user can send the missing TEER to the enclave address and start again.
-			println!(
-				"Enclave account: {:}, missing funds {}",
-				accountid.to_ss58check(),
-				missing_funds
-			);
-			return Err(Error::Custom(
-				"Enclave does not have enough funds on the parentchain to register.".into(),
-			))
-		}
-	}
-	Ok(())
-}
-// Alice plays the faucet and sends some funds to the account if balance is low
-fn ensure_account_has_funds(
-	api: &mut Api<sr25519::Pair, WsRpcClient>,
-	accountid: &AccountId32,
-) -> Result<(), Error> {
-	// check account balance
-	let free_balance = api.get_free_balance(accountid)?;
-	info!("TEE's free balance = {:?}", free_balance);
-
-	let existential_deposit = api.get_existential_deposit()?;
-	info!("Existential deposit is = {:?}", existential_deposit);
-
-	let min_required_funds =
-		existential_deposit.saturating_mul(EXISTENTIAL_DEPOSIT_FACTOR_FOR_INIT_FUNDS);
-	let missing_funds = min_required_funds.saturating_sub(free_balance);
-
-	if missing_funds > 0 {
-		bootstrap_funds_from_alice(api, accountid, missing_funds)?;
-	}
-	Ok(())
-}
-
-fn enclave_registration_fees(
-	api: &mut Api<sr25519::Pair, WsRpcClient>,
-	xthex_prefixed: &str,
-) -> Result<u128, Error> {
-	let reg_fee_details = api.get_fee_details(xthex_prefixed, None)?;
-	match reg_fee_details {
-		Some(details) => match details.inclusion_fee {
-			Some(fee) => Ok(fee.inclusion_fee()),
-			None => Err(Error::Custom(
-				"Inclusion fee for the registration of the enclave is None!".into(),
-			)),
-		},
-		None =>
-			Err(Error::Custom("Fee Details for the registration of the enclave is None !".into())),
-	}
-}
-
-// Alice sends some funds to the account
-fn bootstrap_funds_from_alice(
-	api: &mut Api<sr25519::Pair, WsRpcClient>,
-	accountid: &AccountId32,
-	funding_amount: u128,
-) -> Result<(), Error> {
-	let alice = AccountKeyring::Alice.pair();
-	info!("encoding Alice's public 	= {:?}", alice.public().0.encode());
-	let alice_acc = AccountId32::from(*alice.public().as_array_ref());
-	info!("encoding Alice's AccountId = {:?}", alice_acc.encode());
-
-	let alice_free = api.get_free_balance(&alice_acc)?;
-	info!("    Alice's free balance = {:?}", alice_free);
-	let nonce = api.get_nonce_of(&alice_acc)?;
-	info!("    Alice's Account Nonce is {}", nonce);
-
-	if funding_amount > alice_free {
-		println!(
-			"funding amount is to high: please change EXISTENTIAL_DEPOSIT_FACTOR_FOR_INIT_FUNDS ({:?})",
-			funding_amount
-		);
-		return Err(Error::ApplicationSetup)
-	}
-
-	let signer_orig = api.signer.clone();
-	api.signer = Some(alice);
-
-	println!("[+] bootstrap funding Enclave from Alice's funds");
-	let xt = api.balance_transfer(GenericAddress::Id(accountid.clone()), funding_amount);
-	let xt_hash = api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock)?;
-	info!("[<] Extrinsic got included in a block. Hash: {:?}\n", xt_hash);
-
-	// Verify funds have arrived.
-	let free_balance = api.get_free_balance(accountid);
-	info!("TEE's NEW free balance = {:?}", free_balance);
-
-	api.signer = signer_orig;
-	Ok(())
 }
 
 /// Ensure we're synced up until the parentchain block where we have registered ourselves.

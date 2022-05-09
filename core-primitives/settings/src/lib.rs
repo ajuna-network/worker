@@ -53,6 +53,7 @@ pub mod files {
 	pub static RA_API_KEY_FILE: &str = "key.txt";
 
 	pub const SPID_MIN_LENGTH: usize = 32;
+	pub const STATE_SNAPSHOTS_CACHE_SIZE: usize = 120;
 }
 
 /// Settings concerning the worker
@@ -98,19 +99,20 @@ pub mod enclave {
 pub mod node {
 	// you may have to update these indices upon new builds of the runtime
 	// you can get the index from metadata, counting modules starting with zero
-	pub static TEEREX_MODULE: u8 = 9u8;
+	pub static TEEREX_MODULE: u8 = 19u8;
 	pub static REGISTER_ENCLAVE: u8 = 0u8;
 	//pub static UNREGISTER_ENCLAVE: u8 = 1u8;
 	pub static CALL_WORKER: u8 = 2u8;
 	pub static PROCESSED_PARENTCHAIN_BLOCK: u8 = 3u8;
 	pub static PROPOSED_SIDECHAIN_BLOCK: u8 = 4u8;
 	pub static SHIELD_FUNDS: u8 = 5u8;
+	pub static UNSHIELD: u8 = 6u8;
 
-	pub static GAME_REGISTRY_MODULE: u8 = 13u8;
+	pub static GAME_REGISTRY_MODULE: u8 = 17u8;
 	pub static ACK_GAME: u8 = 2u8;
 	pub static FINISH_GAME: u8 = 4u8;
+
 	// bump this to be consistent with integritee-node runtime
 	pub static RUNTIME_SPEC_VERSION: u32 = 100;
 	pub static RUNTIME_TRANSACTION_VERSION: u32 = 1;
-	pub static UNSHIELD: u8 = 6u8;
 }

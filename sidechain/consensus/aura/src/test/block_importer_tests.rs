@@ -15,14 +15,12 @@
 
 */
 
-use crate::{
-	block_importer::BlockImporter,
-	test::{fixtures::validateer, mocks::onchain_mock::OnchainMock},
-	ShardIdentifierFor,
-};
+use crate::{block_importer::BlockImporter, test::fixtures::validateer, ShardIdentifierFor};
 use codec::Encode;
 use core::assert_matches::assert_matches;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
+use itc_parentchain_light_client::mocks::validator_access_mock::ValidatorAccessMock;
+use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
 use itp_sgx_crypto::{aes::Aes, StateCrypto};
 use itp_stf_state_handler::handle_state::HandleState;
 use itp_test::{
@@ -30,9 +28,9 @@ use itp_test::{
 		parentchain_block_builder::ParentchainBlockBuilder,
 		parentchain_header_builder::ParentchainHeaderBuilder,
 	},
-	mock::handle_state_mock::HandleStateMock,
+	mock::{handle_state_mock::HandleStateMock, onchain_mock::OnchainMock},
 };
-use itp_time_utils::duration_now;
+use itp_time_utils::{duration_now, now_as_u64};
 use itp_types::{Block as ParentchainBlock, Header as ParentchainHeader, H256};
 use its_consensus_common::{BlockImport, Error as ConsensusError};
 use its_primitives::{
@@ -40,7 +38,11 @@ use its_primitives::{
 	types::{Block as SidechainBlock, SignedBlock as SignedSidechainBlock},
 };
 use its_state::{SidechainDB, SidechainState, StateUpdate};
-use its_test::sidechain_block_builder::SidechainBlockBuilder;
+use its_test::{
+	sidechain_block_builder::SidechainBlockBuilder,
+	sidechain_block_data_builder::SidechainBlockDataBuilder,
+	sidechain_header_builder::SidechainHeaderBuilder,
+};
 use its_top_pool_executor::call_operator_mock::TopPoolCallOperatorMock;
 use sgx_externalities::{SgxExternalities, SgxExternalitiesDiffType};
 use sp_core::{blake2_256, ed25519::Pair};
@@ -62,6 +64,8 @@ type TestBlockImporter = BlockImporter<
 	Aes,
 	TestTopPoolCallOperator,
 	TestParentchainBlockImportTrigger,
+	ExtrinsicsFactoryMock,
+	ValidatorAccessMock,
 >;
 
 fn state_key() -> Aes {
@@ -79,7 +83,7 @@ fn default_authority() -> Pair {
 fn test_fixtures(
 	parentchain_block_import_trigger: Arc<TestParentchainBlockImportTrigger>,
 ) -> (TestBlockImporter, Arc<HandleStateMock>, Arc<TestTopPoolCallOperator>) {
-	let state_handler = Arc::new(HandleStateMock::default());
+	let state_handler = Arc::new(HandleStateMock::from_shard(shard()).unwrap());
 	let top_pool_call_operator = Arc::new(TestTopPoolCallOperator::default());
 	let ocall_api = Arc::new(
 		OnchainMock::default()
@@ -107,7 +111,7 @@ fn test_fixtures_with_default_import_trigger(
 
 fn empty_encrypted_state_update(state_handler: &HandleStateMock) -> Vec<u8> {
 	let apriori_state_hash =
-		TestSidechainState::new(state_handler.load_initialized(&shard()).unwrap()).state_hash();
+		TestSidechainState::new(state_handler.load(&shard()).unwrap()).state_hash();
 	let empty_state_diff = SgxExternalitiesDiffType::default();
 	let mut state_update =
 		StateUpdate::new(apriori_state_hash, apriori_state_hash, empty_state_diff).encode();
@@ -122,12 +126,21 @@ fn signed_block(
 ) -> SignedSidechainBlock {
 	let state_update = empty_encrypted_state_update(state_handler);
 
-	SidechainBlockBuilder::default()
-		.with_timestamp(duration_now().as_millis() as u64)
-		.with_parentchain_block_hash(parentchain_header.hash())
+	let header = SidechainHeaderBuilder::default()
 		.with_parent_hash(H256::default())
 		.with_shard(shard())
+		.build();
+
+	let block_data = SidechainBlockDataBuilder::default()
+		.with_timestamp(now_as_u64())
+		.with_layer_one_head(parentchain_header.hash())
+		.with_signer(signer.clone())
 		.with_payload(state_update)
+		.build();
+
+	SidechainBlockBuilder::default()
+		.with_header(header)
+		.with_block_data(block_data)
 		.with_signer(signer)
 		.build_signed()
 }
@@ -158,13 +171,22 @@ fn block_import_with_invalid_signature_fails() {
 	let parentchain_header = ParentchainHeaderBuilder::default().build();
 	let state_update = empty_encrypted_state_update(state_handler.as_ref());
 
-	let block = SidechainBlockBuilder::default()
-		.with_timestamp(duration_now().as_millis() as u64)
-		.with_parentchain_block_hash(parentchain_header.hash())
-		.with_signer(Keyring::Charlie.pair())
+	let header = SidechainHeaderBuilder::default()
 		.with_parent_hash(H256::default())
 		.with_shard(shard())
+		.build();
+
+	let block_data = SidechainBlockDataBuilder::default()
+		.with_timestamp(duration_now().as_millis() as u64)
+		.with_layer_one_head(parentchain_header.hash())
+		.with_signer(Keyring::Charlie.pair())
 		.with_payload(state_update)
+		.build();
+
+	let block = SidechainBlockBuilder::default()
+		.with_signer(Keyring::Charlie.pair())
+		.with_header(header)
+		.with_block_data(block_data)
 		.build();
 
 	// Bob signs the block, but Charlie is set as the author -> invalid signature.

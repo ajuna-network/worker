@@ -18,12 +18,13 @@
 use crate::{error::Result, TopPoolOperationHandler};
 use ita_stf::{TrustedCallSigned, TrustedOperation};
 use itp_stf_executor::traits::{StateUpdateProposer, StfExecuteTimedGettersBatch};
-use itp_types::{ShardIdentifier, H256};
+use itp_top_pool_author::traits::{AuthorApi, OnBlockImported, SendState};
+use itp_types::H256;
 use its_primitives::traits::{
-	Block as SidechainBlockTrait, ShardIdentifierFor, SignedBlock as SignedSidechainBlockTrait,
+	Block as SidechainBlockTrait, BlockData, Header as HeaderTrait, ShardIdentifierFor,
+	SignedBlock as SignedSidechainBlockTrait,
 };
 use its_state::{SidechainState, SidechainSystemExt, StateHash};
-use its_top_pool_rpc_author::traits::{AuthorApi, OnBlockCreated, SendState};
 use log::*;
 use sgx_externalities::SgxExternalitiesTrait;
 use sp_runtime::{traits::Block as ParentchainBlockTrait, MultiSignature};
@@ -52,8 +53,11 @@ pub trait TopPoolCallOperator<
 	fn remove_calls_from_pool(
 		&self,
 		shard: &ShardIdentifierFor<SignedSidechainBlock>,
-		calls: Vec<ExecutedOperation>,
+		executed_calls: Vec<ExecutedOperation>,
 	) -> Vec<ExecutedOperation>;
+
+	// Notify pool about block import for status updates
+	fn on_block_imported(&self, block: &SignedSidechainBlock::Block);
 }
 
 impl<ParentchainBlock, SignedSidechainBlock, RpcAuthor, StfExecutor>
@@ -63,32 +67,36 @@ where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	SignedSidechainBlock:
 		SignedSidechainBlockTrait<Public = sp_core::ed25519::Public, Signature = MultiSignature>,
-	SignedSidechainBlock::Block:
-		SidechainBlockTrait<ShardIdentifier = H256, Public = sp_core::ed25519::Public>,
+	SignedSidechainBlock::Block: SidechainBlockTrait<Public = sp_core::ed25519::Public>,
+	<<SignedSidechainBlock as SignedSidechainBlockTrait>::Block as SidechainBlockTrait>::HeaderType:
+		HeaderTrait<ShardIdentifier = H256>,
 	RpcAuthor: AuthorApi<H256, ParentchainBlock::Hash>
-		+ OnBlockCreated<Hash = ParentchainBlock::Hash>
+		+ OnBlockImported<Hash = ParentchainBlock::Hash>
 		+ SendState<Hash = ParentchainBlock::Hash>,
 	StfExecutor: StateUpdateProposer + StfExecuteTimedGettersBatch,
 	<StfExecutor as StateUpdateProposer>::Externalities:
 		SgxExternalitiesTrait + SidechainState + SidechainSystemExt + StateHash,
 {
-	fn get_trusted_calls(&self, shard: &ShardIdentifier) -> Result<Vec<TrustedCallSigned>> {
-		Ok(self.rpc_author.get_pending_tops_separated(*shard)?.0)
+	fn get_trusted_calls(
+		&self,
+		shard: &ShardIdentifierFor<SignedSidechainBlock>,
+	) -> Result<Vec<TrustedCallSigned>> {
+		Ok(self.top_pool_author.get_pending_tops_separated(*shard)?.0)
 	}
 
 	fn get_trusted_call_hash(&self, call: &TrustedCallSigned) -> H256 {
 		let top: TrustedOperation = TrustedOperation::direct_call(call.clone());
-		self.rpc_author.hash_of(&top)
+		self.top_pool_author.hash_of(&top)
 	}
 
 	fn remove_calls_from_pool(
 		&self,
-		shard: &ShardIdentifier,
+		shard: &ShardIdentifierFor<SignedSidechainBlock>,
 		executed_calls: Vec<ExecutedOperation>,
 	) -> Vec<ExecutedOperation> {
 		let mut failed_to_remove = Vec::new();
 		for executed_call in executed_calls {
-			if let Err(e) = self.rpc_author.remove_top(
+			if let Err(e) = self.top_pool_author.remove_top(
 				vec![executed_call.trusted_operation_or_hash.clone()],
 				*shard,
 				executed_call.is_success(),
@@ -100,5 +108,10 @@ where
 			}
 		}
 		failed_to_remove
+	}
+
+	fn on_block_imported(&self, block: &SignedSidechainBlock::Block) {
+		self.top_pool_author
+			.on_block_imported(block.block_data().signed_top_hashes(), block.hash());
 	}
 }

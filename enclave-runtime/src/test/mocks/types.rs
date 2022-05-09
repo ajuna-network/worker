@@ -26,7 +26,12 @@ use itp_sgx_crypto::Aes;
 use itp_stf_executor::executor::StfExecutor;
 use itp_test::mock::{
 	handle_state_mock::HandleStateMock, metrics_ocall_mock::MetricsOCallMock,
-	ocall_api_mock::OcallApiMock,
+	onchain_mock::OnchainMock,
+};
+use itp_top_pool::basic_pool::BasicPool;
+use itp_top_pool_author::{
+	api::SidechainApi,
+	author::{Author, AuthorTopFilter},
 };
 use itp_types::{Block as ParentchainBlock, SignedBlock as SignedParentchainBlock};
 use its_sidechain::{
@@ -34,12 +39,7 @@ use its_sidechain::{
 	block_composer::BlockComposer,
 	primitives::types::{Block as SidechainBlock, SignedBlock as SignedSidechainBlock},
 	state::SidechainDB,
-	top_pool::basic_pool::BasicPool,
 	top_pool_executor::TopPoolOperationHandler,
-	top_pool_rpc_author::{
-		api::SidechainApi,
-		author::{Author, AuthorTopFilter},
-	},
 };
 use primitive_types::H256;
 use sgx_crypto_helper::rsa3072::Rsa3072KeyPair;
@@ -56,7 +56,7 @@ pub type TestStateHandler = HandleStateMock;
 
 pub type TestSidechainDb = SidechainDB<SidechainBlock, SgxExternalities>;
 
-pub type TestOCallApi = OcallApiMock;
+pub type TestOCallApi = OnchainMock;
 
 pub type TestParentchainBlockImportTrigger =
 	TriggerParentchainBlockImportMock<SignedParentchainBlock>;
@@ -68,14 +68,18 @@ pub type TestRpcResponder = RpcResponderMock<H256>;
 pub type TestTopPool =
 	BasicPool<SidechainApi<ParentchainBlock>, ParentchainBlock, TestRpcResponder>;
 
-pub type TestRpcAuthor =
+pub type TestTopPoolAuthor =
 	Author<TestTopPool, AuthorTopFilter, TestStateHandler, TestShieldingKey, MetricsOCallMock>;
 
-pub type TestTopPoolExecutor =
-	TopPoolOperationHandler<ParentchainBlock, SignedSidechainBlock, TestRpcAuthor, TestStfExecutor>;
+pub type TestTopPoolExecutor = TopPoolOperationHandler<
+	ParentchainBlock,
+	SignedSidechainBlock,
+	TestTopPoolAuthor,
+	TestStfExecutor,
+>;
 
 pub type TestBlockComposer =
-	BlockComposer<ParentchainBlock, SignedSidechainBlock, TestSigner, TestStateKey, TestRpcAuthor>;
+	BlockComposer<ParentchainBlock, SignedSidechainBlock, TestSigner, TestStateKey>;
 
 pub type TestBlockImporter = BlockImporter<
 	TestSigner,
