@@ -134,7 +134,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -156,7 +156,7 @@ dependencies = [
 [[package]]
 name = "ajuna-primitives"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -165,9 +165,9 @@ dependencies = [
 [[package]]
 name = "ajuna-solo-runtime"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "ajuna-primitives",
  "frame-executive",
  "frame-support",
@@ -176,7 +176,7 @@ dependencies = [
  "log 0.4.17",
  "orml-vesting",
  "pallet-ajuna-gameregistry",
- "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "pallet-ajuna-runner",
  "pallet-asset-tx-payment",
  "pallet-assets",
@@ -2325,7 +2325,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log 0.4.17",
- "pallet-ajuna-connectfour 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "pallet-ajuna-connectfour 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "pallet-balances",
  "parity-scale-codec",
  "sc-keystore",
@@ -2977,7 +2977,7 @@ dependencies = [
  "its-top-pool-executor",
  "its-validateer-fetch",
  "log 0.4.17",
- "pallet-ajuna-connectfour 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "pallet-ajuna-connectfour 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "parity-scale-codec",
  "sgx-externalities",
  "sgx_tstd",
@@ -4286,13 +4286,13 @@ checksum = "8e22443d1643a904602595ba1cd8f7d896afe56d26712531c5ff73a15b2fbf64"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -4317,14 +4317,14 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log 0.4.17",
- "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -4334,9 +4334,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -4360,9 +4360,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-runner"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",

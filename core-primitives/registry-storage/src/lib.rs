@@ -4,7 +4,7 @@
 use itp_storage::{storage_map_key, StorageHasher};
 // use itp_types::H256;
 // use pallet_ajuna_gameregistry::game::GameEngine;
-use sp_std::prelude::Vec;
+// use sp_std::prelude::Vec;
 
 pub const RUNNER: &str = "Runner";
 
@@ -18,7 +18,7 @@ pub trait StoragePrefix {
 	fn prefix() -> &'static str;
 }
 
-impl StoragePrefix for RegistryStorage {
+impl StoragePrefix for RunnerStorage {
 	fn prefix() -> &'static str {
 		RUNNER
 	}
@@ -28,7 +28,7 @@ pub trait RunnerStorageKeys {
 	// fn queue_game() -> Vec<u8>;
 	// fn game_registry(game: H256) -> Vec<u8>;
 	// TODO work out the return here, should be `RunnerState`
-	fn runner() -> Option;
+	fn runner() -> Option<u64>;
 }
 
 impl<S: StoragePrefix> RunnerStorageKeys for S {
@@ -42,8 +42,8 @@ impl<S: StoragePrefix> RunnerStorageKeys for S {
 	// }
 
 	// TODO Type for RunnerId
-	fn runner(runner_id: u64) -> Option {
-		storage_map_key(Self::prefix(), "Runners", &runner_id, &StorageHasher::Blake2_128)
+	fn runner(runner_id: u64) -> Option<u64> {
+		storage_map_key(Self::prefix(), "Runners", &runner_id, &StorageHasher::Blake2_128);
 		None
 	}
 }
