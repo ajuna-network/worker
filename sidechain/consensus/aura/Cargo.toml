@@ -38,7 +38,7 @@ its-state = { path = "../../state", default-features = false }
 its-top-pool-executor = { path = "../../top-pool-executor", default-features = false }
 its-validateer-fetch = { path = "../../validateer-fetch", default-features = false }
 
-pallet-ajuna-connectfour = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "master" }
+pallet-ajuna-connectfour = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git, branch = "ab/integration-runner" }
 
 [dev-dependencies]
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
