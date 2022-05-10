@@ -134,6 +134,17 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
+]
+
+[[package]]
+name = "ajuna-common"
+version = "0.1.0"
 source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
  "frame-support",
@@ -145,7 +156,7 @@ dependencies = [
 [[package]]
 name = "ajuna-primitives"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -154,9 +165,9 @@ dependencies = [
 [[package]]
 name = "ajuna-solo-runtime"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "ajuna-primitives",
  "frame-executive",
  "frame-support",
@@ -165,7 +176,7 @@ dependencies = [
  "log 0.4.17",
  "orml-vesting",
  "pallet-ajuna-gameregistry",
- "pallet-ajuna-matchmaker",
+ "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "pallet-ajuna-runner",
  "pallet-asset-tx-payment",
  "pallet-assets",
@@ -175,10 +186,8 @@ dependencies = [
  "pallet-democracy",
  "pallet-grandpa",
  "pallet-membership",
- "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-sudo",
- "pallet-teerex",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -2316,7 +2325,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log 0.4.17",
- "pallet-ajuna-connectfour",
+ "pallet-ajuna-connectfour 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "pallet-balances",
  "parity-scale-codec",
  "sc-keystore",
@@ -2968,7 +2977,7 @@ dependencies = [
  "its-top-pool-executor",
  "its-validateer-fetch",
  "log 0.4.17",
- "pallet-ajuna-connectfour",
+ "pallet-ajuna-connectfour 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "parity-scale-codec",
  "sgx-externalities",
  "sgx_tstd",
@@ -4277,13 +4286,28 @@ checksum = "8e22443d1643a904602595ba1cd8f7d896afe56d26712531c5ff73a15b2fbf64"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-ajuna-matchmaker",
+ "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
+]
+
+[[package]]
+name = "pallet-ajuna-connectfour"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+dependencies = [
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup)",
+ "frame-support",
+ "frame-system",
+ "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup)",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -4293,18 +4317,30 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log 0.4.17",
- "pallet-ajuna-matchmaker",
+ "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
  "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
+]
+
+[[package]]
+name = "pallet-ajuna-matchmaker"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
+dependencies = [
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
 ]
 
@@ -4313,7 +4349,7 @@ name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
 source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -4324,9 +4360,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-runner"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=master#708e7245611000e49a9aa67036340db35efb6447"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=master)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -4563,26 +4599,6 @@ dependencies = [
  "sp-io 6.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
-]
-
-[[package]]
-name = "pallet-teerex"
-version = "0.9.0"
-source = "git+https://github.com/integritee-network/pallets.git?branch=master#f283bdcea13fe4decda4500bf78bba2c91631546"
-dependencies = [
- "frame-support",
- "frame-system",
- "ias-verify",
- "log 0.4.17",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "serde 1.0.137",
- "sp-core",
- "sp-io 6.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
- "sp-runtime",
- "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
- "teerex-primitives",
 ]
 
 [[package]]
@@ -6016,7 +6032,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
- "pallet-ajuna-connectfour",
+ "pallet-ajuna-connectfour 0.1.0 (git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup)",
  "pallet-aura",
  "pallet-balances",
  "pallet-grandpa",

@@ -13,7 +13,7 @@ itp-storage = { path = "../storage", default-features = false }
 itp-types = { path = "../types", default-features = false }
 
 # node deps
-pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "validateer-setup" }
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/ajuna-node.git", branch = "master" }
 
 
 [features]
