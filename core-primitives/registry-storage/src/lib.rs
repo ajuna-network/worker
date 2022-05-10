@@ -28,7 +28,7 @@ pub trait RunnerStorageKeys {
 	// fn queue_game() -> Vec<u8>;
 	// fn game_registry(game: H256) -> Vec<u8>;
 	// TODO work out the return here, should be `RunnerState`
-	fn runner() -> Option<u64>;
+	fn runner(runner_id: u64) -> Option<u64>;
 }
 
 impl<S: StoragePrefix> RunnerStorageKeys for S {
