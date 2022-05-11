@@ -99,7 +99,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2139,7 +2139,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2154,7 +2154,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2171,7 +2171,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/ajuna-node.git?branch=validateer-setup#97f5586b0e7be4468883d1a27f30eda6e6c0cbfe"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common",
  "frame-support",
