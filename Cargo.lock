@@ -134,7 +134,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -156,7 +156,7 @@ dependencies = [
 [[package]]
 name = "ajuna-primitives"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -165,7 +165,7 @@ dependencies = [
 [[package]]
 name = "ajuna-solo-runtime"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "ajuna-primitives",
@@ -188,6 +188,7 @@ dependencies = [
  "pallet-membership",
  "pallet-scheduler",
  "pallet-sudo",
+ "pallet-teerex",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -4286,7 +4287,7 @@ checksum = "8e22443d1643a904602595ba1cd8f7d896afe56d26712531c5ff73a15b2fbf64"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-benchmarking",
@@ -4317,7 +4318,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-benchmarking",
@@ -4327,6 +4328,7 @@ dependencies = [
  "pallet-ajuna-matchmaker 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "parity-scale-codec",
  "scale-info",
+ "sp-core",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
 ]
@@ -4334,7 +4336,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-support",
@@ -4360,7 +4362,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-runner"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#cb7eab56eb7c2704fe1bb4df367758ab72841514"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#c8fd6d67185c9d14a913d664ce04e43e20a431b1"
 dependencies = [
  "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner)",
  "frame-support",
@@ -4599,6 +4601,26 @@ dependencies = [
  "sp-io 6.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
+]
+
+[[package]]
+name = "pallet-teerex"
+version = "0.9.0"
+source = "git+https://github.com/integritee-network/pallets.git?branch=master#f283bdcea13fe4decda4500bf78bba2c91631546"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "ias-verify",
+ "log 0.4.17",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "serde 1.0.137",
+ "sp-core",
+ "sp-io 6.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.19)",
+ "teerex-primitives",
 ]
 
 [[package]]
