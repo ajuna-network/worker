@@ -29,7 +29,7 @@ use itc_parentchain_light_client::{
 };
 use itp_extrinsics_factory::CreateExtrinsics;
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
-use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
+use itp_registry_storage::{RunnerStorage, RunnerStorageKeys};
 use itp_settings::node::{
 	ACK_GAME, GAME_REGISTRY_MODULE, PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE,
 };
@@ -37,7 +37,7 @@ use itp_stf_executor::traits::{StfExecuteShieldFunds, StfExecuteTrustedCall, Stf
 use itp_stf_state_handler::query_shard_state::QueryShardState;
 use itp_types::{OpaqueCall, H256};
 use log::*;
-use pallet_ajuna_gameregistry::{game::GameEngine, Queue};
+// use pallet_ajuna_gameregistry::{game::GameEngine, Queue};
 use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
@@ -191,44 +191,45 @@ impl<
 				Err(_) => error!("Error executing relevant extrinsics"),
 			};
 
+			error!("This is not implemented!");
 			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
-			let maybe_queue: Option<Queue<H256>> = self
-				.ocall_api
-				.get_storage_verified(RegistryStorage::queue_game(), block.header())
-				.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
-				.into_tuple()
-				.1;
-			match maybe_queue {
-				Some(mut queue) => {
-					if !queue.is_empty() {
-						//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
-						let game_engine = GameEngine::new(1u8, 1u8);
-						let mut games = Vec::<H256>::new();
-						while let Some(game) = queue.dequeue() {
-							games.push(game)
-						}
-						//FIXME: we currently only take the first shard. How we handle sharding in general?
-						let shard = self.file_state_handler.list_shards()?[0];
-						let ack_game_call = OpaqueCall::from_tuple(&(
-							[GAME_REGISTRY_MODULE, ACK_GAME],
-							&game_engine,
-							games,
-							shard,
-						));
+			// let maybe_queue: Option<Queue<H256>> = self
+			// 	.ocall_api
+			// 	.get_storage_verified(RegistryStorage::queue_game(), block.header())
+			// 	.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
+			// 	.into_tuple()
+			// 	.1;
+			// match maybe_queue {
+			// 	Some(mut queue) => {
+			// 		if !queue.is_empty() {
+			// 			//FIXME: hardcoded, because currently hardcoded in the GameRegistry pallet.
+			// 			let game_engine = GameEngine::new(1u8, 1u8);
+			// 			let mut games = Vec::<H256>::new();
+			// 			while let Some(game) = queue.dequeue() {
+			// 				games.push(game)
+			// 			}
+			// 			//FIXME: we currently only take the first shard. How we handle sharding in general?
+			// 			let shard = self.file_state_handler.list_shards()?[0];
+			// 			let ack_game_call = OpaqueCall::from_tuple(&(
+			// 				[GAME_REGISTRY_MODULE, ACK_GAME],
+			// 				&game_engine,
+			// 				games,
+			// 				shard,
+			// 			));
 
-						calls.push(ack_game_call);
-					}
-				},
-				None => {
-					debug!("No game queued in GameRegistry pallet.");
-				},
-			}
+			// 			calls.push(ack_game_call);
+			// 		}
+			// 	},
+			// 	None => {
+			// 		debug!("No game queued in GameRegistry pallet.");
+			// 	},
+			// }
 
-			info!(
-				"Successfully imported parentchain block (number: {}, hash: {})",
-				block.header().number,
-				block.header().hash()
-			);
+			// info!(
+			// 	"Successfully imported parentchain block (number: {}, hash: {})",
+			// 	block.header().number,
+			// 	block.header().hash()
+			// );
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.

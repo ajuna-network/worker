@@ -84,13 +84,14 @@ where
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-		let (_call, _game_engine, games, shard) = &xt.function;
+		// let (_call, _game_engine, games, shard) = &xt.function;
 
-		info!("found {:?} games", games.len());
+		// info!("found {:?} games", games.len());
 
-		for game in games {
-			self.stf_executor.execute_new_game(*game, shard, block)?;
-		}
+		// for game in games {
+		// 	self.stf_executor.execute_new_game(*game, shard, block)?;
+		// }
+		error!("This is not implemented!");
 		Ok(())
 	}
 

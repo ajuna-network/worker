@@ -219,9 +219,11 @@ impl<
 				.load(&shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
-				if let BoardState::Finished(_) = board.board_state {
-					return Ok(Some(board))
-				}
+				error!("This is not implemented!");
+				return Ok(Some(board))
+				// if let BoardState::Finished(_) = board.board_state {
+				// 	return Ok(Some(board))
+				// }
 			} else {
 				error!("could not decode board. maybe hasn't been set?");
 			}
