@@ -48,6 +48,7 @@ use its_state::{SidechainDB, SidechainState};
 use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
+use pallet_ajuna_connectfour::BoardState;
 use sgx_externalities::{SgxExternalities, SgxExternalitiesTrait};
 use sp_core::Pair;
 use sp_runtime::{
@@ -218,11 +219,9 @@ impl<
 				.load(&shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
-				error!("This is not implemented!");
-				return Ok(Some(board))
-			// if let BoardState::Finished(_) = board.board_state {
-			// 	return Ok(Some(board))
-			// }
+				if let BoardState::Finished(_) = board.board_state {
+					return Ok(Some(board))
+				}
 			} else {
 				error!("could not decode board. maybe hasn't been set?");
 			}
