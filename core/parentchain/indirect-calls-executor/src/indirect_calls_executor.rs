@@ -86,7 +86,7 @@ where
 	{
 		let (_, games, shard) = &xt.function;
 		info!("found {:?} games", games.len());
-		
+
 		for game in games {
 			self.stf_executor.execute_new_game(*game, shard, block)?;
 		}

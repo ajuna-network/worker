@@ -35,7 +35,7 @@ use itp_settings::node::{
 };
 use itp_stf_executor::traits::{StfExecuteShieldFunds, StfExecuteTrustedCall, StfUpdateState};
 use itp_stf_state_handler::query_shard_state::QueryShardState;
-use itp_types::{OpaqueCall, H256, GameId};
+use itp_types::{GameId, OpaqueCall, H256};
 use log::*;
 
 use sp_runtime::{

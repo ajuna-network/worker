@@ -220,9 +220,9 @@ impl<
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
 				error!("This is not implemented!");
 				return Ok(Some(board))
-				// if let BoardState::Finished(_) = board.board_state {
-				// 	return Ok(Some(board))
-				// }
+			// if let BoardState::Finished(_) = board.board_state {
+			// 	return Ok(Some(board))
+			// }
 			} else {
 				error!("could not decode board. maybe hasn't been set?");
 			}

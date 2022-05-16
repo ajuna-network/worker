@@ -20,7 +20,7 @@ use codec::Encode;
 use ita_stf::{
 	AccountId, ParentchainHeader, ShardIdentifier, TrustedCallSigned, TrustedGetterSigned,
 };
-use itp_types::{Amount, OpaqueCall, GameId, H256};
+use itp_types::{Amount, GameId, OpaqueCall, H256};
 use sgx_externalities::SgxExternalitiesTrait;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header as HeaderTrait};
 use std::{fmt::Debug, result::Result as StdResult, time::Duration, vec::Vec};

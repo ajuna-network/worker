@@ -1,8 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use itp_storage::{storage_map_key, storage_value_key, StorageHasher};
-use sp_std::prelude::Vec;
 use itp_types::GameId;
+use sp_std::prelude::Vec;
 
 pub const RUNNER: &str = "Runner";
 pub const REGISTRY: &str = "GameRegistry";
@@ -36,7 +36,6 @@ impl<S: StoragePrefix> RunnerStorageKeys for S {
 	}
 }
 
-
 pub struct RegistryStorage;
 
 impl StoragePrefix for RegistryStorage {
@@ -55,4 +54,3 @@ impl<S: StoragePrefix> RegistryStorageKeys for S {
 		storage_value_key(Self::prefix(), REGISTRY)
 	}
 }
-
