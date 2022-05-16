@@ -269,12 +269,9 @@ fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str, column: u8
 	let (mrenclave, shard) = get_identifiers(trusted_args);
 	let nonce = get_layer_two_nonce!(player, cli, trusted_args);
 
-	let top: TrustedOperation = TrustedCall::connectfour_play_turn(
-		sr25519_core::Public::from(player.public()).into(),
-		column,
-	)
-	.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
-	.into_trusted_operation(trusted_args.direct);
+	let top: TrustedOperation = TrustedCall::connectfour_play_turn(player.public().into(), column)
+		.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
+		.into_trusted_operation(trusted_args.direct);
 
 	let _ = perform_operation(cli, trusted_args, &top);
 }
@@ -282,12 +279,11 @@ fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str, column: u8
 fn get_board(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str) {
 	let player = get_pair_from_str(trusted_args, arg_player);
 
-	let key_pair = sr25519_core::Pair::from(player.clone());
+	let key_pair = player.clone();
 
-	let top: TrustedOperation =
-		TrustedGetter::board(sr25519_core::Public::from(player.public()).into())
-			.sign(&KeyPair::Sr25519(key_pair))
-			.into();
+	let top: TrustedOperation = TrustedGetter::board(player.public().into())
+		.sign(&KeyPair::Sr25519(key_pair))
+		.into();
 	let res = perform_operation(cli, trusted_args, &top);
 	debug!("received result for board");
 	if let Some(v) = res {

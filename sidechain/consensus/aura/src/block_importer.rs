@@ -131,6 +131,7 @@ impl<
 	ExtrinsicsFactory: CreateExtrinsics,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
 {
+	#[cfg_attr(feature = "cargo-clippy", allow(clippy::too_many_arguments))]
 	pub fn new(
 		state_handler: Arc<StateHandler>,
 		state_key: StateKey,
@@ -200,10 +201,8 @@ impl<
 
 		Ok(calls
 			.iter()
-			.filter(|call| {
-				top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(&call))
-			})
-			.map(|call| call.clone())
+			.filter(|call| top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(call)))
+			.cloned()
 			.collect())
 	}
 
@@ -216,7 +215,7 @@ impl<
 		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
-				.load(&shard)
+				.load(shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
 				if let BoardState::Finished(_) = board.board_state {
@@ -238,8 +237,8 @@ impl<
 		// player 1 is red, player 2 is blue
 		// the winner is not the next player
 		let winner = match board.next_player {
-			1 => board.blue.clone(),
-			2 => board.red.clone(),
+			1 => board.blue,
+			2 => board.red,
 			_ =>
 				return Err(ConsensusError::BadSidechainBlock(
 					sidechain_block.hash(),
