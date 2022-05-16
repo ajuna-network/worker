@@ -11,7 +11,7 @@ sgx_types = { branch = "master", git = "https://github.com/apache/teaclave-sgx-s
 sgx_tstd = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true, features = ["untrusted_time"] }
 
 # integritee dependencies
-sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "master", optional = true }
+sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "ab/integration-runner", optional = true }
 
 # local dependencies
 ita-stf = { path = "../../app-libs/stf", default-features = false }
@@ -38,6 +38,8 @@ sp-runtime = { version = "6.0.0", default-features = false, git = "https://githu
 
 # node deps
 pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "ab/integration-runner" }
+pallet-ajuna-runner = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "ab/integration-runner" }
+ajuna-common = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "ab/integration-runner" }
 
 # dev dependencies
 itp-test = { path = "../test", default-features = false, optional = true }

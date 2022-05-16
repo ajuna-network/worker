@@ -63,8 +63,8 @@ itp-storage = { path = "../../core-primitives/storage", default-features = false
 its-primitives = { path = "../primitives", default-features = false }
 
 # scs deps
-sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "master" }
-sp-io = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "master", features = ["disable_oom", "disable_panic_handler", "disable_allocator"], optional = true }
+sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "ab/integration-runner" }
+sp-io = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "ab/integration-runner", features = ["disable_oom", "disable_panic_handler", "disable_allocator"], optional = true }
 
 # substrate deps
 sp-core = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.19"}
