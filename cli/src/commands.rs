@@ -24,7 +24,7 @@ use codec::{Decode, Encode};
 use ita_stf::ShardIdentifier;
 use itc_rpc_client::direct_client::DirectApi;
 use itp_node_api_extensions::{PalletTeerexApi, TEEREX};
-use itp_registry_storage::RUNNER;
+use itp_registry_storage::REGISTRY;
 use log::*;
 use my_node_runtime::{Balance, BalancesCall, Call, Event, Hash};
 use sp_application_crypto::{ed25519, sr25519};
@@ -385,7 +385,7 @@ fn queue_game(cli: &Cli, who: &str) {
 	let chain_api = get_chain_api(cli).set_signer(sr25519_core::Pair::from(account));
 
 	// compose the extrinsic
-	let xt: UncheckedExtrinsicV4<([u8; 2])> = compose_extrinsic!(chain_api, RUNNER, "queue");
+	let xt: UncheckedExtrinsicV4<([u8; 2])> = compose_extrinsic!(chain_api, REGISTRY, "queue");
 
 	let tx_hash = chain_api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();
 	println!("[+] Successfully registered player in game queue. Extrinsic Hash: {:?}\n", tx_hash);

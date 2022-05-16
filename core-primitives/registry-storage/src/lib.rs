@@ -1,12 +1,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-// TODO this needs renaming to Runner as it will be reading the Runner storage
-use itp_storage::{storage_map_key, StorageHasher};
-// use itp_types::H256;
-// use pallet_ajuna_gameregistry::game::GameEngine;
-// use sp_std::prelude::Vec;
+use itp_storage::{storage_map_key, storage_value_key, StorageHasher};
+use sp_std::prelude::Vec;
+use itp_types::GameId;
 
 pub const RUNNER: &str = "Runner";
+pub const REGISTRY: &str = "GameRegistry";
 
 pub struct RunnerStorage;
 
@@ -24,26 +23,36 @@ impl StoragePrefix for RunnerStorage {
 	}
 }
 
+pub type StorageKey = Vec<u8>;
+
 pub trait RunnerStorageKeys {
-	// fn queue_game() -> Vec<u8>;
-	// fn game_registry(game: H256) -> Vec<u8>;
-	// TODO work out the return here, should be `RunnerState`
-	fn runner(runner_id: u64) -> Option<u64>;
+	/// Storage key for `runner`, we are using the concrete type `GameId` but will need to be changed
+	fn runner(runner_id: GameId) -> StorageKey;
 }
 
 impl<S: StoragePrefix> RunnerStorageKeys for S {
-	// fn queue_game() -> Vec<u8> {
-	// 	// let game_engine = GameEngine::new(1u8, 1u8);
-	// 	storage_map_key(Self::prefix(), "GameQueues", &game_engine, &StorageHasher::Identity)
-	// }
-
-	// fn game_registry(game: H256) -> Vec<u8> {
-	// 	storage_map_key(Self::prefix(), "GameRegistry", &game, &StorageHasher::Identity)
-	// }
-
-	// TODO Type for RunnerId
-	fn runner(runner_id: u64) -> Option<u64> {
-		storage_map_key(Self::prefix(), "Runners", &runner_id, &StorageHasher::Blake2_128);
-		None
+	fn runner(runner_id: GameId) -> StorageKey {
+		storage_map_key(Self::prefix(), RUNNER, &runner_id, &StorageHasher::Blake2_128)
 	}
 }
+
+
+pub struct RegistryStorage;
+
+impl StoragePrefix for RegistryStorage {
+	fn prefix() -> &'static str {
+		REGISTRY
+	}
+}
+
+pub trait RegistryStorageKeys {
+	/// Storage key for `queued`
+	fn queued() -> StorageKey;
+}
+
+impl<S: StoragePrefix> RegistryStorageKeys for S {
+	fn queued() -> StorageKey {
+		storage_value_key(Self::prefix(), REGISTRY)
+	}
+}
+

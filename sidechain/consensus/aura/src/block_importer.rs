@@ -48,7 +48,6 @@ use its_state::{SidechainDB, SidechainState};
 use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
-use pallet_ajuna_connectfour::BoardState;
 use sgx_externalities::{SgxExternalities, SgxExternalitiesTrait};
 use sp_core::Pair;
 use sp_runtime::{
