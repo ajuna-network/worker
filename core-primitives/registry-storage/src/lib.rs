@@ -32,7 +32,7 @@ pub trait RunnerStorageKeys {
 
 impl<S: StoragePrefix> RunnerStorageKeys for S {
 	fn runner(runner_id: GameId) -> StorageKey {
-		storage_map_key(Self::prefix(), RUNNER, &runner_id, &StorageHasher::Blake2_128)
+		storage_map_key(Self::prefix(), "Runners", &runner_id, &StorageHasher::Blake2_128)
 	}
 }
 
@@ -51,6 +51,6 @@ pub trait RegistryStorageKeys {
 
 impl<S: StoragePrefix> RegistryStorageKeys for S {
 	fn queued() -> StorageKey {
-		storage_value_key(Self::prefix(), REGISTRY)
+		storage_value_key(Self::prefix(), "Queued")
 	}
 }
