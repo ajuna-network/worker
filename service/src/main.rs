@@ -624,14 +624,6 @@ fn print_events(events: Events, _sender: Sender<String>) {
 						debug!("    Block Hash: {:?}", hex::encode(block_hash));
 						debug!("    Merkle Root: {:?}", hex::encode(merkle_root));
 					},
-					my_node_runtime::pallet_teerex::Event::ProposedSidechainBlock(
-						sender,
-						payload,
-					) => {
-						info!("[+] Received ProposedSidechainBlock event");
-						debug!("    From:    {:?}", sender);
-						debug!("    Payload: {:?}", hex::encode(payload));
-					},
 					my_node_runtime::pallet_teerex::Event::ShieldFunds(incognito_account) => {
 						info!("[+] Received ShieldFunds event");
 						debug!("    For:    {:?}", incognito_account);

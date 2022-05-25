@@ -317,15 +317,6 @@ fn listen(cli: &Cli, events_arg: &Option<u32>, blocks_arg: &Option<u32>) {
 										accountid, block_hash, merkle_root
 									);
 								},
-								my_node_runtime::pallet_teerex::Event::ProposedSidechainBlock(
-									accountid,
-									block_hash,
-								) => {
-									println!(
-										"ProposedSidechainBlock from {} with hash {:?}",
-										accountid, block_hash
-									);
-								},
 								my_node_runtime::pallet_teerex::Event::ShieldFunds(
 									incognito_account,
 								) => {
