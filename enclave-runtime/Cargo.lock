@@ -2994,7 +2994,7 @@ source = "git+https://github.com/ajuna-network/sgx-runtime?branch=main#c370cca0c
 dependencies = [
  "derive_more",
  "environmental",
- "log 0.4.17",
+ "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
  "postcard",
  "serde 1.0.137",
@@ -3528,7 +3528,7 @@ dependencies = [
  "environmental",
  "hash-db",
  "libsecp256k1",
- "log 0.4.17",
+ "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "parity-scale-codec",
  "sgx-externalities",
  "sgx_tstd",
