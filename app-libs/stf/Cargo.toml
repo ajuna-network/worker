@@ -72,11 +72,11 @@ sp-runtime = { version = "6.0.0", default-features = false, git = "https://githu
 sc-keystore = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.20", optional = true }
 
 # scs / integritee / ajuna
-my-node-runtime = { package = "ajuna-solo-runtime", git = "https://github.com/ajuna-network/Ajuna.git", branch = "ab/integration-runner", optional = true }
-pallet-ajuna-connectfour = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "ab/integration-runner" }
-sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "ab/integration-runner" }
-sgx-runtime = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "ab/integration-runner", optional = true }
-sp-io = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "ab/integration-runner", features = ["disable_oom", "disable_panic_handler", "disable_allocator"], optional = true }
+my-node-runtime = { package = "ajuna-solo-runtime", git = "https://github.com/ajuna-network/Ajuna.git", branch = "main", optional = true }
+pallet-ajuna-connectfour = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "main" }
+sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "main" }
+sgx-runtime = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "main", optional = true }
+sp-io = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "main", features = ["disable_oom", "disable_panic_handler", "disable_allocator"], optional = true }
 substrate-api-client = { git = "https://github.com/scs/substrate-api-client", branch = "polkadot-v0.9.20", optional = true }
 substrate-client-keystore = { git = "https://github.com/scs/substrate-api-client", branch = "polkadot-v0.9.20", optional = true }
 

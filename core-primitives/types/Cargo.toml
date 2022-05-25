@@ -23,7 +23,7 @@ sp-core = { version = "6.0.0", default-features = false, features = ["full_crypt
 sp-runtime = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.20" }
 
 # node deps
-pallet-ajuna-gameregistry  = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "ab/integration-runner" }
+pallet-ajuna-gameregistry  = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "main" }
 
 [features]
 default = ['std']

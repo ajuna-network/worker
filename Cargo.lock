@@ -134,7 +134,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#99f2552b7af2206e944f1857532773a94af7066b"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=main#517fe3ac968fceabc0387e47ff3fef3c97aade46"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -145,7 +145,7 @@ dependencies = [
 [[package]]
 name = "ajuna-primitives"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#99f2552b7af2206e944f1857532773a94af7066b"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=main#517fe3ac968fceabc0387e47ff3fef3c97aade46"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -154,7 +154,7 @@ dependencies = [
 [[package]]
 name = "ajuna-solo-runtime"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#99f2552b7af2206e944f1857532773a94af7066b"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=main#517fe3ac968fceabc0387e47ff3fef3c97aade46"
 dependencies = [
  "ajuna-common",
  "ajuna-primitives",
@@ -2066,23 +2066,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ias-verify"
-version = "0.1.4"
-source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.20#b97001102f9bd10a34b82878e9946074616b65c5"
-dependencies = [
- "base64 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "chrono",
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "serde_json 1.0.81",
- "sp-core",
- "sp-io 6.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
- "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
- "webpki 0.21.0",
-]
-
-[[package]]
 name = "idna"
 version = "0.2.0"
 source = "git+https://github.com/mesalock-linux/rust-url-sgx?tag=sgx_1.1.3#23832f3191456c2d4a0faab10952e1747be58ca8"
@@ -2205,7 +2188,7 @@ dependencies = [
  "substrate-api-client",
  "substrate-bip39",
  "substrate-client-keystore",
- "teerex-primitives 0.1.0 (git+https://github.com/integritee-network/pallets.git?branch=master)",
+ "teerex-primitives",
  "tiny-bip39 0.6.2",
  "ws",
 ]
@@ -2266,7 +2249,7 @@ dependencies = [
  "sp-keyring",
  "sp-runtime",
  "substrate-api-client",
- "teerex-primitives 0.1.0 (git+https://github.com/integritee-network/pallets.git?branch=master)",
+ "teerex-primitives",
  "thiserror 1.0.31",
  "tokio",
  "warp",
@@ -2341,7 +2324,7 @@ dependencies = [
  "sgx_tstd",
  "sp-application-crypto",
  "sp-core",
- "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=ab/integration-runner)",
+ "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=main)",
  "sp-keyring",
  "sp-runtime",
  "substrate-api-client",
@@ -3120,7 +3103,7 @@ dependencies = [
  "sgx-externalities",
  "sgx_tstd",
  "sp-core",
- "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=ab/integration-runner)",
+ "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=main)",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
  "thiserror 1.0.31",
@@ -4275,7 +4258,7 @@ checksum = "029d8d0b2f198229de29dca79676f2738ff952edf3fde542eb8bf94d8c21b435"
 [[package]]
 name = "pallet-ajuna-connectfour"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#99f2552b7af2206e944f1857532773a94af7066b"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=main#517fe3ac968fceabc0387e47ff3fef3c97aade46"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4290,7 +4273,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#99f2552b7af2206e944f1857532773a94af7066b"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=main#517fe3ac968fceabc0387e47ff3fef3c97aade46"
 dependencies = [
  "ajuna-common",
  "frame-benchmarking",
@@ -4307,7 +4290,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#99f2552b7af2206e944f1857532773a94af7066b"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=main#517fe3ac968fceabc0387e47ff3fef3c97aade46"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -4320,7 +4303,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-runner"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/integration-runner#99f2552b7af2206e944f1857532773a94af7066b"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=main#517fe3ac968fceabc0387e47ff3fef3c97aade46"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -4564,11 +4547,11 @@ dependencies = [
 [[package]]
 name = "pallet-teerex"
 version = "0.9.0"
-source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.20#b97001102f9bd10a34b82878e9946074616b65c5"
+source = "git+https://github.com/integritee-network/pallets.git?branch=master#4d1b0e9d412b4e3b94f3e5afd853213b6ecc97b7"
 dependencies = [
  "frame-support",
  "frame-system",
- "ias-verify 0.1.4 (git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.20)",
+ "ias-verify",
  "log 0.4.17",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -4578,7 +4561,7 @@ dependencies = [
  "sp-io 6.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
- "teerex-primitives 0.1.0 (git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.20)",
+ "teerex-primitives",
 ]
 
 [[package]]
@@ -5991,7 +5974,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/integration-runner#79aaea7e804f73f49e5ce08e0debcceee57e4181"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=main#c370cca0c7bb7df4a3606396e3dc3bf52c8ae52b"
 dependencies = [
  "derive_more",
  "environmental",
@@ -6006,7 +5989,7 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/integration-runner#79aaea7e804f73f49e5ce08e0debcceee57e4181"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=main#c370cca0c7bb7df4a3606396e3dc3bf52c8ae52b"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -6654,7 +6637,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/integration-runner#79aaea7e804f73f49e5ce08e0debcceee57e4181"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=main#c370cca0c7bb7df4a3606396e3dc3bf52c8ae52b"
 dependencies = [
  "environmental",
  "futures 0.3.21",
@@ -7179,24 +7162,12 @@ name = "teerex-primitives"
 version = "0.1.0"
 source = "git+https://github.com/integritee-network/pallets.git?branch=master#4d1b0e9d412b4e3b94f3e5afd853213b6ecc97b7"
 dependencies = [
- "ias-verify 0.1.4 (git+https://github.com/integritee-network/pallets.git?branch=master)",
+ "ias-verify",
  "parity-scale-codec",
  "scale-info",
  "serde 1.0.137",
  "sp-core",
  "sp-io 6.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
- "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
-]
-
-[[package]]
-name = "teerex-primitives"
-version = "0.1.0"
-source = "git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.20#b97001102f9bd10a34b82878e9946074616b65c5"
-dependencies = [
- "ias-verify 0.1.4 (git+https://github.com/integritee-network/pallets.git?branch=polkadot-v0.9.20)",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
 ]
 

@@ -26,7 +26,7 @@ sgx_crypto_helper = { branch = "master", git = "https://github.com/apache/teacla
 # scs / integritee
 substrate-api-client = { features = ["ws-client"], git = "https://github.com/scs/substrate-api-client", branch = "polkadot-v0.9.20" }
 substrate-client-keystore = { git = "https://github.com/scs/substrate-api-client", branch = "polkadot-v0.9.20" }
-my-node-runtime = { git = "https://github.com/ajuna-network/Ajuna.git", branch = "ab/integration-runner", package = "ajuna-solo-runtime" }
+my-node-runtime = { git = "https://github.com/ajuna-network/Ajuna.git", branch = "main", package = "ajuna-solo-runtime" }
 teerex-primitives = { git = "https://github.com/integritee-network/pallets.git", branch = "master" }
 
 # substrate dependencies
