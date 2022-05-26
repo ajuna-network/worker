@@ -1,6 +1,6 @@
 {
   "node": {
-    "bin": "../ajuna-node/target/release/ajuna",
+    "bin": "../Ajuna/target/release/ajuna-solo",
     "flags": [
       "--tmp",
       "--dev",

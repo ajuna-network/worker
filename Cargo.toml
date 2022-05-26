@@ -68,8 +68,12 @@ sgx_crypto_helper = { version = "1.1.4", git = "https://github.com/haerdib/incub
 # sp-io = { path = "../sgx-runtime/substrate-sgx/sp-io" }
 # sgx-externalities = { path = "../sgx-runtime/substrate-sgx/externalities" }
 
-#[patch."https://github.com/ajuna-network/ajuna-node"]
-#my-node-runtime = { package = "ajuna-runtime", path = "../ajuna-node/runtime" }
+# [patch."https://github.com/ajuna-network/Ajuna.git"]
+# my-node-runtime = { package = "ajuna-solo-runtime", path = "../Ajuna/runtime/solo" }
+# pallet-ajuna-connectfour = { path = "../Ajuna/pallets/ajuna-connectfour" }
+# pallet-ajuna-gameregistry = { path = "../Ajuna/pallets/ajuna-gameregistry" }
+# pallet-ajuna-runner = { path = "../Ajuna/pallets/ajuna-runner" }
+# ajuna-common = { path = "../Ajuna/ajuna-common" }
 
 #[patch."https://github.com/scs/substrate-api-client"]
 #substrate-api-client = { path = "../substrate-api-client" }
