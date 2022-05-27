@@ -323,21 +323,7 @@ fn listen(cli: &Cli, events_arg: &Option<u32>, blocks_arg: &Option<u32>) {
 								_ => debug!("ignoring unsupported teerex event: {:?}", ee),
 							}
 						},
-						Event::Sidechain(ee) => {
-							count += 1;
-							match &ee {
-								my_node_runtime::pallet_sidechain::Event::ProposedSidechainBlock(
-									accountid,
-									block_hash,
-								) => {
-									println!(
-										"ProposedSidechainBlock from {} with hash {:?}",
-										accountid, block_hash
-									);
-								},
-								_ => debug!("ignoring unsupported sidechain event: {:?}", ee),
-							}
-						},
+						// TODO: PLAT-272 integrate and handle sidechain pallet
 						_ => debug!("ignoring unsupported module event: {:?}", evr.event),
 					}
 				},
