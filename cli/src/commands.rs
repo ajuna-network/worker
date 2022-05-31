@@ -112,7 +112,7 @@ pub enum Commands {
 		shard: String,
 	},
 
-	/// Sign up to a new game in the game registry
+	/// Sign up for a game, ready to be matched
 	QueueGame {
 		/// To be registered AccountId in ss58check format
 		who: String,
@@ -373,6 +373,7 @@ fn shield_funds(cli: &Cli, arg_from: &str, arg_to: &str, amount: &Balance, shard
 
 fn queue_game(cli: &Cli, who: &str) {
 	let who = get_pair_from_str(who);
+	info!("Queueing player: {}", who.public().to_ss58check());
 	let api = get_chain_api(cli).set_signer(sr25519_core::Pair::from(who));
 	let xt: UncheckedExtrinsicV4<([u8; 2])> = compose_extrinsic!(api, REGISTRY, "queue");
 	let tx_hash = api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();

@@ -20,6 +20,7 @@
 // Reexport BlockImport trait which implements fn block_import()
 pub use its_consensus_common::BlockImport;
 
+use crate::{AuraVerifier, EnclaveOnChainOCallApi, SidechainBlockTrait};
 use ita_stf::{
 	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxBoardStruct,
 	TrustedCall, TrustedCallSigned,
@@ -30,7 +31,7 @@ use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 use itc_parentchain_light_client::{concurrent_access::ValidatorAccess, Validator};
 use itp_enclave_metrics::EnclaveMetric;
 use itp_extrinsics_factory::CreateExtrinsics;
-use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveOnChainOCallApi, EnclaveSidechainOCallApi};
+use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveSidechainOCallApi};
 use itp_settings::{
 	node::{FINISH_GAME, GAME_REGISTRY_MODULE},
 	sidechain::SLOT_DURATION,
@@ -43,7 +44,7 @@ use its_consensus_common::Error as ConsensusError;
 use its_primitives::traits::{
 	BlockData, Header as HeaderTrait, ShardIdentifierFor, SignedBlock as SignedBlockTrait,
 };
-use its_state::SidechainDB;
+use its_state::{SidechainDB, SidechainState};
 use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
@@ -53,7 +54,7 @@ use sp_core::Pair;
 use sp_runtime::{
 	generic::SignedBlock as SignedParentchainBlock, traits::Block as ParentchainBlockTrait,
 };
-use std::{marker::PhantomData, sync::Arc, vec::Vec};
+use std::{borrow::ToOwned, marker::PhantomData, string::ToString, sync::Arc, vec::Vec};
 
 /// Implements `BlockImport`.
 #[derive(Clone)]
@@ -182,34 +183,38 @@ impl<
 
 	fn get_calls_in_block(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 	) -> Result<Vec<TrustedCallSigned>, ConsensusError> {
-		let shard = &sidechain_block.shard_id();
-		let top_hashes = sidechain_block.signed_top_hashes();
-		let calls = self
+		let shard = &sidechain_block.header().shard_id();
+		let top_hashes = sidechain_block.block_data().signed_top_hashes();
+		let tops = self
 			.top_pool_executor
 			.get_trusted_calls(shard)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
+		let calls = tops
+			.iter()
+			.filter_map(|top| top.to_call())
+			.map(|top| top.to_owned())
+			.collect::<Vec<_>>();
+
 		Ok(calls
 			.iter()
-			.filter(|call| {
-				top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(&call))
-			})
-			.map(|call| call.clone())
+			.filter(|call| top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(call)))
+			.cloned()
 			.collect())
 	}
 
 	fn get_board_if_game_finished(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 		call: &TrustedCallSigned,
 	) -> Result<Option<SgxBoardStruct>, ConsensusError> {
-		let shard = &sidechain_block.shard_id();
+		let shard = &sidechain_block.header().shard_id();
 		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
-				.load_initialized(&shard)
+				.load(shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
 				if let BoardState::Finished(_) = board.board_state {
@@ -224,10 +229,10 @@ impl<
 
 	fn send_game_finished_extrinsic(
 		&self,
-		sidechain_block: &<SignedSidechainBlock as SignedBlock>::Block,
+		sidechain_block: &SignedSidechainBlock::Block,
 		board: SgxBoardStruct,
 	) -> Result<(), ConsensusError> {
-		let shard = &sidechain_block.shard_id();
+		let shard = &sidechain_block.header().shard_id();
 		// player 1 is red, player 2 is blue
 		// the winner is not the next player
 		let winner = match board.next_player {
@@ -310,6 +315,7 @@ impl<
 		+ Sync,
 	ExtrinsicsFactory: CreateExtrinsics,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
+	SidechainDB<SignedSidechainBlock::Block, SgxExternalities>: SidechainState,
 {
 	type Verifier = AuraVerifier<
 		Authority,

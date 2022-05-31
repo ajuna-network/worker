@@ -102,7 +102,7 @@ where
 		info!("found {:?} games", games.len());
 
 		for game in games {
-			self.stf_executor.execute_new_game(game.clone(), shard, block)?;
+			self.stf_executor.execute_new_game(*game, shard, block)?;
 		}
 		Ok(())
 	}

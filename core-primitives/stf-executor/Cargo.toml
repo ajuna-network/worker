@@ -19,7 +19,6 @@ itp-ocall-api = { path = "../ocall-api", default-features = false }
 itp-registry-storage = { path = "../registry-storage", default-features = false }
 itp-stf-state-handler = { path = "../stf-state-handler", default-features = false }
 itp-storage = { path = "../storage", default-features = false }
-itp-storage-verifier = { path = "../storage-verified", default-features = false }
 itp-time-utils = { path = "../time-utils", default-features = false }
 itp-types = { path = "../types", default-features = false }
 
@@ -68,7 +67,6 @@ sgx = [
     "ita-stf/sgx",
     "itp-stf-state-handler/sgx",
     "itp-storage/sgx",
-    "itp-storage-verifier/sgx",
     "itp-time-utils/sgx",
     "sgx-externalities/sgx",
     "thiserror_sgx",
