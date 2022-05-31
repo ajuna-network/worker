@@ -15,9 +15,10 @@
 
 */
 
+use ajuna_common::RunnerState;
 use codec::{Decode, Encode};
 use log::*;
-use pallet_ajuna_gameregistry::game::{GameEngine, GameEntry, GameState};
+use pallet_ajuna_gameregistry::Game;
 use sgx_externalities::SgxExternalitiesTrait;
 use sp_core::ed25519;
 use sp_runtime::{
@@ -36,11 +37,11 @@ use ita_stf::{
 	TrustedCallSigned, TrustedGetterSigned, TrustedOperation,
 };
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
-use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
+use itp_registry_storage::{RunnerStorage, RunnerStorageKeys};
 use itp_stf_state_handler::{handle_state::HandleState, query_shard_state::QueryShardState};
 use itp_storage::StorageEntryVerified;
 use itp_time_utils::duration_now;
-use itp_types::{Amount, BlockNumber, OpaqueCall, H256};
+use itp_types::{Amount, GameId, OpaqueCall, H256};
 
 use crate::{
 	error::{Error, Result},
@@ -211,45 +212,62 @@ where
 
 	fn execute_new_game<ParentchainBlock>(
 		&self,
-		game: H256,
+		game_id: GameId,
 		shard: &ShardIdentifier,
 		block: &ParentchainBlock,
-	) -> Result<H256>
+	) -> Result<GameId>
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-		let game_entry: Option<
-			GameEntry<H256, AccountId, GameEngine, GameState<AccountId>, BlockNumber>,
-		> = self
+		let game_entry: Option<RunnerState> = self
 			.ocall_api
-			.get_storage_verified(RegistryStorage::game_registry(game), block.header())?
+			.get_storage_verified(RunnerStorage::runner(game_id), block.header())?
 			.into_tuple()
 			.1;
+
 		match game_entry {
-			Some(u) => {
+			Some(runner) => {
 				let (state_lock, mut state) = self.state_handler.load_for_mutation(shard)?;
 				let root = Stf::get_root(&mut state);
 				let nonce = Stf::account_nonce(&mut state, &root);
 
-				let players = u.players();
-				let player_one = players[0].clone();
-				let player_two = players[1].clone();
-				let trusted_call = TrustedCallSigned::new(
-					TrustedCall::new_game(root, player_one, player_two),
-					nonce,
-					ed25519::Signature::from_raw([0u8; 64]).into(), //don't care about signature here
-				);
+				if let RunnerState::Queued(mut runner_state) = runner {
+					if let Ok(game) = Game::<AccountId>::decode(&mut runner_state) {
+						if game.players.len() == 2 {
+							let player_one = game.players[0].clone();
+							let player_two = game.players[1].clone();
 
-				Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
-					.map_err::<Error, _>(|e| e.into())?;
+							let trusted_call = TrustedCallSigned::new(
+								TrustedCall::new_game(root, player_one, player_two),
+								nonce,
+								ed25519::Signature::from_raw([0u8; 64]).into(), //don't care about signature here
+							);
 
-				self.state_handler
-					.write_after_mutation(state, state_lock, shard)
-					.map_err(|e| e.into())
+							Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
+								.map_err::<Error, _>(|e| e.into())?;
+
+							self.state_handler
+								.write_after_mutation(state, state_lock, shard)
+								.expect("write after mutation");
+							// .map_err(|e| e.into());
+
+							Ok(game_id)
+						} else {
+							error!("Game {} does not have 2 players", game_id);
+							Ok(game_id)
+						}
+					} else {
+						error!("Game {} failed decoding", game_id);
+						Ok(game_id)
+					}
+				} else {
+					error!("Game {} is not queued!", game_id);
+					Ok(game_id)
+				}
 			},
 			None => {
-				error!("No game entry found for game {}", game);
-				Ok(game)
+				error!("No game entry found for game {}", game_id);
+				Ok(game_id)
 			},
 		}
 	}
