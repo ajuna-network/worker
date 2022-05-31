@@ -15,11 +15,7 @@
 
 */
 
-use crate::{
-	block_importer::BlockImporter,
-	test::{fixtures::validateer, mocks::onchain_mock::OnchainMock},
-	ShardIdentifierFor,
-};
+use crate::{block_importer::BlockImporter, test::fixtures::validateer, ShardIdentifierFor};
 use codec::Encode;
 use core::assert_matches::assert_matches;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
@@ -32,7 +28,7 @@ use itp_test::{
 		parentchain_block_builder::ParentchainBlockBuilder,
 		parentchain_header_builder::ParentchainHeaderBuilder,
 	},
-	mock::handle_state_mock::HandleStateMock,
+	mock::{handle_state_mock::HandleStateMock, onchain_mock::OnchainMock},
 };
 use itp_time_utils::{duration_now, now_as_u64};
 use itp_types::{Block as ParentchainBlock, Header as ParentchainHeader, H256};
@@ -69,6 +65,8 @@ type TestBlockImporter = BlockImporter<
 	TestStateKeyRepo,
 	TestTopPoolCallOperator,
 	TestParentchainBlockImportTrigger,
+	ExtrinsicsFactoryMock,
+	ValidatorAccessMock,
 >;
 
 fn state_key() -> Aes {

@@ -17,7 +17,6 @@
 
 pub mod handle_state_mock;
 pub mod metrics_ocall_mock;
-pub mod ocall_api_mock;
 pub mod onchain_mock;
 pub mod shielding_crypto_mock;
 pub mod sidechain_ocall_api_mock;

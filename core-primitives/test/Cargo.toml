@@ -31,7 +31,6 @@ itp-time-utils = { path = "../time-utils", default-features = false }
 itp-types = { path = "../types", default-features = false }
 itp-ocall-api = { path = "../ocall-api", default-features = false }
 itp-storage = { path = "../storage", default-features = false, features = ["test"] }
-itp-storage-verifier = { path = "../storage-verified", default-features = false }
 
 [features]
 default = ["std"]
@@ -56,7 +55,6 @@ sgx = [
     "itp-time-utils/sgx",
     "itp-sgx-crypto/sgx",
     "itp-stf-state-handler/sgx",
-    "itp-storage-verifier/sgx",
     "jsonrpc-core_sgx",
     "sgx-externalities/sgx",
 ]
