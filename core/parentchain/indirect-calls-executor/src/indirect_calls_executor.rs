@@ -97,7 +97,7 @@ where
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-		let (_call, _game_engine, games, shard) = &xt.function;
+		let (_call, games, shard) = &xt.function;
 
 		info!("found {:?} games", games.len());
 
