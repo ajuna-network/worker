@@ -190,7 +190,7 @@ impl Stf {
 						player_one.encode(),
 						player_two.encode()
 					);
-					sgx_runtime::ConnectfourCall::<Runtime>::new_game {
+					sgx_runtime::BoardCall::<Runtime>::new_game {
 						player_one: player_one.clone(),
 						player_two: player_two.clone(),
 					}
@@ -198,10 +198,10 @@ impl Stf {
 					.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
-				TrustedCall::connectfour_play_turn(sender, column) => {
+				TrustedCall::board_play_turn(sender, turn) => {
 					let origin = sgx_runtime::Origin::signed(sender.clone());
-					debug!("connectfour choose ({:x?}, {:?})", sender.encode(), column);
-					sgx_runtime::ConnectfourCall::<Runtime>::play_turn { column }
+					debug!("board choose ({:x?}, {:?})", sender.encode(), turn);
+					sgx_runtime::BoardCall::<Runtime>::play_turn { turn }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
@@ -284,7 +284,7 @@ impl Stf {
 			TrustedCall::balance_unshield(_, _, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_shield(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::new_game(_, _, _) => debug!("No storage updates needed..."),
-			TrustedCall::connectfour_play_turn(_, _) => debug!("No storage updates needed..."),
+			TrustedCall::board_play_turn(_, _) => debug!("No storage updates needed..."),
 		};
 		key_hashes
 	}
