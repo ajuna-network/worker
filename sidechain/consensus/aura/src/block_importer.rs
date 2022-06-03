@@ -48,7 +48,6 @@ use its_state::{SidechainDB, SidechainState};
 use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
-use pallet_ajuna_connectfour::BoardState;
 use sgx_externalities::{SgxExternalities, SgxExternalitiesTrait};
 use sp_core::Pair;
 use sp_runtime::{
@@ -211,18 +210,19 @@ impl<
 		call: &TrustedCallSigned,
 	) -> Result<Option<SgxBoardStruct>, ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
-		if let TrustedCall::connectfour_play_turn(account, _b) = &call.call {
+		if let TrustedCall::board_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
 				.load(shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
-			if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
+			// TODO - Check if game has finished
+			/*if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
 				if let BoardState::Finished(_) = board.board_state {
 					return Ok(Some(board))
 				}
 			} else {
 				error!("could not decode board. maybe hasn't been set?");
-			}
+			}*/
 		}
 		Ok(None)
 	}

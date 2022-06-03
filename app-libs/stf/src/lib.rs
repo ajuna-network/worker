@@ -36,7 +36,6 @@ pub use sgx_runtime::{Balance, Index};
 use codec::{Compact, Decode, Encode};
 use derive_more::Display;
 use itp_types::BlockNumber;
-use pallet_ajuna_connectfour::{BoardState, BoardStruct};
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::string::String;
@@ -182,8 +181,8 @@ pub enum TrustedCall {
 	balance_transfer(AccountId, AccountId, Balance),
 	balance_unshield(AccountId, AccountId, Balance, ShardIdentifier), // (AccountIncognito, BeneficiaryPublicAccount, Amount, Shard)
 	balance_shield(AccountId, AccountId, Balance), // (Root, AccountIncognito, Amount)
-	new_game(AccountId, AccountId, AccountId),
-	connectfour_play_turn(AccountId, u8),
+	board_new_game(AccountId, AccountId, AccountId),
+	board_play_turn(AccountId, u8),
 }
 
 impl TrustedCall {
@@ -193,8 +192,8 @@ impl TrustedCall {
 			TrustedCall::balance_transfer(account, _, _) => account,
 			TrustedCall::balance_unshield(account, _, _, _) => account,
 			TrustedCall::balance_shield(account, _, _) => account,
-			TrustedCall::new_game(account, _, _) => account,
-			TrustedCall::connectfour_play_turn(account, _) => account,
+			TrustedCall::board_new_game(account, _, _) => account,
+			TrustedCall::board_play_turn(account, _) => account,
 		}
 	}
 
