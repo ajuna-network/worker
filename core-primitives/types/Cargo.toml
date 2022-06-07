@@ -24,7 +24,7 @@ sp-finality-grandpa = { version = "4.0.0-dev", default-features = false, git = "
 sp-runtime = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.20" }
 
 # node deps
-pallet-ajuna-gameregistry  = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", rev = "polkadot-v0.9.20" }
+pallet-ajuna-gameregistry  = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", rev = "polkadot-v0.9.20-dev" }
 
 [features]
 default = ['std']
