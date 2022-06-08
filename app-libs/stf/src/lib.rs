@@ -28,6 +28,7 @@ extern crate sgx_tstd as std;
 
 extern crate alloc;
 
+use alloc::collections::BTreeSet;
 #[cfg(feature = "std")]
 pub use my_node_runtime::{Balance, Index};
 #[cfg(feature = "sgx")]
@@ -35,7 +36,6 @@ pub use sgx_runtime::{Balance, Index};
 
 use codec::{Compact, Decode, Encode};
 use derive_more::Display;
-use itp_types::BlockNumber;
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::string::String;
@@ -46,8 +46,11 @@ pub type AccountId = AccountId32;
 pub type Hash = sp_core::H256;
 pub type BalanceTransferFn = ([u8; 2], AccountId, Compact<u128>);
 
-pub type SgxBoardState = BoardState<AccountId>;
-pub type SgxBoardStruct = BoardStruct<Hash, AccountId, BlockNumber, SgxBoardState>;
+// Guessing Game
+pub type SgxBoardId = u32;
+pub type SgxGuessingGameState = pallet_ajuna_board::guessing::GameState;
+pub type SgxGuessingBoardStruct = pallet_ajuna_board::BoardGame<SgxGuessingGameState, AccountId>;
+pub type SgxGuessingTurn = pallet_ajuna_board::guessing::Guess;
 
 pub type ShardIdentifier = H256;
 
@@ -181,8 +184,9 @@ pub enum TrustedCall {
 	balance_transfer(AccountId, AccountId, Balance),
 	balance_unshield(AccountId, AccountId, Balance, ShardIdentifier), // (AccountIncognito, BeneficiaryPublicAccount, Amount, Shard)
 	balance_shield(AccountId, AccountId, Balance), // (Root, AccountIncognito, Amount)
-	board_new_game(AccountId, AccountId, AccountId),
-	board_play_turn(AccountId, u8),
+	board_new_game(AccountId, SgxBoardId, BTreeSet<AccountId>),
+	board_play_turn(AccountId, SgxGuessingTurn),
+	board_flush_winner(AccountId, SgxBoardId),
 }
 
 impl TrustedCall {
@@ -194,6 +198,7 @@ impl TrustedCall {
 			TrustedCall::balance_shield(account, _, _) => account,
 			TrustedCall::board_new_game(account, _, _) => account,
 			TrustedCall::board_play_turn(account, _) => account,
+			TrustedCall::board_flush_winner(account, _) => account,
 		}
 	}
 

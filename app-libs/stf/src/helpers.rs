@@ -15,7 +15,7 @@
 
 */
 use crate::{
-	stf_sgx_primitives::types::*, AccountId, Hash, Index, SgxBoardStruct, StfError, StfResult, H256,
+	stf_sgx_primitives::types::*, AccountId, Index, SgxBoardId, StfError, StfResult, H256,
 };
 use codec::{Decode, Encode};
 use itp_storage::{storage_double_map_key, storage_map_key, storage_value_key, StorageHasher};
@@ -24,6 +24,7 @@ use std::prelude::v1::*;
 
 #[cfg(feature = "sgx")]
 use crate::stf_sgx_primitives::types::{AccountData, AccountInfo};
+use crate::SgxGuessingBoardStruct;
 #[cfg(feature = "std")]
 use itp_types::{AccountData, AccountInfo};
 
@@ -156,20 +157,19 @@ pub fn ensure_root(account: AccountId) -> StfResult<()> {
 	}
 }
 
-pub fn get_board_for(who: AccountId) -> Option<SgxBoardStruct> {
-	if let Some(board_id) = get_storage_map::<AccountId, Hash>(
-		"ConnectFour",
-		"PlayerBoard",
+pub fn get_board_for(who: AccountId) -> Option<SgxGuessingBoardStruct> {
+	if let Some(board_id) = get_storage_map::<AccountId, SgxBoardId>(
+		"AjunaBoard",
+		"PlayerBoards",
 		&who,
 		&StorageHasher::Identity,
 	) {
-		if let Some(board) = get_storage_map::<Hash, SgxBoardStruct>(
-			"ConnectFour",
-			"Boards",
+		if let Some(board) = get_storage_map::<SgxBoardId, SgxGuessingBoardStruct>(
+			"AjunaBoard",
+			"BoardStates",
 			&board_id,
 			&StorageHasher::Identity,
 		) {
-			info!("Retrieved board of player {:?} is: {:?}", who.encode(), board);
 			Some(board)
 		} else {
 			debug!("could not read board");
@@ -179,4 +179,35 @@ pub fn get_board_for(who: AccountId) -> Option<SgxBoardStruct> {
 		debug!("could not read board id");
 		None
 	}
+}
+
+pub fn is_winner(who: AccountId) -> Option<SgxGuessingBoardStruct> {
+	if let Some(board_id) = get_storage_map::<AccountId, SgxBoardId>(
+		"AjunaBoard",
+		"PlayerBoards",
+		&who,
+		&StorageHasher::Identity,
+	) {
+		if let Some(winner) = get_storage_map::<SgxBoardId, AccountId>(
+			"AjunaBoard",
+			"BoardWinners",
+			&board_id,
+			&StorageHasher::Identity,
+		) {
+			if who == winner {
+				if let Some(board) = get_storage_map::<SgxBoardId, SgxGuessingBoardStruct>(
+					"AjunaBoard",
+					"BoardStates",
+					&board_id,
+					&StorageHasher::Identity,
+				) {
+					return Some(board)
+				}
+			}
+		}
+	} else {
+		debug!("could not read board id");
+	}
+
+	return None
 }

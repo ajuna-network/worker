@@ -17,9 +17,7 @@
 
 use crate::{error::Result, BatchExecutionResult};
 use codec::Encode;
-use ita_stf::{
-	AccountId, ParentchainHeader, ShardIdentifier, TrustedGetterSigned, TrustedOperation,
-};
+use ita_stf::{AccountId, ParentchainHeader, SgxBoardId, ShardIdentifier, TrustedGetterSigned, TrustedOperation};
 use itp_types::{Amount, GameId, OpaqueCall, H256};
 use sgx_externalities::SgxExternalitiesTrait;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header as HeaderTrait};
@@ -48,6 +46,15 @@ pub trait StfExecuteShieldFunds {
 	) -> Result<GameId>
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>;
+
+	fn flush_winner<ParentchainBlock>(
+		&self,
+		game_id: GameId,
+		shard: &ShardIdentifier,
+		block: &ParentchainBlock,
+	) -> Result<GameId>
+		where
+			ParentchainBlock: ParentchainBlockTrait<Hash = H256>;
 }
 
 /// Execute a trusted call on the STF
