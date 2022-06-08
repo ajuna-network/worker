@@ -26,6 +26,7 @@ use crate::{
 		EnclaveStfGameExecutor, EnclaveTopPool, EnclaveTopPoolAuthor,
 		EnclaveTopPoolOperationHandler, EnclaveValidatorAccessor,
 		GLOBAL_EXTRINSICS_FACTORY_COMPONENT, GLOBAL_OCALL_API_COMPONENT,
+		GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT,
 		GLOBAL_PARENTCHAIN_IMPORT_DISPATCHER_COMPONENT, GLOBAL_RPC_WS_HANDLER_COMPONENT,
 		GLOBAL_SHIELDING_KEY_REPOSITORY_COMPONENT, GLOBAL_SIDECHAIN_BLOCK_COMPOSER_COMPONENT,
 		GLOBAL_SIDECHAIN_BLOCK_SYNCER_COMPONENT, GLOBAL_SIDECHAIN_IMPORT_QUEUE_COMPONENT,
@@ -191,12 +192,8 @@ pub(crate) fn init_enclave_sidechain_components() -> EnclaveResult<()> {
 
 	let signer = Ed25519Seal::unseal_from_static_file()?;
 
-	let validator_access = Arc::new(EnclaveValidatorAccessor::default());
-	let genesis_hash = validator_access.execute_on_validator(|v| v.genesis_hash(v.num_relays()))?;
-
-	let extrinsics_factory =
-		Arc::new(ExtrinsicsFactory::new(genesis_hash, signer.clone(), GLOBAL_NONCE_CACHE.clone()));
-
+	let validator_access = GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.get()?;
+	let extrinsics_factory = GLOBAL_EXTRINSICS_FACTORY_COMPONENT.get()?;
 	let sidechain_block_importer = Arc::<EnclaveSidechainBlockImporter>::new(BlockImporter::new(
 		state_handler,
 		state_key_repository.clone(),
@@ -227,7 +224,12 @@ pub(crate) fn init_enclave_sidechain_components() -> EnclaveResult<()> {
 }
 
 pub(crate) fn init_light_client(params: LightClientInitParams<Header>) -> EnclaveResult<Header> {
-	let latest_header = itc_parentchain::light_client::io::read_or_init_validator::<Block>(params)?;
+	let ocall_api = GLOBAL_OCALL_API_COMPONENT.get()?;
+	let validator = itc_parentchain::light_client::io::read_or_init_validator::<Block, OcallApi>(
+		params,
+		ocall_api.clone(),
+	)?;
+	let latest_header = validator.latest_finalized_header(validator.num_relays())?;
 
 	// Initialize the global parentchain block import dispatcher instance.
 	let signer = Ed25519Seal::unseal_from_static_file()?;
@@ -235,10 +237,11 @@ pub(crate) fn init_light_client(params: LightClientInitParams<Header>) -> Enclav
 
 	let state_handler = GLOBAL_STATE_HANDLER_COMPONENT.get()?;
 	let stf_executor = GLOBAL_STF_EXECUTOR_COMPONENT.get()?;
-	let ocall_api = GLOBAL_OCALL_API_COMPONENT.get()?;
 	let top_pool_author = GLOBAL_TOP_POOL_AUTHOR_COMPONENT.get()?;
 
-	let validator_access = Arc::new(EnclaveValidatorAccessor::default());
+	let validator_access = Arc::new(EnclaveValidatorAccessor::new(validator));
+	GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.initialize(validator_access.clone());
+
 	let genesis_hash = validator_access.execute_on_validator(|v| v.genesis_hash(v.num_relays()))?;
 
 	let extrinsics_factory =
