@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # setup:
-# build ajuna node with skip-ias-check on branch "validateer-setup"
+# build ajuna node with skip-ias-check
 #   cargo build --release --features solo,skip-ias-check
 #
 # run ajuna node
@@ -26,7 +26,7 @@
 # if -m file is set, the mrenclave will be read from file  ~/mrenclave.b58
 
 
-while getopts ":m:p:P:" opt; do
+while getopts ":m:p:P:u:" opt; do
     case $opt in
         m)
             READMRENCLAVE=$OPTARG
@@ -37,19 +37,24 @@ while getopts ":m:p:P:" opt; do
         P)
             RPORT=$OPTARG
             ;;
+        u)
+            NURL=$OPTARG
+            ;;
     esac
 done
 
-# using default port if none given as arguments
+# using default values if none given as arguments
 NPORT=${NPORT:-9944}
 RPORT=${RPORT:-2000}
+NURL=${NURL:-"ws://127.0.0.1"}
 
 echo "Using node-port ${NPORT}"
 echo "Using trusted-worker-port ${RPORT}"
+echo "Using node-url ${NURL}"
 
 BALANCE=1000
 
-CLIENT="./../bin/integritee-cli -p ${NPORT} -P ${RPORT}"
+CLIENT="./../bin/integritee-cli -p ${NPORT} -P ${RPORT} -u ${NURL}"
 
 if [ "$READMRENCLAVE" = "file" ]
 then
