@@ -23,7 +23,7 @@ use crate::{
 	Cli,
 };
 use codec::Decode;
-use ita_stf::{Index, KeyPair, SgxBoardStruct, TrustedCall, TrustedGetter, TrustedOperation};
+use ita_stf::{Index, KeyPair, SgxBoardId, SgxGuessingBoardStruct, SgxGuessingTurn, TrustedCall, TrustedGetter, TrustedOperation};
 use log::*;
 use my_node_runtime::Balance;
 use sp_application_crypto::{ed25519, sr25519};
@@ -125,8 +125,9 @@ pub enum TrustedCommands {
 		/// Player's incognito AccountId in ss58check format
 		player: String,
 
-		/// Column to be played
-		column: u8,
+		// TODO this would be generic at some point, right?
+		/// Turn to be played
+		turn: SgxGuessingTurn,
 	},
 
 	/// Query board state for account in keystore
@@ -147,8 +148,8 @@ pub fn match_trusted_commands(cli: &Cli, trusted_args: &TrustedArgs) {
 		TrustedCommands::Balance { account } => balance(cli, trusted_args, account),
 		TrustedCommands::UnshieldFunds { from, to, amount } =>
 			unshield_funds(cli, trusted_args, from, to, amount),
-		TrustedCommands::PlayTurn { player, column } =>
-			play_turn(cli, trusted_args, player, *column),
+		TrustedCommands::PlayTurn { player, turn } =>
+			play_turn(cli, trusted_args, player, *turn),
 		TrustedCommands::GetBoard { player } => get_board(cli, trusted_args, player),
 	}
 }
@@ -260,7 +261,7 @@ fn unshield_funds(
 	let _ = perform_operation(cli, trusted_args, &top);
 }
 
-fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str, turn: Vec<u8>) {
+fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str, turn: SgxGuessingTurn) {
 	let player = get_pair_from_str(trusted_args, arg_player);
 	println!("player ss58 is {}", player.public().to_ss58check());
 
@@ -282,22 +283,23 @@ fn get_board(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str) {
 	let res = perform_operation(cli, trusted_args, &top);
 	debug!("received result for board");
 	if let Some(v) = res {
-		if let Ok(board) = SgxBoardStruct::decode(&mut v.as_slice()) {
-			println!("Last turn in block number: {}", board.last_turn);
-			println!("Next player: {}", board.next_player);
-			println!("Board state: {:?}", board.board_state);
-			println!("Board:");
-			for row in 0..6 {
-				for column in 0..7 {
-					print!(" {} ", board.board[column][row]);
-				}
-				println!()
-			}
-			println!("=====================");
-			for column in 0..7 {
-				print!(" {} ", column);
-			}
-			println!();
+		if let Ok(board) = SgxGuessingBoardStruct::decode(&mut v.as_slice()) {
+			// println!("Last turn in block number: {}", board.last_turn);
+			// println!("Next player: {}", board.next_player);
+			// println!("Board state: {:?}", board.board_state);
+			// println!("Board:");
+			// for row in 0..6 {
+			// 	for column in 0..7 {
+			// 		print!(" {} ", board.board[column][row]);
+			// 	}
+			// 	println!()
+			// }
+			// println!("=====================");
+			// for column in 0..7 {
+			// 	print!(" {} ", column);
+			// }
+			// println!();
+			println!("Decode board successfully");
 		} else {
 			println!("could not decode board. maybe hasn't been set? {:x?}", v);
 		}

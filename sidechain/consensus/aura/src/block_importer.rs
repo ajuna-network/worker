@@ -22,7 +22,7 @@ pub use its_consensus_common::BlockImport;
 
 use crate::{AuraVerifier, EnclaveOnChainOCallApi, SidechainBlockTrait};
 use ita_stf::{
-	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxBoardStruct,
+	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxGuessingBoardStruct,
 	TrustedCall, TrustedCallSigned,
 };
 use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
@@ -54,6 +54,7 @@ use sp_runtime::{
 	generic::SignedBlock as SignedParentchainBlock, traits::Block as ParentchainBlockTrait,
 };
 use std::{borrow::ToOwned, marker::PhantomData, string::ToString, sync::Arc, vec::Vec};
+use ita_stf::helpers::is_winner;
 
 /// Implements `BlockImport`.
 #[derive(Clone)]
@@ -208,21 +209,18 @@ impl<
 		&self,
 		sidechain_block: &SignedSidechainBlock::Block,
 		call: &TrustedCallSigned,
-	) -> Result<Option<SgxBoardStruct>, ConsensusError> {
+	) -> Result<Option<SgxGuessingBoardStruct>, ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
 		if let TrustedCall::board_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
 				.load(shard)
 				.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
-			// TODO - Check if game has finished
-			/*if let Some(board) = state.execute_with(|| get_board_for(account.clone())) {
-				if let BoardState::Finished(_) = board.board_state {
-					return Ok(Some(board))
-				}
+			if let Some(board) = state.execute_with(|| is_winner(account.clone())) {
+				return Ok(Some(board))
 			} else {
 				error!("could not decode board. maybe hasn't been set?");
-			}*/
+			}
 		}
 		Ok(None)
 	}
@@ -230,20 +228,13 @@ impl<
 	fn send_game_finished_extrinsic(
 		&self,
 		sidechain_block: &SignedSidechainBlock::Block,
-		board: SgxBoardStruct,
+		board: SgxGuessingBoardStruct,
 	) -> Result<(), ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
-		// player 1 is red, player 2 is blue
-		// the winner is not the next player
-		let winner = match board.next_player {
-			1 => board.blue,
-			2 => board.red,
-			_ =>
-				return Err(ConsensusError::BadSidechainBlock(
-					sidechain_block.hash(),
-					"Unknown player, could not get the Winner.".to_string(),
-				)),
-		};
+		let winner = board.state.winner.ok_or(ConsensusError::BadSidechainBlock(
+			sidechain_block.hash(),
+			"Unknown player, could not get the Winner.".to_string(),
+		))?;
 
 		let opaque_call =
 			OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, FINISH_GAME], shard, winner));

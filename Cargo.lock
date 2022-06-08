@@ -109,7 +109,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fcb51a0695d8f838b1ee009b3fbf66bda078cd64590202a864a8f3e8c4315c47"
 dependencies = [
  "getrandom 0.2.6",
- "once_cell 1.10.0",
+ "once_cell 1.12.0",
  "version_check",
 ]
 
@@ -125,7 +125,18 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#4b94816df69a9c6668ebb505f57e864e03fdc01a"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity#277d0da4101cdf8082055386358874e37b7237d5"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
+]
+
+[[package]]
+name = "ajuna-common"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -136,7 +147,7 @@ dependencies = [
 [[package]]
 name = "ajuna-primitives"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#4b94816df69a9c6668ebb505f57e864e03fdc01a"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -145,9 +156,9 @@ dependencies = [
 [[package]]
 name = "ajuna-solo-runtime"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#4b94816df69a9c6668ebb505f57e864e03fdc01a"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
  "ajuna-primitives",
  "frame-executive",
  "frame-support",
@@ -242,9 +253,9 @@ checksum = "8da52d66c7071e2e3fa2a1e5c6d088fec47b593032b254f5e980de8ea54454d6"
 
 [[package]]
 name = "async-trait"
-version = "0.1.53"
+version = "0.1.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed6aa3524a2dfcf9fe180c51eae2b58738348d819517ceadf95789c51fff7600"
+checksum = "96cf8829f67d2eab0b2dfa42c5d0ef737e0724e4a82b01b3e292456202b19716"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -334,9 +345,9 @@ dependencies = [
 
 [[package]]
 name = "beef"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bed554bd50246729a1ec158d08aa3235d1b69d94ad120ebe187e28894787e736"
+checksum = "3a8241f3ebb85c056b509d4327ad0358fbbba6ffb340bf388f26350aeda225b1"
 dependencies = [
  "serde 1.0.137",
 ]
@@ -482,9 +493,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.9.1"
+version = "3.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a45a46ab1f2412e53d3a0ade76ffad2025804294569aae387231a0cd6e0899"
+checksum = "37ccbd214614c6783386c1af30caf03192f17891059cecc394b4fb119e363de3"
 
 [[package]]
 name = "byte-slice-cast"
@@ -552,9 +563,9 @@ checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
 name = "camino"
-version = "1.0.8"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07fd178c5af4d59e83498ef15cf3f154e1a6f9d091270cb86283c65ef44e9ef0"
+checksum = "869119e97797867fd90f5e22af7d0bd274bd4635ebb9eb68c04f3f513ae6c412"
 dependencies = [
  "serde 1.0.137",
 ]
@@ -646,9 +657,9 @@ dependencies = [
 
 [[package]]
 name = "clang-sys"
-version = "1.3.1"
+version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cc00842eed744b858222c4c9faf7243aafc6d33f92f96935263ef4d8a41ce21"
+checksum = "5a050e2153c5be08febd6734e29298e844fdb0fa21aeddd63b4eb7baa106c69b"
 dependencies = [
  "glob",
  "libc",
@@ -769,15 +780,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59a6001667ab124aebae2a495118e11d30984c3a653e99d86d58971708cf5e4b"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "crc32fast"
-version = "1.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b540bd8bc810d3885c6ea91e2018302f68baba2129ab3e88f32389ee9370880d"
-dependencies = [
- "cfg-if 1.0.0",
 ]
 
 [[package]]
@@ -985,9 +987,9 @@ checksum = "21e50f3adc76d6a43f5ed73b698a87d0760ca74617f60f7c3b879003536fdd28"
 
 [[package]]
 name = "ed25519"
-version = "1.5.1"
+version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9cb2103c580a9f8732121f755eccb51312f7db26314664314c119298107064b"
+checksum = "1e9c280362032ea4203659fc489832d0204ef09f247a0506f170dafcac08c369"
 dependencies = [
  "signature",
 ]
@@ -1106,18 +1108,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flate2"
-version = "1.0.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b39522e96686d38f4bc984b9198e3a0613264abaebaff2c5c918bfa6b6da09af"
-dependencies = [
- "cfg-if 1.0.0",
- "crc32fast",
- "libc",
- "miniz_oxide",
-]
-
-[[package]]
 name = "float-cmp"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1231,7 +1221,7 @@ dependencies = [
  "frame-support-procedural",
  "impl-trait-for-tuples",
  "log 0.4.17",
- "once_cell 1.10.0",
+ "once_cell 1.12.0",
  "parity-scale-codec",
  "paste",
  "scale-info",
@@ -1831,9 +1821,9 @@ dependencies = [
 
 [[package]]
 name = "http-body"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ff4f84919677303da5f147645dbea6b1881f368d03ac84e1dc09031ebd7b2c6"
+checksum = "d5f38f16d184e36f2408a55281cd658ecbd3ca05cce6d6510a176eca393e26d1"
 dependencies = [
  "bytes 1.1.0",
  "http 0.2.7",
@@ -1892,9 +1882,9 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "hyper"
-version = "0.14.18"
+version = "0.14.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b26ae0a80afebe130861d90abf98e3814a4f28a4c6ffeb5ab8ebb2be311e0ef2"
+checksum = "42dc3c131584288d375f2d07f822b0cb012d8c6fb899a5b9fdb3cb7eb9b6004f"
 dependencies = [
  "bytes 1.1.0",
  "futures-channel 0.3.21",
@@ -2027,9 +2017,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.8.1"
+version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f647032dfaa1f8b6dc29bd3edb7bbef4861b8b8007ebb118d6db284fd59f6ee"
+checksum = "e6012d540c5baa3589337a98ce73408de9b5a25ec9fc2c6fd6be8f0d39e0ca5a"
 dependencies = [
  "autocfg 1.1.0",
  "hashbrown 0.11.2",
@@ -2144,7 +2134,7 @@ dependencies = [
  "multihash 0.8.0",
  "pallet-balances",
  "parity-scale-codec",
- "parking_lot 0.12.0",
+ "parking_lot 0.12.1",
  "primitive-types",
  "prometheus",
  "serde 1.0.137",
@@ -2224,7 +2214,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log 0.4.17",
- "pallet-ajuna-connectfour",
+ "pallet-ajuna-board 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
  "pallet-balances",
  "parity-scale-codec",
  "sc-keystore",
@@ -2233,7 +2223,7 @@ dependencies = [
  "sgx_tstd",
  "sp-application-crypto",
  "sp-core",
- "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20)",
+ "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity)",
  "sp-keyring",
  "sp-runtime",
  "substrate-api-client",
@@ -2652,7 +2642,7 @@ dependencies = [
 name = "itp-stf-executor"
 version = "0.8.0"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
  "ita-stf",
  "itp-ocall-api",
  "itp-registry-storage",
@@ -2901,7 +2891,7 @@ dependencies = [
  "its-top-pool-executor",
  "its-validateer-fetch",
  "log 0.4.17",
- "pallet-ajuna-connectfour",
+ "pallet-ajuna-board 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
  "parity-scale-codec",
  "sgx-externalities",
  "sgx_tstd",
@@ -3037,7 +3027,7 @@ dependencies = [
  "sgx-externalities",
  "sgx_tstd",
  "sp-core",
- "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20)",
+ "sp-io 6.0.0 (git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity)",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
  "thiserror 1.0.31",
@@ -3320,9 +3310,9 @@ dependencies = [
 
 [[package]]
 name = "keccak"
-version = "0.1.0"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67c21572b4949434e4fc1e1978b99c5f77064153c59d998bf13ecd96fb5ecba7"
+checksum = "f9b7d56ba4a8344d6be9729995e6b06f928af29998cdf79fe390cbf6b1fee838"
 
 [[package]]
 name = "kernel32-sys"
@@ -3351,9 +3341,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.125"
+version = "0.2.126"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5916d2ae698f6de9bfb891ad7a8d65c09d232dc58cc4ac433c7da3b2fd84bc2b"
+checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
 
 [[package]]
 name = "libloading"
@@ -3605,9 +3595,9 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "miniz_oxide"
-version = "0.5.1"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2b29bd4bc3f33391105ebee3589c19197c4271e3e5a9ec9bfe8127eeff8f082"
+checksum = "6f5c75688da582b8ffc1f1799e9db273f32133c49e048f614d22ec3256773ccc"
 dependencies = [
  "adler",
 ]
@@ -4107,9 +4097,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.10.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87f3e037eac156d1775da914196f0f37741a274155e34a0b7e427c35d2a2ecb9"
+checksum = "7709cef83f0c1f58f666e746a08b21e0085f7440fa6a29cc194d68aac97a4225"
 
 [[package]]
 name = "opaque-debug"
@@ -4133,7 +4123,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "foreign-types",
  "libc",
- "once_cell 1.10.0",
+ "once_cell 1.12.0",
  "openssl-macros",
  "openssl-sys",
 ]
@@ -4157,9 +4147,9 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.73"
+version = "0.9.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d5fd19fb3e0a8191c1e34935718976a3e70c112ab9a24af6d7cadccd9d90bc0"
+checksum = "835363342df5fba8354c5b453325b110ffd54044e588c539cf2f20a8014e4cb1"
 dependencies = [
  "autocfg 1.1.0",
  "cc",
@@ -4185,19 +4175,32 @@ dependencies = [
 
 [[package]]
 name = "os_str_bytes"
-version = "6.0.1"
+version = "6.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "029d8d0b2f198229de29dca79676f2738ff952edf3fde542eb8bf94d8c21b435"
+checksum = "21326818e99cfe6ce1e524c2a805c189a99b5ae555a35d19f9a284b427d86afa"
 
 [[package]]
-name = "pallet-ajuna-connectfour"
+name = "pallet-ajuna-board"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#4b94816df69a9c6668ebb505f57e864e03fdc01a"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity#277d0da4101cdf8082055386358874e37b7237d5"
 dependencies = [
- "frame-benchmarking",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity)",
  "frame-support",
  "frame-system",
- "pallet-ajuna-matchmaker",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
+]
+
+[[package]]
+name = "pallet-ajuna-board"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
+dependencies = [
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -4207,9 +4210,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#4b94816df69a9c6668ebb505f57e864e03fdc01a"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -4224,9 +4227,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#4b94816df69a9c6668ebb505f57e864e03fdc01a"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -4237,9 +4240,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-runner"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#4b94816df69a9c6668ebb505f57e864e03fdc01a"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
 dependencies = [
- "ajuna-common",
+ "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -4613,7 +4616,7 @@ dependencies = [
  "hashbrown 0.12.1",
  "impl-trait-for-tuples",
  "parity-util-mem-derive",
- "parking_lot 0.12.0",
+ "parking_lot 0.12.1",
  "primitive-types",
  "winapi 0.3.9",
 ]
@@ -4667,9 +4670,9 @@ dependencies = [
 
 [[package]]
 name = "parking_lot"
-version = "0.12.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87f5ec2493a61ac0506c0f4199f99070cbe83857b0337006a30f3e6719b8ef58"
+checksum = "3742b2c103b9f06bc9fff0a37ff4912935851bee6d36f3c02bcc755bcfec228f"
 dependencies = [
  "lock_api 0.4.7",
  "parking_lot_core 0.9.3",
@@ -4921,22 +4924,21 @@ checksum = "bc881b2c22681370c6a780e47af9840ef841837bc98118431d4e1868bd0c1086"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.38"
+version = "1.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9027b48e9d4c9175fa2218adf3557f91c1137021739951d4932f5f8268ac48aa"
+checksum = "c54b25569025b7fc9651de43004ae593a75ad88543b17178aa5e1b9c4f15f56f"
 dependencies = [
- "unicode-xid",
+ "unicode-ident",
 ]
 
 [[package]]
 name = "procfs"
-version = "0.10.1"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95e344cafeaeefe487300c361654bcfc85db3ac53619eeccced29f5ea18c4c70"
+checksum = "0941606b9934e2d98a3677759a971756eb821f75764d0e0d26946d08e74d9104"
 dependencies = [
  "bitflags",
  "byteorder 1.4.3",
- "flate2",
  "hex",
  "lazy_static",
  "libc",
@@ -4944,16 +4946,16 @@ dependencies = [
 
 [[package]]
 name = "prometheus"
-version = "0.13.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7f64969ffd5dd8f39bd57a68ac53c163a095ed9d0fb707146da1b27025a3504"
+checksum = "cface98dfa6d645ea4c789839f176e4b072265d085bfcc48eaa8d137f58d3c39"
 dependencies = [
  "cfg-if 1.0.0",
  "fnv 1.0.7",
  "lazy_static",
  "libc",
  "memchr 2.5.0",
- "parking_lot 0.11.2",
+ "parking_lot 0.12.1",
  "procfs",
  "protobuf",
  "thiserror 1.0.31",
@@ -5279,9 +5281,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.5"
+version = "1.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a11647b6b25ff05a515cb92c365cec08801e83423a235b51e231e1808747286"
+checksum = "d83f127d94bdbcda4c8cc2e50f6f84f4b611f69c902699ca385a39c3a75f9ff1"
 dependencies = [
  "aho-corasick",
  "memchr 2.5.0",
@@ -5299,9 +5301,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.25"
+version = "0.6.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
+checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
 
 [[package]]
 name = "remove_dir_all"
@@ -5314,9 +5316,9 @@ dependencies = [
 
 [[package]]
 name = "retain_mut"
-version = "0.1.7"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c31b5c4033f8fdde8700e4657be2c497e7288f01515be52168c631e2e4d4086"
+checksum = "4389f1d5789befaf6029ebd9f7dac4af7f7e3d61b69d4f30e2ac02b57e7712b0"
 
 [[package]]
 name = "ring"
@@ -5350,7 +5352,7 @@ checksum = "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc"
 dependencies = [
  "cc",
  "libc",
- "once_cell 1.10.0",
+ "once_cell 1.12.0",
  "spin",
  "untrusted",
  "web-sys",
@@ -5515,7 +5517,7 @@ source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.2
 dependencies = [
  "async-trait",
  "hex",
- "parking_lot 0.12.0",
+ "parking_lot 0.12.1",
  "serde_json 1.0.81",
  "sp-application-crypto",
  "sp-core",
@@ -5525,9 +5527,9 @@ dependencies = [
 
 [[package]]
 name = "scale-info"
-version = "2.1.1"
+version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8980cafbe98a7ee7a9cc16b32ebce542c77883f512d83fbf2ddc8f6a85ea74c9"
+checksum = "c46be926081c9f4dd5dd9b6f1d3e3229f2360bc6502dd8836f84a93b7c75e99a"
 dependencies = [
  "bitvec",
  "cfg-if 1.0.0",
@@ -5539,9 +5541,9 @@ dependencies = [
 
 [[package]]
 name = "scale-info-derive"
-version = "2.1.1"
+version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4260c630e8a8a33429d1688eff2f163f24c65a4e1b1578ef6b565061336e4b6f"
+checksum = "50e334bb10a245e28e5fd755cabcafd96cfcd167c99ae63a46924ca8d8703a3c"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -5551,12 +5553,12 @@ dependencies = [
 
 [[package]]
 name = "schannel"
-version = "0.1.19"
+version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f05ba609c234e60bee0d547fe94a4c7e9da733d1c962cf6e59efa4cd9c8bc75"
+checksum = "88d6731146462ea25d9244b2ed5fd1d716d25c52e4d54aa4fb0f3c4e9854dbe2"
 dependencies = [
  "lazy_static",
- "winapi 0.3.9",
+ "windows-sys",
 ]
 
 [[package]]
@@ -5803,7 +5805,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20#44e2e6a899f90a9056afe8a7113dc41a6ae20c09"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity#af01946757f0f54a4cee863ca370057c176a259b"
 dependencies = [
  "derive_more",
  "environmental",
@@ -5818,13 +5820,13 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20#44e2e6a899f90a9056afe8a7113dc41a6ae20c09"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity#af01946757f0f54a4cee863ca370057c176a259b"
 dependencies = [
  "frame-executive",
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
- "pallet-ajuna-connectfour",
+ "pallet-ajuna-board 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity)",
  "pallet-aura",
  "pallet-balances",
  "pallet-grandpa",
@@ -6349,7 +6351,7 @@ dependencies = [
  "num-traits 0.2.15",
  "parity-scale-codec",
  "parity-util-mem",
- "parking_lot 0.12.0",
+ "parking_lot 0.12.1",
  "primitive-types",
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex",
@@ -6453,15 +6455,18 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20#563f4820d8f36d256ada7ea3fef46b2e94c4cd5a"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity#af01946757f0f54a4cee863ca370057c176a259b"
 dependencies = [
+ "environmental",
  "futures 0.3.21",
  "hash-db",
  "libsecp256k1",
  "log 0.4.17",
  "parity-scale-codec",
- "parking_lot 0.12.0",
- "secp256k1",
+ "parking_lot 0.12.1",
+ "sgx-externalities",
+ "sgx_tstd",
+ "sgx_types",
  "sp-core",
  "sp-externalities",
  "sp-keystore",
@@ -6478,18 +6483,15 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20#44e2e6a899f90a9056afe8a7113dc41a6ae20c09"
+source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20#563f4820d8f36d256ada7ea3fef46b2e94c4cd5a"
 dependencies = [
- "environmental",
  "futures 0.3.21",
  "hash-db",
  "libsecp256k1",
  "log 0.4.17",
  "parity-scale-codec",
- "parking_lot 0.12.0",
- "sgx-externalities",
- "sgx_tstd",
- "sgx_types",
+ "parking_lot 0.12.1",
+ "secp256k1",
  "sp-core",
  "sp-externalities",
  "sp-keystore",
@@ -6523,7 +6525,7 @@ dependencies = [
  "futures 0.3.21",
  "merlin",
  "parity-scale-codec",
- "parking_lot 0.12.0",
+ "parking_lot 0.12.1",
  "schnorrkel",
  "serde 1.0.137",
  "sp-core",
@@ -6655,7 +6657,7 @@ dependencies = [
  "log 0.4.17",
  "num-traits 0.2.15",
  "parity-scale-codec",
- "parking_lot 0.12.0",
+ "parking_lot 0.12.1",
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 1.8.0",
  "sp-core",
@@ -6671,7 +6673,7 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "4.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=master#73ca2dacd2bcfd300d270b4e0211621200c0c596"
+source = "git+https://github.com/paritytech/substrate.git?branch=master#1785a87d7533895707be08b82367b73f56b6abc7"
 
 [[package]]
 name = "sp-std"
@@ -6792,9 +6794,9 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "ss58-registry"
-version = "1.18.0"
+version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ceb8b72a924ccfe7882d0e26144c114503760a4d1248bb5cd06c8ab2d55404cc"
+checksum = "5d804c8d48aeab838be31570866fce1130d275b563d49af08b4927a0bd561e7c"
 dependencies = [
  "Inflector",
  "num-format",
@@ -6907,7 +6909,7 @@ source = "git+https://github.com/scs/substrate-api-client?branch=polkadot-v0.9.2
 dependencies = [
  "async-trait",
  "hex",
- "parking_lot 0.12.0",
+ "parking_lot 0.12.1",
  "sc-keystore",
  "serde_json 1.0.81",
  "sp-application-crypto",
@@ -6946,13 +6948,13 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.94"
+version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a07e33e919ebcd69113d5be0e4d70c5707004ff45188910106854f38b960df4a"
+checksum = "0748dd251e24453cb8717f0354206b91557e4ec8703673a4b30208f2abaf1ebf"
 dependencies = [
  "proc-macro2",
  "quote",
- "unicode-xid",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -7080,7 +7082,7 @@ version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5516c27b78311c50bf42c071425c560ac799b11c30b31f87e3081965fe5e0180"
 dependencies = [
- "once_cell 1.10.0",
+ "once_cell 1.12.0",
 ]
 
 [[package]]
@@ -7116,7 +7118,7 @@ checksum = "ffc59cb9dfc85bb312c3a78fd6aa8a8582e310b0fa885d5bb877f6dcc601839d"
 dependencies = [
  "anyhow",
  "hmac 0.8.1",
- "once_cell 1.10.0",
+ "once_cell 1.12.0",
  "pbkdf2 0.4.0",
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-hash",
@@ -7171,8 +7173,8 @@ dependencies = [
  "memchr 2.5.0",
  "mio 0.8.3",
  "num_cpus",
- "once_cell 1.10.0",
- "parking_lot 0.12.0",
+ "once_cell 1.12.0",
+ "parking_lot 0.12.1",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",
@@ -7469,9 +7471,9 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "digest 0.10.3",
- "rand 0.6.5",
+ "rand 0.8.5",
  "static_assertions",
 ]
 
@@ -7536,6 +7538,12 @@ name = "unicode-bidi"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "099b7128301d285f79ddd55b9a83d5e6b9e97c92e0ea0daebee7263e932de992"
+
+[[package]]
+name = "unicode-ident"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d22af068fba1eb5edcb4aea19d382b2a3deb4c8f9d475c589b6ada9e0fd493ee"
 
 [[package]]
 name = "unicode-normalization"

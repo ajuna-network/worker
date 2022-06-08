@@ -183,25 +183,30 @@ impl Stf {
 					Self::shield_funds(who, value)?;
 					Ok(())
 				},
-				TrustedCall::new_game(root, player_one, player_two) => {
+				TrustedCall::board_new_game(root, board_id, players) => {
 					let origin = sgx_runtime::Origin::signed(root.clone());
 					debug!(
-						"collect four new_game ({:x?}, {:x?})",
-						player_one.encode(),
-						player_two.encode()
+						"board_new_game {:x?} => {:x?})",
+						board_id,
+						players
 					);
-					sgx_runtime::BoardCall::<Runtime>::new_game {
-						player_one: player_one.clone(),
-						player_two: player_two.clone(),
-					}
+					sgx_runtime::AjunaBoardCall::<Runtime>::new_game { board_id, players }
 					.dispatch_bypass_filter(origin)
 					.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_play_turn(sender, turn) => {
 					let origin = sgx_runtime::Origin::signed(sender.clone());
-					debug!("board choose ({:x?}, {:?})", sender.encode(), turn);
-					sgx_runtime::BoardCall::<Runtime>::play_turn { turn }
+					debug!("board play turn ({:x?}, {:?})", sender.encode(), turn);
+					sgx_runtime::AjunaBoardCall::<Runtime>::play_turn { turn }
+						.dispatch_bypass_filter(origin.clone())
+						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
+					Ok(())
+				},
+				TrustedCall::board_flush_winner(sender, board_id) => {
+					let origin = sgx_runtime::Origin::signed(sender.clone());
+					debug!("board flush ({:x?}, {:?})", sender.encode(), board_id);
+					sgx_runtime::AjunaBoardCall::<Runtime>::flush_winner { board_id }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
@@ -283,8 +288,9 @@ impl Stf {
 			TrustedCall::balance_transfer(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_unshield(_, _, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_shield(_, _, _) => debug!("No storage updates needed..."),
-			TrustedCall::new_game(_, _, _) => debug!("No storage updates needed..."),
+			TrustedCall::board_new_game(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::board_play_turn(_, _) => debug!("No storage updates needed..."),
+			TrustedCall::board_flush_winner(_, _) => debug!("No storage updates needed..."),
 		};
 		key_hashes
 	}
