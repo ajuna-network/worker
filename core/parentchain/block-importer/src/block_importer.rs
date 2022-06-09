@@ -192,32 +192,7 @@ impl<
 				block.header().hash()
 			);
 
-			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
-			let maybe_queued: Option<Vec<GameId>> = self
-				.ocall_api
-				.get_storage_verified(RegistryStorage::queued(), block.header())
-				.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
-				.into_tuple()
-				.1;
-
-			match maybe_queued {
-				Some(queued) => {
-					if !queued.is_empty() {
-						//FIXME: we currently only take the first shard. How we handle sharding in general?
-						let shard = self.file_state_handler.list_shards().unwrap()[0];
-						let ack_game_call = OpaqueCall::from_tuple(&(
-							[GAME_REGISTRY_MODULE, ACK_GAME],
-							queued,
-							shard,
-						));
-
-						calls.push(ack_game_call);
-					}
-				},
-				None => {
-					debug!("No game queued in GameRegistry pallet.");
-				},
-			}
+			self.ack_queued_games(block.header(), &mut calls)?;
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.
@@ -228,6 +203,34 @@ impl<
 			v.send_extrinsics(self.ocall_api.as_ref(), parentchain_extrinsics)
 		})?;
 
+		Ok(())
+	}
+
+	fn ack_queued_games(
+		&self,
+		header: &ParentchainHeader,
+		calls: &mut Vec<OpaqueCall>,
+	) -> Result<()> {
+		let maybe_queued: Option<Vec<GameId>> = self
+			.ocall_api
+			.get_storage_verified(RegistryStorage::queued(), header)
+			.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
+			.into_tuple()
+			.1;
+		match maybe_queued {
+			Some(queued) if !queued.is_empty() => {
+				debug!("Games queued in GameRegistry pallet (game_ids: {:?})", queued);
+				//FIXME: we currently only take the first shard. How we handle sharding in general?
+				let shard = self.file_state_handler.list_shards().unwrap()[0];
+				let ack_game_call =
+					OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, ACK_GAME], queued, shard));
+
+				calls.push(ack_game_call);
+			},
+			_ => {
+				debug!("No game queued in GameRegistry pallet.");
+			},
+		};
 		Ok(())
 	}
 }

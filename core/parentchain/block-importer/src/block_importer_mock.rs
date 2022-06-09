@@ -19,7 +19,7 @@
 
 use crate::{
 	error::{Error, Result},
-	ImportParentchainBlocks,
+	ImportParentchainBlocks, OpaqueCall, ParentchainHeader,
 };
 use std::{sync::RwLock, vec::Vec};
 
@@ -55,6 +55,14 @@ where
 			Error::Other(format!("failed to acquire lock for imported blocks vec: {:?}", e).into())
 		})?;
 		imported_blocks_lock.extend(blocks_to_import);
+		Ok(())
+	}
+
+	fn ack_queued_games(
+		&self,
+		_header: &ParentchainHeader,
+		_calls: &mut Vec<OpaqueCall>,
+	) -> Result<()> {
 		Ok(())
 	}
 }

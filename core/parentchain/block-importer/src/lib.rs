@@ -40,6 +40,8 @@ pub mod block_importer_mock;
 pub use block_importer::*;
 
 use error::Result;
+use ita_stf::ParentchainHeader;
+use itp_types::OpaqueCall;
 use std::vec::Vec;
 
 /// Block import from the parentchain.
@@ -53,4 +55,13 @@ pub trait ImportParentchainBlocks {
 	/// * Sends `PROCESSED_PARENTCHAIN_BLOCK` extrinsics that include the merkle root of all processed calls
 	fn import_parentchain_blocks(&self, blocks_to_import: Vec<Self::SignedBlockType>)
 		-> Result<()>;
+
+	/// Acknowledge games queued in Game Registry:
+	/// * Queries the `GameRegistry` storage to look for queued games
+	/// * Batches calls to acknowledge queued games
+	fn ack_queued_games(
+		&self,
+		header: &ParentchainHeader,
+		calls: &mut Vec<OpaqueCall>,
+	) -> Result<()>;
 }
