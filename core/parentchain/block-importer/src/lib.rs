@@ -41,7 +41,7 @@ pub use block_importer::*;
 
 use error::Result;
 use ita_stf::ParentchainHeader;
-use itp_types::OpaqueCall;
+use itp_types::{OpaqueCall, OpaqueExtrinsic};
 use std::vec::Vec;
 
 /// Block import from the parentchain.
@@ -62,6 +62,15 @@ pub trait ImportParentchainBlocks {
 	fn ack_queued_games(
 		&self,
 		header: &ParentchainHeader,
+		calls: &mut Vec<OpaqueCall>,
+	) -> Result<()>;
+
+	/// Run acknowledged games:
+	/// * Scans blocks for `ack_game` extrinsics for game IDs
+	/// * Queries the `Runner` storage and run games for the matched game IDs
+	fn run_ack_games(
+		&self,
+		extrinsics: &[OpaqueExtrinsic],
 		calls: &mut Vec<OpaqueCall>,
 	) -> Result<()>;
 }

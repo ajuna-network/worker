@@ -7,7 +7,6 @@ use sgx_tstd as std;
 use sp_runtime::{
 	generic::{Block as BlockG, Header as HeaderG, SignedBlock as SignedBlockG},
 	traits::BlakeTwo256,
-	OpaqueExtrinsic,
 };
 use std::vec::Vec;
 
@@ -26,6 +25,7 @@ pub type PalletString = Vec<u8>;
 pub type PalletString = String;
 
 pub use sp_core::{crypto::AccountId32 as AccountId, H256};
+pub use sp_runtime::OpaqueExtrinsic;
 pub use substrate_api_client::{AccountData, AccountInfo};
 
 pub type ShardIdentifier = H256;

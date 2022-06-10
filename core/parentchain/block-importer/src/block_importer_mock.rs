@@ -19,7 +19,7 @@
 
 use crate::{
 	error::{Error, Result},
-	ImportParentchainBlocks, OpaqueCall, ParentchainHeader,
+	ImportParentchainBlocks, OpaqueCall, OpaqueExtrinsic, ParentchainHeader,
 };
 use std::{sync::RwLock, vec::Vec};
 
@@ -61,6 +61,14 @@ where
 	fn ack_queued_games(
 		&self,
 		_header: &ParentchainHeader,
+		_calls: &mut Vec<OpaqueCall>,
+	) -> Result<()> {
+		Ok(())
+	}
+
+	fn run_ack_games(
+		&self,
+		_extrinsics: &[OpaqueExtrinsic],
 		_calls: &mut Vec<OpaqueCall>,
 	) -> Result<()> {
 		Ok(())

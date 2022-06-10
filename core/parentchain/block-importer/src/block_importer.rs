@@ -35,7 +35,7 @@ use itp_settings::node::{
 };
 use itp_stf_executor::traits::StfUpdateState;
 use itp_stf_state_handler::query_shard_state::QueryShardState;
-use itp_types::{GameId, OpaqueCall, H256};
+use itp_types::{GameId, OpaqueCall, OpaqueExtrinsic, H256};
 use log::*;
 use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
@@ -136,7 +136,8 @@ impl<
 		IndirectCallsExecutor,
 		StateHandler,
 	> where
-	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
+	ParentchainBlock:
+		ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader, Extrinsic = OpaqueExtrinsic>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
 	OCallApi: EnclaveOnChainOCallApi + EnclaveAttestationOCallApi,
@@ -193,6 +194,7 @@ impl<
 			);
 
 			self.ack_queued_games(block.header(), &mut calls)?;
+			self.run_ack_games(block.extrinsics(), &mut calls)?;
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.
@@ -231,6 +233,14 @@ impl<
 				debug!("No game queued in GameRegistry pallet.");
 			},
 		};
+		Ok(())
+	}
+
+	fn run_ack_games(
+		&self,
+		_extrinsics: &[OpaqueExtrinsic],
+		_calls: &mut Vec<OpaqueCall>,
+	) -> Result<()> {
 		Ok(())
 	}
 }
