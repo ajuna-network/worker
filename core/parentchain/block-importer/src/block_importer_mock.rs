@@ -57,20 +57,4 @@ where
 		imported_blocks_lock.extend(blocks_to_import);
 		Ok(())
 	}
-
-	fn ack_queued_games(
-		&self,
-		_header: &ParentchainHeader,
-		_calls: &mut Vec<OpaqueCall>,
-	) -> Result<()> {
-		Ok(())
-	}
-
-	fn run_ack_games(
-		&self,
-		_extrinsics: &[OpaqueExtrinsic],
-		_calls: &mut Vec<OpaqueCall>,
-	) -> Result<()> {
-		Ok(())
-	}
 }
