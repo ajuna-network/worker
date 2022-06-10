@@ -204,10 +204,11 @@ impl<
 				Some(queued) => {
 					if !queued.is_empty() {
 						//FIXME: we currently only take the first shard. How we handle sharding in general?
-						let _shard = self.file_state_handler.list_shards().unwrap()[0];
+						let shard = self.file_state_handler.list_shards().unwrap()[0];
 						let ack_game_call = OpaqueCall::from_tuple(&(
 							[GAME_REGISTRY_MODULE, ACK_GAME],
 							queued,
+							shard
 						));
 
 						calls.push(ack_game_call);
