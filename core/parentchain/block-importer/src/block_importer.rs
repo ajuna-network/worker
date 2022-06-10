@@ -208,7 +208,7 @@ impl<
 						let ack_game_call = OpaqueCall::from_tuple(&(
 							[GAME_REGISTRY_MODULE, ACK_GAME],
 							queued,
-							shard
+							shard,
 						));
 
 						calls.push(ack_game_call);
