@@ -230,8 +230,8 @@ where
 				let (state_lock, mut state) = self.state_handler.load_for_mutation(shard)?;
 				let root = Stf::get_root(&mut state);
 				let nonce = Stf::account_nonce(&mut state, &root);
-
-				if let RunnerState::Queued(mut runner_state) = runner {
+				
+				if let RunnerState::Accepted(mut runner_state) = runner {
 					if let Ok(game) = Game::<AccountId>::decode(&mut runner_state) {
 						if game.players.len() == 2 {
 							let player_one = game.players[0].clone();
