@@ -18,11 +18,17 @@
 #[cfg(all(not(feature = "std"), feature = "sgx"))]
 use crate::sgx_reexport_prelude::*;
 
-use crate::{DetermineWatch, RpcConnectionRegistry, RpcHash};
-use itc_tls_websocket_server::{error::WebSocketResult, ConnectionToken, WebSocketMessageHandler};
+use crate::{DetermineWatch, DirectRpcError, RpcConnectionRegistry, RpcHash};
+use codec::Decode;
+use itc_tls_websocket_server::{
+	error::{WebSocketError, WebSocketResult},
+	ConnectionToken, WebSocketMessageHandler,
+};
+use itp_types::{DirectRequestStatus, RpcReturnValue, TrustedOperationStatus};
 use jsonrpc_core::IoHandler;
 use log::*;
 use std::{string::String, sync::Arc};
+use crate::Box;
 
 pub struct RpcWsHandler<Watcher, Registry, Hash>
 where
@@ -62,7 +68,7 @@ where
 		connection_token: ConnectionToken,
 		message: String,
 	) -> WebSocketResult<Option<String>> {
-		let maybe_rpc_response = self.rpc_io_handler.handle_request_sync(message.as_str());
+		let mut maybe_rpc_response = self.rpc_io_handler.handle_request_sync(message.as_str());
 
 		debug!("RPC response string: {:?}", maybe_rpc_response);
 
@@ -75,9 +81,21 @@ where
 				self.connection_registry.store(
 					connection_hash,
 					connection_token.into(),
-					rpc_response,
+					rpc_response.clone(),
 				);
 			}
+
+			// Very dirty trick to skip submitted Update
+			let rpc_return_value = RpcReturnValue::decode(&mut rpc_response.result.as_slice())
+				.map_err(|e| WebSocketError::Other(Box::new(DirectRpcError::EncodingError(e))))?;
+
+			if rpc_return_value.status
+				== DirectRequestStatus::TrustedOperationStatus(TrustedOperationStatus::Submitted)
+			{
+				warn!("Got TrustedOperationStatus::Submitted, not sending a response");
+				maybe_rpc_response = None;
+			}
+
 		}
 
 		Ok(maybe_rpc_response)
