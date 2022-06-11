@@ -18,17 +18,16 @@
 #[cfg(all(not(feature = "std"), feature = "sgx"))]
 use crate::sgx_reexport_prelude::*;
 
-use crate::{DetermineWatch, DirectRpcError, RpcConnectionRegistry, RpcHash};
+use crate::{DetermineWatch, RpcConnectionRegistry, RpcHash};
 use codec::Decode;
 use itc_tls_websocket_server::{
-	error::{WebSocketError, WebSocketResult},
+	error::WebSocketResult,
 	ConnectionToken, WebSocketMessageHandler,
 };
 use itp_types::{DirectRequestStatus, RpcReturnValue, TrustedOperationStatus};
 use jsonrpc_core::IoHandler;
 use log::*;
 use std::{string::String, sync::Arc};
-use crate::Box;
 
 pub struct RpcWsHandler<Watcher, Registry, Hash>
 where
@@ -86,16 +85,14 @@ where
 			}
 
 			// Very dirty trick to skip submitted Update
-			let rpc_return_value = RpcReturnValue::decode(&mut rpc_response.result.as_slice())
-				.map_err(|e| WebSocketError::Other(Box::new(DirectRpcError::EncodingError(e))))?;
-
-			if rpc_return_value.status
-				== DirectRequestStatus::TrustedOperationStatus(TrustedOperationStatus::Submitted)
-			{
-				warn!("Got TrustedOperationStatus::Submitted, not sending a response");
-				maybe_rpc_response = None;
+			if let Ok(rpc_return_value) = RpcReturnValue::decode(&mut rpc_response.result.as_ref()) {
+				if rpc_return_value.status
+					== DirectRequestStatus::TrustedOperationStatus(TrustedOperationStatus::Submitted)
+				{
+					warn!("Got TrustedOperationStatus::Submitted, not sending a response");
+					maybe_rpc_response = None;
+				}
 			}
-
 		}
 
 		Ok(maybe_rpc_response)
