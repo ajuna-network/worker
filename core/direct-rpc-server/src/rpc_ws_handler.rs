@@ -19,12 +19,9 @@
 use crate::sgx_reexport_prelude::*;
 
 use crate::{DetermineWatch, RpcConnectionRegistry, RpcHash};
-use codec::Decode;
-use itc_tls_websocket_server::{
-	error::WebSocketResult,
-	ConnectionToken, WebSocketMessageHandler,
-};
+use itc_tls_websocket_server::{error::WebSocketResult, ConnectionToken, WebSocketMessageHandler};
 use itp_types::{DirectRequestStatus, RpcReturnValue, TrustedOperationStatus};
+use itp_utils::FromHexPrefixed;
 use jsonrpc_core::IoHandler;
 use log::*;
 use std::{string::String, sync::Arc};
@@ -85,14 +82,15 @@ where
 			}
 
 			// Very dirty trick to skip submitted Update
-			if let Ok(rpc_return_value) = RpcReturnValue::decode(&mut rpc_response.result.as_ref()) {
-				if rpc_return_value.status
-					== DirectRequestStatus::TrustedOperationStatus(TrustedOperationStatus::Submitted)
+			if let Ok(rpc_return_value) = RpcReturnValue::from_hex(&rpc_response.result) {
+				if rpc_return_value.status == DirectRequestStatus::TrustedOperationStatus(TrustedOperationStatus::Submitted)
+					&& rpc_return_value.do_watch
 				{
 					warn!("Got TrustedOperationStatus::Submitted, not sending a response");
 					maybe_rpc_response = None;
 				}
 			}
+
 		}
 
 		Ok(maybe_rpc_response)
