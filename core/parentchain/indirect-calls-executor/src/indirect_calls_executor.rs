@@ -24,15 +24,14 @@ use crate::error::Result;
 use beefy_merkle_tree::{merkle_root, Keccak256};
 use codec::{Decode, Encode};
 use futures::executor;
-use ita_stf::{AccountId, TrustedCall, TrustedOperation};
-use itp_node_api::{
-	api_client::ParentchainUncheckedExtrinsic,
-	metadata::{pallet_teerex::TeerexCallIndexes, provider::AccessNodeMetadata},
+use ita_stf::AccountId;
+use itp_settings::node::{
+	ACK_GAME, CALL_WORKER, FINISH_GAME, GAME_REGISTRY_MODULE, SHIELD_FUNDS, TEEREX_MODULE,
 };
-use itp_sgx_crypto::{key_repository::AccessKey, ShieldingCryptoDecrypt, ShieldingCryptoEncrypt};
-use itp_stf_executor::traits::StfEnclaveSigning;
+use itp_sgx_crypto::{key_repository::AccessKey, ShieldingCryptoDecrypt};
+use itp_stf_executor::traits::StfExecuteShieldFunds;
 use itp_top_pool_author::traits::AuthorApi;
-use itp_types::{CallWorkerFn, OpaqueCall, ShardIdentifier, ShieldFundsFn, H256};
+use itp_types::{CallWorkerFn, ShieldFundsFn, H256};
 use log::*;
 use sp_core::blake2_256;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
@@ -120,63 +119,46 @@ where
 		if let Err(e) = executor::block_on(top_submit_future) {
 			error!("Error adding indirect trusted call to TOP pool: {:?}", e);
 		}
-	}
 
-	/// Creates a processed_parentchain_block extrinsic for a given parentchain block hash and the merkle executed extrinsics.
-	///
-	/// Calculates the merkle root of the extrinsics. In case no extrinsics are supplied, the root will be a hash filled with zeros.
-	fn create_processed_parentchain_block_call(
+	fn handle_ack_game_xt<ParentchainBlock>(
 		&self,
-		block_hash: H256,
-		extrinsics: Vec<H256>,
-	) -> Result<OpaqueCall> {
-		let call = self.node_meta_data_provider.get_from_metadata(|meta_data| {
-			meta_data.confirm_processed_parentchain_block_call_indexes()
-		})??;
+		xt: &UncheckedExtrinsicV4<AckGameFn>,
+		block: &ParentchainBlock,
+	) -> Result<()>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
+	{
+		let (_call, games, shard) = &xt.function;
 
-		let root: H256 = merkle_root::<Keccak256, _, _>(extrinsics).into();
-		Ok(OpaqueCall::from_tuple(&(call, block_hash, root)))
+		info!("found {:?} games", games.len());
+
+		for game in games {
+			self.stf_executor.execute_new_game(*game, shard, block)?;
+		}
+		Ok(())
 	}
 
-	fn is_shield_funds_function(&self, function: &[u8; 2]) -> bool {
-		self.node_meta_data_provider
-			.get_from_metadata(|meta_data| {
-				let call = match meta_data.shield_funds_call_indexes() {
-					Ok(c) => c,
-					Err(e) => {
-						error!("Failed to get the indexes for the shield_funds call from the metadata: {:?}", e);
-						return false
-					},
-				};
-				function == &call
-			})
-			.unwrap_or(false)
-	}
+	fn handle_finish_game_xt<ParentchainBlock>(
+		&self,
+		xt: &UncheckedExtrinsicV4<FinishGameFn>,
+		block: &ParentchainBlock,
+	) -> Result<()>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
+	{
+		let (_call, game_id, _winner, shard) = &xt.function;
 
-	fn is_call_worker_function(&self, function: &[u8; 2]) -> bool {
-		self.node_meta_data_provider
-			.get_from_metadata(|meta_data| {
-				let call = match meta_data.call_worker_call_indexes() {
-					Ok(c) => c,
-					Err(e) => {
-						error!("Failed to get the indexes for the call_worker call from the metadata: {:?}", e);
-						return false
-					},
-				};
-				function == &call
-			})
-			.unwrap_or(false)
+		info!("handle finish game {}", game_id);
+
+		self.stf_executor.finish_game(*game_id, shard, block)?;
+
+		Ok(())
 	}
 }
 
-impl<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvider>
-	ExecuteIndirectCalls
-	for IndirectCallsExecutor<
-		ShieldingKeyRepository,
-		StfEnclaveSigner,
-		TopPoolAuthor,
-		NodeMetadataProvider,
-	> where
+impl<ShieldingKeyRepository, StfExecutor, TopPoolAuthor> ExecuteIndirectCalls
+	for IndirectCallsExecutor<ShieldingKeyRepository, StfExecutor, TopPoolAuthor>
+where
 	ShieldingKeyRepository: AccessKey,
 	<ShieldingKeyRepository as AccessKey>::KeyType: ShieldingCryptoDecrypt<Error = itp_sgx_crypto::Error>
 		+ ShieldingCryptoEncrypt<Error = itp_sgx_crypto::Error>,
@@ -216,14 +198,39 @@ impl<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvid
 						},
 					}
 				}
-			}
+			};
+
+			if let Ok(xt) =
+				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
+			{
+				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
+					if let Err(e) = self.handle_finish_game_xt(&xt, block) {
+						error!("Error performing finish game. Error: {:?}", e);
+					} else {
+						// Cache successfully executed shielding call.
+						executed_extrinsics.push(hash_of(xt))
+					}
+				}
+			};
+
+			if let Ok(xt) =
+				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
+			{
+				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
+					if let Err(e) = self.handle_finish_game_xt(&xt, block) {
+						error!("Error performing finish game. Error: {:?}", e);
+					} else {
+						// Cache successfully executed shielding call.
+						executed_extrinsics.push(hash_of(xt))
+					}
+				}
+			};
 
 			// Found CallWorker extrinsic in block.
-			// No else-if here! Because the same opaque extrinsic can contain multiple Fns at once (this lead to intermittent M6 failures)
-			if let Ok(xt) = ParentchainUncheckedExtrinsic::<CallWorkerFn>::decode(
-				&mut encoded_xt_opaque.as_slice(),
-			) {
-				if self.is_call_worker_function(&xt.function.0) {
+			if let Ok(xt) =
+				UncheckedExtrinsicV4::<CallWorkerFn>::decode(&mut xt_opaque.encode().as_slice())
+			{
+				if xt.function.0 == [TEEREX_MODULE, CALL_WORKER] {
 					let (_, request) = xt.function;
 					let (shard, cypher_text) = (request.shard, request.cyphertext);
 					debug!("Found trusted call extrinsic, submitting it to the top pool");

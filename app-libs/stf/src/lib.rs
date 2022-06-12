@@ -26,6 +26,7 @@
 #[cfg(all(not(feature = "std"), feature = "sgx"))]
 extern crate sgx_tstd as std;
 
+use alloc::collections::BTreeSet;
 #[cfg(feature = "sgx")]
 pub use ita_sgx_runtime::{Balance, Index};
 #[cfg(feature = "std")]
@@ -39,15 +40,43 @@ use std::vec::Vec;
 
 use codec::{Compact, Decode, Encode};
 use derive_more::Display;
+use itp_types::BlockNumber;
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::string::String;
+use support::{traits::Get, BoundedVec};
 
 pub type Signature = MultiSignature;
 pub type AuthorityId = <Signature as Verify>::Signer;
 pub type AccountId = AccountId32;
 pub type Hash = H256;
 pub type BalanceTransferFn = ([u8; 2], AccountId, Compact<u128>);
+
+pub const MAX_PLAYERS_ALLOWED: u32 = 2;
+pub struct MaxPlayers;
+impl Get<u32> for MaxPlayers {
+	fn get() -> u32 {
+		MAX_PLAYERS_ALLOWED
+	}
+}
+
+pub type SgxBoardId = u32;
+pub type SgxGameState = pallet_ajuna_board::dot4gravity::GameState<AccountId>;
+pub type SgxGameTurn = pallet_ajuna_board::dot4gravity::Turn;
+pub type Coordinates = pallet_ajuna_board::dot4gravity::Coordinates;
+pub type Side = pallet_ajuna_board::dot4gravity::Side;
+
+pub type SgxGameBoardStruct = pallet_ajuna_board::BoardGame<
+	SgxBoardId,
+	SgxGameState,
+	BoundedVec<AccountId, MaxPlayers>,
+	BlockNumber,
+>;
+
+pub struct SgxWinningBoard {
+	pub winner: AccountId,
+	pub board_id: SgxBoardId,
+}
 
 pub type ShardIdentifier = H256;
 
@@ -189,66 +218,15 @@ pub enum TrustedCall {
 	balance_transfer(AccountId, AccountId, Balance),
 	balance_unshield(AccountId, AccountId, Balance, ShardIdentifier), // (AccountIncognito, BeneficiaryPublicAccount, Amount, Shard)
 	balance_shield(AccountId, AccountId, Balance), // (Root, AccountIncognito, Amount)
-	#[cfg(feature = "evm")]
-	evm_withdraw(AccountId, H160, Balance), // (Origin, Address EVM Account, Value)
-	// (Origin, Source, Target, Input, Value, Gas limit, Max fee per gas, Max priority fee per gas, Nonce, Access list)
-	#[cfg(feature = "evm")]
-	evm_call(
-		AccountId,
-		H160,
-		H160,
-		Vec<u8>,
-		U256,
-		u64,
-		U256,
-		Option<U256>,
-		Option<U256>,
-		Vec<(H160, Vec<H256>)>,
-	),
-	// (Origin, Source, Init, Value, Gas limit, Max fee per gas, Max priority fee per gas, Nonce, Access list)
-	#[cfg(feature = "evm")]
-	evm_create(
-		AccountId,
-		H160,
-		Vec<u8>,
-		U256,
-		u64,
-		U256,
-		Option<U256>,
-		Option<U256>,
-		Vec<(H160, Vec<H256>)>,
-	),
-	// (Origin, Source, Init, Salt, Value, Gas limit, Max fee per gas, Max priority fee per gas, Nonce, Access list)
-	#[cfg(feature = "evm")]
-	evm_create2(
-		AccountId,
-		H160,
-		Vec<u8>,
-		H256,
-		U256,
-		u64,
-		U256,
-		Option<U256>,
-		Option<U256>,
-		Vec<(H160, Vec<H256>)>,
-	),
 }
 
 impl TrustedCall {
 	pub fn sender_account(&self) -> &AccountId {
 		match self {
-			TrustedCall::balance_set_balance(sender_account, ..) => sender_account,
-			TrustedCall::balance_transfer(sender_account, ..) => sender_account,
-			TrustedCall::balance_unshield(sender_account, ..) => sender_account,
-			TrustedCall::balance_shield(sender_account, ..) => sender_account,
-			#[cfg(feature = "evm")]
-			TrustedCall::evm_withdraw(sender_account, ..) => sender_account,
-			#[cfg(feature = "evm")]
-			TrustedCall::evm_call(sender_account, ..) => sender_account,
-			#[cfg(feature = "evm")]
-			TrustedCall::evm_create(sender_account, ..) => sender_account,
-			#[cfg(feature = "evm")]
-			TrustedCall::evm_create2(sender_account, ..) => sender_account,
+			TrustedCall::balance_set_balance(account, _, _, _) => account,
+			TrustedCall::balance_transfer(account, _, _) => account,
+			TrustedCall::balance_unshield(account, _, _, _) => account,
+			TrustedCall::balance_shield(account, _, _) => account,
 		}
 	}
 
@@ -274,26 +252,14 @@ pub enum TrustedGetter {
 	free_balance(AccountId),
 	reserved_balance(AccountId),
 	nonce(AccountId),
-	#[cfg(feature = "evm")]
-	evm_nonce(AccountId),
-	#[cfg(feature = "evm")]
-	evm_account_codes(AccountId, H160),
-	#[cfg(feature = "evm")]
-	evm_account_storages(AccountId, H160, H256),
 }
 
 impl TrustedGetter {
 	pub fn sender_account(&self) -> &AccountId {
 		match self {
-			TrustedGetter::free_balance(sender_account) => sender_account,
-			TrustedGetter::reserved_balance(sender_account) => sender_account,
-			TrustedGetter::nonce(sender_account) => sender_account,
-			#[cfg(feature = "evm")]
-			TrustedGetter::evm_nonce(sender_account) => sender_account,
-			#[cfg(feature = "evm")]
-			TrustedGetter::evm_account_codes(sender_account, _) => sender_account,
-			#[cfg(feature = "evm")]
-			TrustedGetter::evm_account_storages(sender_account, ..) => sender_account,
+			TrustedGetter::free_balance(account) => account,
+			TrustedGetter::reserved_balance(account) => account,
+			TrustedGetter::nonce(account) => account,
 		}
 	}
 

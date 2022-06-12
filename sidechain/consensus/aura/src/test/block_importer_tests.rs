@@ -19,6 +19,8 @@ use crate::{block_importer::BlockImporter, test::fixtures::validateer, ShardIden
 use codec::Encode;
 use core::assert_matches::assert_matches;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
+use itc_parentchain_light_client::mocks::validator_access_mock::ValidatorAccessMock;
+use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
 use itp_sgx_crypto::{aes::Aes, mocks::KeyRepositoryMock, StateCrypto};
 use itp_sgx_externalities::{SgxExternalities, SgxExternalitiesDiffType};
 use itp_stf_state_handler::handle_state::HandleState;
@@ -61,6 +63,8 @@ type TestBlockImporter = BlockImporter<
 	TestStateKeyRepo,
 	TestTopPoolCallOperator,
 	TestParentchainBlockImportTrigger,
+	ExtrinsicsFactoryMock,
+	ValidatorAccessMock,
 >;
 
 fn state_key() -> Aes {
@@ -93,6 +97,8 @@ fn test_fixtures(
 		top_pool_call_operator.clone(),
 		parentchain_block_import_trigger,
 		ocall_api,
+		Arc::new(ExtrinsicsFactoryMock::default()),
+		Arc::new(ValidatorAccessMock::default()),
 	);
 
 	(block_importer, state_handler, top_pool_call_operator)

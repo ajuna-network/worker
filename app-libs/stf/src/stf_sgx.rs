@@ -17,6 +17,7 @@
 
 #[cfg(feature = "test")]
 use crate::test_genesis::test_genesis_setup;
+use alloc::format;
 
 use crate::{
 	helpers::{
@@ -137,28 +138,6 @@ impl Stf {
 						);
 						debug!("Account nonce is {}", info.nonce);
 						Some(info.nonce.encode())
-					} else {
-						None
-					};
-					maybe_nonce
-				},
-				#[cfg(feature = "evm")]
-				TrustedGetter::evm_account_codes(_who, evm_account) =>
-				// TODO: This probably needs some security check if who == evm_account (or assosciated)
-					if let Some(info) = get_evm_account_codes(&evm_account) {
-						debug!("TrustedGetter Evm Account Codes");
-						debug!("AccountCodes for {} is {:?}", evm_account, info);
-						Some(info) // TOOD: encoded?
-					} else {
-						None
-					},
-				#[cfg(feature = "evm")]
-				TrustedGetter::evm_account_storages(_who, evm_account, index) =>
-				// TODO: This probably needs some security check if who == evm_account (or assosciated)
-					if let Some(value) = get_evm_account_storages(&evm_account, &index) {
-						debug!("TrustedGetter Evm Account Storages");
-						debug!("AccountStorages for {} is {:?}", evm_account, value);
-						Some(value.encode())
 					} else {
 						None
 					},
@@ -364,6 +343,38 @@ impl Stf {
 					info!("Trying to create evm contract with address {:?}", contract_address);
 					Ok(())
 				},
+				TrustedCall::board_new_game(root, board_id, players) => {
+					let origin = sgx_runtime::Origin::signed(root.clone());
+					debug!("board_new_game {:x?} => {:x?})", board_id, players);
+					sgx_runtime::AjunaBoardCall::<Runtime>::new_game { board_id, players }
+						.dispatch_bypass_filter(origin)
+						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
+					Ok(())
+				},
+				TrustedCall::board_play_turn(sender, turn) => {
+					let origin = sgx_runtime::Origin::signed(sender.clone());
+					debug!("board play turn ({:x?}, {:?})", sender.encode(), turn);
+					sgx_runtime::AjunaBoardCall::<Runtime>::play_turn { turn }
+						.dispatch_bypass_filter(origin.clone())
+						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
+					Ok(())
+				},
+				TrustedCall::board_finish_game(sender, board_id) => {
+					let origin = sgx_runtime::Origin::signed(sender.clone());
+					debug!("board finished ({:x?}, {:?})", sender.encode(), board_id);
+					sgx_runtime::AjunaBoardCall::<Runtime>::finish_game { board_id }
+						.dispatch_bypass_filter(origin.clone())
+						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
+					Ok(())
+				},
+				TrustedCall::board_dispute_game(sender, board_id) => {
+					let origin = sgx_runtime::Origin::signed(sender.clone());
+					debug!("board disputed ({:x?}, {:?})", sender.encode(), board_id);
+					sgx_runtime::AjunaBoardCall::<Runtime>::dispute_game { board_id }
+						.dispatch_bypass_filter(origin.clone())
+						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
+					Ok(())
+				},
 			}?;
 			increment_nonce(&sender);
 			Ok(())
@@ -468,8 +479,13 @@ impl Stf {
 			TrustedCall::balance_transfer(_, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_unshield(_, _, _, _) => debug!("No storage updates needed..."),
 			TrustedCall::balance_shield(_, _, _) => debug!("No storage updates needed..."),
+			TrustedCall::board_new_game(_, _, _) => debug!("No storage updates needed..."),
+			TrustedCall::board_play_turn(_, _) => debug!("No storage updates needed..."),
+			TrustedCall::board_finish_game(_, _) => debug!("No storage updates needed..."),
+			TrustedCall::board_dispute_game(_, _) => debug!("No storage updates needed..."),
 			#[cfg(feature = "evm")]
 			_ => debug!("No storage updates needed..."),
+
 		};
 		key_hashes
 	}

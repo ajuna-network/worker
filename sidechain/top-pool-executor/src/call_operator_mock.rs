@@ -20,7 +20,9 @@
 use crate::{
 	call_operator::{ExecutedOperation, TopPoolCallOperator},
 	error::Result,
+	H256,
 };
+use codec::Encode;
 use core::marker::PhantomData;
 use ita_stf::TrustedOperation;
 use sidechain_primitives::traits::{ShardIdentifierFor, SignedBlock as SignedSidechainBlockTrait};
@@ -86,6 +88,11 @@ where
 		shard: &ShardIdentifierFor<SignedSidechainBlock>,
 	) -> Result<Vec<TrustedOperation>> {
 		Ok(self.trusted_calls.get(shard).cloned().unwrap_or_default())
+	}
+
+	fn get_trusted_call_hash(&self, call: &TrustedCallSigned) -> H256 {
+		let top: TrustedOperation = TrustedOperation::direct_call(call.clone());
+		top.using_encoded(|x| BlakeTwo256::hash(x))
 	}
 
 	fn remove_calls_from_pool(

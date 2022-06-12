@@ -19,6 +19,7 @@ itp-node-api = { path = "../node-api", default-features = false }
 itp-ocall-api = { path = "../ocall-api", default-features = false }
 itp-sgx-crypto = { path = "../sgx/crypto", default-features = false }
 itp-sgx-externalities = { default-features = false, path = "../substrate-sgx/externalities" }
+itp-registry-storage = { path = "../registry-storage", default-features = false }
 itp-stf-state-handler = { path = "../stf-state-handler", default-features = false }
 itp-storage = { path = "../storage", default-features = false }
 itp-time-utils = { path = "../time-utils", default-features = false }
@@ -39,6 +40,10 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 # substrate dependencies
 sp-core = { default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
+
+# node deps
+ajuna-common = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "release/bengal" }
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "release/bengal" }
 
 # dev dependencies
 itp-test = { path = "../test", default-features = false, optional = true }

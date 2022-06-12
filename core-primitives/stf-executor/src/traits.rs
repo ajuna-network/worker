@@ -21,9 +21,9 @@ use ita_stf::{
 	AccountId, ParentchainHeader, ShardIdentifier, TrustedCall, TrustedCallSigned,
 	TrustedGetterSigned, TrustedOperation,
 };
-use itp_sgx_externalities::SgxExternalitiesTrait;
-use itp_types::H256;
-use sp_runtime::traits::Header as HeaderTrait;
+use itp_types::{Amount, GameId, OpaqueCall, H256};
+use sgx_externalities::SgxExternalitiesTrait;
+use sp_runtime::traits::{Block as ParentchainBlockTrait, Header as HeaderTrait};
 use std::{fmt::Debug, result::Result as StdResult, time::Duration, vec::Vec};
 
 /// Post-processing steps after executing STF
