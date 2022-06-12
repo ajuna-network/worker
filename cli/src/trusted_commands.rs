@@ -56,13 +56,103 @@ pub enum TrustedCommands {
 	Benchmark(BenchmarkCommands),
 }
 
+	/// Play a turn of a board game
+	DropBomb {
+		/// Player's incognito AccountId in ss58check format
+		player: String,
+		// Column
+		col: u8,
+		// Row
+		row: u8,
+	},
+
+	DropStone {
+		player: String,
+		side: SideCommand,
+		n: u8,
+	},
+
+	/// Query board state for account in keystore
+	GetBoard {
+		/// Player's incognito AccountId in ss58check format
+		player: String,
+	},
+
+	/// Dispute a board
+	Dispute {
+		/// Player's incognito AccountId in ss58check format
+		player: String,
+		/// The board id
+		board_id: ita_stf::SgxBoardId,
+	},
+}
+
+pub struct SideCommand(Side);
+use std::str::FromStr;
+
+impl FromStr for SideCommand {
+	type Err = &'static str;
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		if s.eq("north") {
+			return Ok(SideCommand(Side::North))
+		}
+		if s.eq("east") {
+			return Ok(SideCommand(Side::East))
+		}
+		if s.eq("south") {
+			return Ok(SideCommand(Side::South))
+		}
+		if s.eq("west") {
+			return Ok(SideCommand(Side::West))
+		}
+		Err("Invalid side")
+	}
+}
+
 impl TrustedArgs {
 	pub(crate) fn run(&self, cli: &Cli) {
 		match &self.command {
 			TrustedCommands::BaseTrusted(cmd) => cmd.run(cli, self),
 			TrustedCommands::Benchmark(benchmark_commands) => benchmark_commands.run(cli, self),
+			TrustedCommands::DropBomb { player, col, row } => play_turn(
+				cli,
+				trusted_args,
+				player,
+				SgxGameTurn::DropBomb(Coordinates { col: *col, row: *row }),
+			),
+			TrustedCommands::DropStone { player, side, n } =>
+				play_turn(cli, trusted_args, player, SgxGameTurn::DropStone(((*side).0.clone(), *n))),
+			TrustedCommands::GetBoard { player } => get_board(cli, trusted_args, player),
+			TrustedCommands::Dispute { player, board_id } =>
+				dispute_game(cli, trusted_args, player, board_id),
 			#[cfg(feature = "evm")]
 			TrustedCommands::EvmCommands(evm_commands) => evm_commands.run(cli, self),
 		}
-	}
+	} else {
+		0
+	};
+	println!("{}", bal);
+}
+
+fn unshield_funds(
+	cli: &Cli,
+	trusted_args: &TrustedArgs,
+	arg_from: &str,
+	arg_to: &str,
+	amount: &Balance,
+) {
+	let from = get_pair_from_str(trusted_args, arg_from);
+	let to = get_accountid_from_str(arg_to);
+	println!("from ss58 is {}", from.public().to_ss58check());
+	println!("to   ss58 is {}", to.to_ss58check());
+
+	println!("send trusted call unshield_funds from {} to {}: {}", from.public(), to, amount);
+
+	let (mrenclave, shard) = get_identifiers(trusted_args);
+	let nonce = get_layer_two_nonce!(from, cli, trusted_args);
+	let top: TrustedOperation =
+		TrustedCall::balance_unshield(from.public().into(), to, *amount, shard)
+			.sign(&KeyPair::Sr25519(from), nonce, &mrenclave, &shard)
+			.into_trusted_operation(trusted_args.direct);
+	let _ = perform_operation(cli, trusted_args, &top);
 }

@@ -56,9 +56,11 @@ pub type MrEnclave = [u8; 32];
 pub type ConfirmCallFn = ([u8; 2], ShardIdentifier, H256, Vec<u8>);
 pub type ShieldFundsFn = ([u8; 2], Vec<u8>, Amount, ShardIdentifier);
 pub type CallWorkerFn = ([u8; 2], Request);
+pub type GameId = u32;
+pub type AckGameFn = ([u8; 2], Vec<GameId>, ShardIdentifier);
+pub type FinishGameFn = ([u8; 2], GameId, AccountId, ShardIdentifier);
 
 pub type Enclave = EnclaveGen<AccountId>;
-
 /// Simple blob to hold an encoded call
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct OpaqueCall(pub Vec<u8>);

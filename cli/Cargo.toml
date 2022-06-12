@@ -23,7 +23,7 @@ hdrhistogram = "7.5.0"
 rand = "0.8.5"
 
 # scs / integritee
-my-node-runtime = { package = "integritee-node-runtime", git = "https://github.com/integritee-network/integritee-node.git", branch = "sdk-v0.10.0-polkadot-v0.9.27" }
+my-node-runtime = { git = "https://github.com/ajuna-network/Ajuna", branch = "release/bengal", package = "ajuna-solo-runtime" }
 pallet-evm = { optional = true, git = "https://github.com/integritee-network/frontier.git", branch = "polkadot-v0.9.27" }
 substrate-api-client = { features = ["ws-client"], git = "https://github.com/scs/substrate-api-client.git", branch = "polkadot-v0.9.27" }
 substrate-client-keystore = { git = "https://github.com/scs/substrate-api-client.git", branch = "polkadot-v0.9.27" }
@@ -42,6 +42,9 @@ sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "polka
 itp-node-api = { path = "../core-primitives/node-api" }
 itp-rpc = { path = "../core-primitives/rpc" }
 itp-sgx-crypto = { path = "../core-primitives/sgx/crypto" }
+itp-types = { path = "../core-primitives/types" }
+itp-utils = { path = "../core-primitives/utils" }
+itp-registry-storage = { path = "../core-primitives/registry-storage" }
 ita-stf = { path = "../app-libs/stf" }
 itc-rpc-client = { path = "../core/rpc-client" }
 itp-time-utils = { path = "../core-primitives/time-utils" }

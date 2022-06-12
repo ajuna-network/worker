@@ -14,12 +14,20 @@
 	limitations under the License.
 
 */
-use crate::{AccountId, StfError, StfResult, ENCLAVE_ACCOUNT_KEY};
+use crate::{
+	stf_sgx_primitives::types::*, AccountId, Index, SgxBoardId, SgxGameBoardStruct,
+	SgxWinningBoard, StfError, StfResult, ENCLAVE_ACCOUNT_KEY, H256,
+};
 use codec::{Decode, Encode};
 use itp_storage::{storage_double_map_key, storage_map_key, storage_value_key, StorageHasher};
 use itp_utils::stringify::account_id_to_string;
 use log::*;
 use std::prelude::v1::*;
+
+#[cfg(feature = "sgx")]
+use crate::stf_sgx_primitives::types::{AccountData, AccountInfo};
+#[cfg(feature = "std")]
+use itp_types::{AccountData, AccountInfo};
 
 pub fn get_storage_value<V: Decode>(
 	storage_prefix: &'static str,
@@ -95,4 +103,67 @@ pub fn ensure_enclave_signer_account(account: &AccountId) -> StfResult<()> {
 		);
 		Err(StfError::RequireEnclaveSignerAccount)
 	}
+}
+
+pub fn ensure_root(account: AccountId) -> StfResult<()> {
+	if root() == account {
+		Ok(())
+	} else {
+		Err(StfError::MissingPrivileges(account))
+	}
+}
+
+pub fn get_board_for(who: AccountId) -> Option<SgxGameBoardStruct> {
+	if let Some(board_id) = get_storage_map::<AccountId, SgxBoardId>(
+		"AjunaBoard",
+		"PlayerBoards",
+		&who,
+		&StorageHasher::Identity,
+	) {
+		if let Some(board) = get_storage_map::<SgxBoardId, SgxGameBoardStruct>(
+			"AjunaBoard",
+			"BoardStates",
+			&board_id,
+			&StorageHasher::Identity,
+		) {
+			Some(board)
+		} else {
+			debug!("could not read board");
+			None
+		}
+	} else {
+		debug!("could not read board id");
+		None
+	}
+}
+
+pub fn is_winner(who: AccountId) -> Option<SgxWinningBoard> {
+	if let Some(board_id) = get_storage_map::<AccountId, SgxBoardId>(
+		"AjunaBoard",
+		"PlayerBoards",
+		&who,
+		&StorageHasher::Identity,
+	) {
+		if let Some(winner) = get_storage_map::<SgxBoardId, AccountId>(
+			"AjunaBoard",
+			"BoardWinners",
+			&board_id,
+			&StorageHasher::Identity,
+		) {
+			if who == winner {
+				if let Some(_board) = get_storage_map::<SgxBoardId, SgxGameBoardStruct>(
+					"AjunaBoard",
+					"BoardStates",
+					&board_id,
+					&StorageHasher::Identity,
+				) {
+					return Some(SgxWinningBoard { winner, board_id })
+				}
+			}
+		}
+	} else {
+		debug!("could not read board id");
+	}
+
+	None
 }

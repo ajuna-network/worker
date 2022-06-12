@@ -14,6 +14,7 @@ ita-stf = { path = "../../../app-libs/stf", default-features = false }
 itc-parentchain-indirect-calls-executor = { path = "../indirect-calls-executor", default-features = false }
 itc-parentchain-light-client = { path = "../light-client", default-features = false }
 itp-extrinsics-factory = { path = "../../../core-primitives/extrinsics-factory", default-features = false }
+itp-registry-storage = { path = "../../../core-primitives/registry-storage", default-features = false }
 itp-settings = { path = "../../../core-primitives/settings" }
 itp-stf-executor = { path = "../../../core-primitives/stf-executor", default-features = false }
 itp-types = { path = "../../../core-primitives/types", default-features = false }
@@ -37,7 +38,10 @@ std = [
     "itc-parentchain-indirect-calls-executor/std",
     "itc-parentchain-light-client/std",
     "itp-extrinsics-factory/std",
+    "itp-registry-storage/std",
     "itp-stf-executor/std",
+    "itp-stf-state-handler/std",
+    "pallet-ajuna-gameregistry/std",
     "itp-types/std",
     # no-std compatible libraries
     "codec/std",
@@ -55,6 +59,7 @@ sgx = [
     "itc-parentchain-light-client/sgx",
     "itp-extrinsics-factory/sgx",
     "itp-stf-executor/sgx",
+    "itp-stf-state-handler/sgx",
     # sgx enabled external libraries
     "thiserror_sgx",
 ]

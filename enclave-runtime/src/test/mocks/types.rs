@@ -20,6 +20,8 @@
 
 use crate::test::mocks::rpc_responder_mock::RpcResponderMock;
 use itc_parentchain::block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
+use itc_parentchain_light_client::mocks::validator_access_mock::ValidatorAccessMock;
+use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
 use itp_node_api::metadata::{metadata_mocks::NodeMetadataMock, provider::NodeMetadataRepository};
 use itp_sgx_crypto::{mocks::KeyRepositoryMock, Aes};
 use itp_sgx_externalities::SgxExternalities;
@@ -86,4 +88,6 @@ pub type TestBlockImporter = BlockImporter<
 	TestStateKeyRepo,
 	TestTopPoolAuthor,
 	TestParentchainBlockImportTrigger,
+	ExtrinsicsFactoryMock,
+	ValidatorAccessMock,
 >;
