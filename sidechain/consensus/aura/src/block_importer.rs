@@ -22,8 +22,9 @@ pub use its_consensus_common::BlockImport;
 
 use crate::{AuraVerifier, EnclaveOnChainOCallApi, SidechainBlockTrait};
 use ita_stf::{
-	hash::TrustedOperationOrHash, helpers::get_board_for, ParentchainHeader, SgxGuessingBoardStruct,
-	TrustedCall, TrustedCallSigned,
+	hash::TrustedOperationOrHash,
+	helpers::{get_board_for, is_winner},
+	ParentchainHeader, SgxGuessingBoardStruct, SgxWinningBoard, TrustedCall, TrustedCallSigned,
 };
 use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 	PeekParentchainBlockImportQueue, TriggerParentchainBlockImport,
@@ -54,7 +55,6 @@ use sp_runtime::{
 	generic::SignedBlock as SignedParentchainBlock, traits::Block as ParentchainBlockTrait,
 };
 use std::{borrow::ToOwned, marker::PhantomData, string::ToString, sync::Arc, vec::Vec};
-use ita_stf::helpers::is_winner;
 
 /// Implements `BlockImport`.
 #[derive(Clone)]
@@ -209,7 +209,7 @@ impl<
 		&self,
 		sidechain_block: &SignedSidechainBlock::Block,
 		call: &TrustedCallSigned,
-	) -> Result<Option<SgxGuessingBoardStruct>, ConsensusError> {
+	) -> Result<Option<SgxWinningBoard>, ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
 		if let TrustedCall::board_play_turn(account, _b) = &call.call {
 			let mut state = self
@@ -228,16 +228,16 @@ impl<
 	fn send_game_finished_extrinsic(
 		&self,
 		sidechain_block: &SignedSidechainBlock::Block,
-		board: SgxGuessingBoardStruct,
+		winning_board: SgxWinningBoard,
 	) -> Result<(), ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
-		let winner = board.state.winner.ok_or(ConsensusError::BadSidechainBlock(
-			sidechain_block.hash(),
-			"Unknown player, could not get the Winner.".to_string(),
-		))?;
 
-		let opaque_call =
-			OpaqueCall::from_tuple(&([GAME_REGISTRY_MODULE, FINISH_GAME], shard, winner));
+		let opaque_call = OpaqueCall::from_tuple(&(
+			[GAME_REGISTRY_MODULE, FINISH_GAME],
+			winning_board.board_id,
+			winning_board.winner,
+			shard,
+		));
 
 		let calls = vec![opaque_call];
 

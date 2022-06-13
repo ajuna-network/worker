@@ -14,9 +14,7 @@
 	limitations under the License.
 
 */
-use crate::{
-	stf_sgx_primitives::types::*, AccountId, Index, SgxBoardId, StfError, StfResult, H256,
-};
+use crate::{stf_sgx_primitives::types::*, AccountId, Index, SgxBoardId, StfError, StfResult, H256, SgxWinningBoard};
 use codec::{Decode, Encode};
 use itp_storage::{storage_double_map_key, storage_map_key, storage_value_key, StorageHasher};
 use log::*;
@@ -181,7 +179,7 @@ pub fn get_board_for(who: AccountId) -> Option<SgxGuessingBoardStruct> {
 	}
 }
 
-pub fn is_winner(who: AccountId) -> Option<SgxGuessingBoardStruct> {
+pub fn is_winner(who: AccountId) -> Option<SgxWinningBoard> {
 	if let Some(board_id) = get_storage_map::<AccountId, SgxBoardId>(
 		"AjunaBoard",
 		"PlayerBoards",
@@ -201,7 +199,10 @@ pub fn is_winner(who: AccountId) -> Option<SgxGuessingBoardStruct> {
 					&board_id,
 					&StorageHasher::Identity,
 				) {
-					return Some(board)
+					return Some(SgxWinningBoard {
+						winner,
+						board_id
+					})
 				}
 			}
 		}

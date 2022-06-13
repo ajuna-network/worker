@@ -39,6 +39,8 @@ use derive_more::Display;
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::string::String;
+use support::{traits::Get, BoundedVec};
+use system::Account;
 
 pub type Signature = MultiSignature;
 pub type AuthorityId = <Signature as Verify>::Signer;
@@ -46,11 +48,23 @@ pub type AccountId = AccountId32;
 pub type Hash = sp_core::H256;
 pub type BalanceTransferFn = ([u8; 2], AccountId, Compact<u128>);
 
+pub const MAX_PLAYERS_ALLOWED: u32 = 2;
+pub struct MaxPlayers;
+impl Get<u32> for MaxPlayers {
+	fn get() -> u32 {
+		MAX_PLAYERS_ALLOWED
+	}
+}
 // Guessing Game
 pub type SgxBoardId = u32;
-pub type SgxGuessingGameState = pallet_ajuna_board::guessing::GameState;
-pub type SgxGuessingBoardStruct = pallet_ajuna_board::BoardGame<SgxGuessingGameState, AccountId>;
+pub type SgxGuessingGameState = pallet_ajuna_board::guessing::GameState<AccountId>;
+pub type SgxGuessingBoardStruct =
+	pallet_ajuna_board::BoardGame<SgxGuessingGameState, AccountId, BoundedVec<AccountId, MaxPlayers>>;
 pub type SgxGuessingTurn = pallet_ajuna_board::guessing::Guess;
+pub struct SgxWinningBoard {
+	pub winner: AccountId,
+	pub board_id: SgxBoardId,
+}
 
 pub type ShardIdentifier = H256;
 

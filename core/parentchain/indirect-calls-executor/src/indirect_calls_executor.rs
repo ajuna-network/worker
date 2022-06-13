@@ -24,11 +24,13 @@ use crate::error::Result;
 use codec::{Decode, Encode};
 use futures::executor;
 use ita_stf::AccountId;
-use itp_settings::node::{ACK_GAME, CALL_WORKER, FINISH_GAME, GAME_REGISTRY_MODULE, SHIELD_FUNDS, TEEREX_MODULE};
+use itp_settings::node::{
+	ACK_GAME, CALL_WORKER, FINISH_GAME, GAME_REGISTRY_MODULE, SHIELD_FUNDS, TEEREX_MODULE,
+};
 use itp_sgx_crypto::{key_repository::AccessKey, ShieldingCryptoDecrypt};
 use itp_stf_executor::traits::StfExecuteShieldFunds;
 use itp_top_pool_author::traits::AuthorApi;
-use itp_types::{AckGameFn, CallWorkerFn, ShieldFundsFn, H256, FinishGameFn};
+use itp_types::{AckGameFn, CallWorkerFn, FinishGameFn, ShieldFundsFn, H256};
 use log::*;
 use sp_core::blake2_256;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
@@ -110,8 +112,8 @@ where
 		xt: &UncheckedExtrinsicV4<FinishGameFn>,
 		block: &ParentchainBlock,
 	) -> Result<()>
-		where
-			ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
 		let (_call, game_id, winner, shard) = &xt.function;
 
@@ -170,9 +172,7 @@ where
 				}
 			};
 
-
-			// TODO integration - check for finish game and handle to flush winner
-            if let Ok(xt) =
+			if let Ok(xt) =
 				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
 			{
 				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
