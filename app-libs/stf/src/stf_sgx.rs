@@ -185,14 +185,10 @@ impl Stf {
 				},
 				TrustedCall::board_new_game(root, board_id, players) => {
 					let origin = sgx_runtime::Origin::signed(root.clone());
-					debug!(
-						"board_new_game {:x?} => {:x?})",
-						board_id,
-						players
-					);
+					debug!("board_new_game {:x?} => {:x?})", board_id, players);
 					sgx_runtime::AjunaBoardCall::<Runtime>::new_game { board_id, players }
-					.dispatch_bypass_filter(origin)
-					.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
+						.dispatch_bypass_filter(origin)
+						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_play_turn(sender, turn) => {

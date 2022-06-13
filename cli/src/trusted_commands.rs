@@ -23,7 +23,10 @@ use crate::{
 	Cli,
 };
 use codec::Decode;
-use ita_stf::{Index, KeyPair, SgxBoardId, SgxGuessingBoardStruct, SgxGuessingTurn, TrustedCall, TrustedGetter, TrustedOperation};
+use ita_stf::{
+	Index, KeyPair, SgxGuessingBoardStruct, SgxGuessingTurn, TrustedCall, TrustedGetter,
+	TrustedOperation,
+};
 use log::*;
 use my_node_runtime::Balance;
 use sp_application_crypto::{ed25519, sr25519};
@@ -148,8 +151,7 @@ pub fn match_trusted_commands(cli: &Cli, trusted_args: &TrustedArgs) {
 		TrustedCommands::Balance { account } => balance(cli, trusted_args, account),
 		TrustedCommands::UnshieldFunds { from, to, amount } =>
 			unshield_funds(cli, trusted_args, from, to, amount),
-		TrustedCommands::PlayTurn { player, turn } =>
-			play_turn(cli, trusted_args, player, *turn),
+		TrustedCommands::PlayTurn { player, turn } => play_turn(cli, trusted_args, player, *turn),
 		TrustedCommands::GetBoard { player } => get_board(cli, trusted_args, player),
 	}
 }
@@ -283,7 +285,7 @@ fn get_board(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str) {
 	let res = perform_operation(cli, trusted_args, &top);
 	debug!("received result for board");
 	if let Some(v) = res {
-		if let Ok(board) = SgxGuessingBoardStruct::decode(&mut v.as_slice()) {
+		if let Ok(_board) = SgxGuessingBoardStruct::decode(&mut v.as_slice()) {
 			// println!("Last turn in block number: {}", board.last_turn);
 			// println!("Next player: {}", board.next_player);
 			// println!("Board state: {:?}", board.board_state);

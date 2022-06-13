@@ -115,7 +115,7 @@ where
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-		let (_call, game_id, winner, shard) = &xt.function;
+		let (_call, game_id, _winner, shard) = &xt.function;
 
 		info!("handle finish game {}", game_id);
 

@@ -291,8 +291,8 @@ where
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-        let (state_lock, mut state) = self.state_handler.load_for_mutation(shard)?;
-        let root = Stf::get_root(&mut state);
+		let (state_lock, mut state) = self.state_handler.load_for_mutation(shard)?;
+		let root = Stf::get_root(&mut state);
 		let nonce = Stf::account_nonce(&mut state, &root);
 		let trusted_call = TrustedCallSigned::new(
 			TrustedCall::board_flush_winner(root, game_id),
@@ -307,7 +307,7 @@ where
 			.write_after_mutation(state, state_lock, shard)
 			.expect("write after mutation");
 
-        Ok(game_id)
+		Ok(game_id)
 	}
 }
 

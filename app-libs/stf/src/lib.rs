@@ -40,7 +40,6 @@ use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::string::String;
 use support::{traits::Get, BoundedVec};
-use system::Account;
 
 pub type Signature = MultiSignature;
 pub type AuthorityId = <Signature as Verify>::Signer;
@@ -58,8 +57,11 @@ impl Get<u32> for MaxPlayers {
 // Guessing Game
 pub type SgxBoardId = u32;
 pub type SgxGuessingGameState = pallet_ajuna_board::guessing::GameState<AccountId>;
-pub type SgxGuessingBoardStruct =
-	pallet_ajuna_board::BoardGame<SgxGuessingGameState, AccountId, BoundedVec<AccountId, MaxPlayers>>;
+pub type SgxGuessingBoardStruct = pallet_ajuna_board::BoardGame<
+	SgxGuessingGameState,
+	AccountId,
+	BoundedVec<AccountId, MaxPlayers>,
+>;
 pub type SgxGuessingTurn = pallet_ajuna_board::guessing::Guess;
 pub struct SgxWinningBoard {
 	pub winner: AccountId,

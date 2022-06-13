@@ -22,9 +22,8 @@ pub use its_consensus_common::BlockImport;
 
 use crate::{AuraVerifier, EnclaveOnChainOCallApi, SidechainBlockTrait};
 use ita_stf::{
-	hash::TrustedOperationOrHash,
-	helpers::{get_board_for, is_winner},
-	ParentchainHeader, SgxGuessingBoardStruct, SgxWinningBoard, TrustedCall, TrustedCallSigned,
+	hash::TrustedOperationOrHash, helpers::is_winner, ParentchainHeader, SgxWinningBoard,
+	TrustedCall, TrustedCallSigned,
 };
 use itc_parentchain_block_import_dispatcher::triggered_dispatcher::{
 	PeekParentchainBlockImportQueue, TriggerParentchainBlockImport,
@@ -54,7 +53,7 @@ use sp_core::Pair;
 use sp_runtime::{
 	generic::SignedBlock as SignedParentchainBlock, traits::Block as ParentchainBlockTrait,
 };
-use std::{borrow::ToOwned, marker::PhantomData, string::ToString, sync::Arc, vec::Vec};
+use std::{borrow::ToOwned, marker::PhantomData, sync::Arc, vec::Vec};
 
 /// Implements `BlockImport`.
 #[derive(Clone)]
