@@ -90,18 +90,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity#277d0da4101cdf8082055386358874e37b7237d5"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
-]
-
-[[package]]
-name = "ajuna-common"
-version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#d1756fb178294bb5d2eb40c8e5711d5fb3570b8a"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -1126,7 +1115,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log 0.4.17",
- "pallet-ajuna-board 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
+ "pallet-ajuna-board",
  "pallet-balances",
  "parity-scale-codec",
  "sgx-externalities",
@@ -1416,7 +1405,7 @@ dependencies = [
 name = "itp-stf-executor"
 version = "0.8.0"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
+ "ajuna-common",
  "ita-stf",
  "itp-ocall-api",
  "itp-registry-storage",
@@ -1643,7 +1632,7 @@ dependencies = [
  "its-top-pool-executor",
  "its-validateer-fetch",
  "log 0.4.17",
- "pallet-ajuna-board 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
+ "pallet-ajuna-board",
  "sgx-externalities",
  "sgx_tstd",
  "sp-core",
@@ -2148,23 +2137,9 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-board"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity#277d0da4101cdf8082055386358874e37b7237d5"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#d1756fb178294bb5d2eb40c8e5711d5fb3570b8a"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity)",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
- "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.20)",
-]
-
-[[package]]
-name = "pallet-ajuna-board"
-version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
-dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
+ "ajuna-common",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -2176,9 +2151,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#d1756fb178294bb5d2eb40c8e5711d5fb3570b8a"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
+ "ajuna-common",
  "frame-support",
  "frame-system",
  "log 0.4.17",
@@ -2192,9 +2167,9 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#b2c744986e858c032d5239a9a1413c1fd7a9e3cf"
+source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20#d1756fb178294bb5d2eb40c8e5711d5fb3570b8a"
 dependencies = [
- "ajuna-common 0.1.0 (git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20)",
+ "ajuna-common",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -2972,7 +2947,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity#d615dc4cab73e39dcb9f17acc14530c9ba695ecb"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20#11b3b4571c9bbb68d568db91916674a7f2073aa2"
 dependencies = [
  "derive_more",
  "environmental",
@@ -2987,13 +2962,13 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity#d615dc4cab73e39dcb9f17acc14530c9ba695ecb"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20#11b3b4571c9bbb68d568db91916674a7f2073aa2"
 dependencies = [
  "frame-executive",
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
- "pallet-ajuna-board 0.1.0 (git+https://github.com/ajuna-network/Ajuna.git?branch=ab/PLAT-271-integrate-dot4gravity)",
+ "pallet-ajuna-board",
  "pallet-aura",
  "pallet-balances",
  "pallet-grandpa",
@@ -3505,7 +3480,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?branch=ab/PLAT-271-integrate-dot4gravity#d615dc4cab73e39dcb9f17acc14530c9ba695ecb"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20#11b3b4571c9bbb68d568db91916674a7f2073aa2"
 dependencies = [
  "environmental",
  "hash-db",
