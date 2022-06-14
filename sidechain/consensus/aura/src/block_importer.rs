@@ -210,6 +210,7 @@ impl<
 		call: &TrustedCallSigned,
 	) -> Result<Option<SgxWinningBoard>, ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
+		std::println!("get_board_if_game_finished");
 		if let TrustedCall::board_play_turn(account, _b) = &call.call {
 			let mut state = self
 				.state_handler
@@ -220,6 +221,8 @@ impl<
 			} else {
 				error!("could not decode board. maybe hasn't been set?");
 			}
+		} else {
+			std::println!("not board play xt");
 		}
 		Ok(None)
 	}
@@ -229,6 +232,9 @@ impl<
 		sidechain_block: &SignedSidechainBlock::Block,
 		winning_board: SgxWinningBoard,
 	) -> Result<(), ConsensusError> {
+
+		std::println!("send_game_finished_extrinsic");
+
 		let shard = &sidechain_block.header().shard_id();
 
 		let opaque_call = OpaqueCall::from_tuple(&(

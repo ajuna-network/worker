@@ -158,6 +158,7 @@ pub fn ensure_root(account: AccountId) -> StfResult<()> {
 }
 
 pub fn get_board_for(who: AccountId) -> Option<SgxGuessingBoardStruct> {
+	std::println!("get board for: {:?}", who.clone());
 	if let Some(board_id) = get_storage_map::<AccountId, SgxBoardId>(
 		"AjunaBoard",
 		"PlayerBoards",
@@ -170,18 +171,22 @@ pub fn get_board_for(who: AccountId) -> Option<SgxGuessingBoardStruct> {
 			&board_id,
 			&StorageHasher::Identity,
 		) {
+			std::println!("FOUND BOARD {}", board_id);
 			Some(board)
 		} else {
+			std::println!("COULD NOT READ BOARD");
 			debug!("could not read board");
 			None
 		}
 	} else {
+		std::println!("NOT VALID BOARD ID");
 		debug!("could not read board id");
 		None
 	}
 }
 
 pub fn is_winner(who: AccountId) -> Option<SgxWinningBoard> {
+	std::println!("is_winner");
 	if let Some(board_id) = get_storage_map::<AccountId, SgxBoardId>(
 		"AjunaBoard",
 		"PlayerBoards",
@@ -201,11 +206,17 @@ pub fn is_winner(who: AccountId) -> Option<SgxWinningBoard> {
 					&board_id,
 					&StorageHasher::Identity,
 				) {
+					std::println!("Board winner found {:?}", who);
 					return Some(SgxWinningBoard { winner, board_id })
 				}
+			} else {
+				std::println!("board winner found but not {:?} as it is {:?}", who, winner);
 			}
+		} else {
+			std::println!("No winner for board id {:?}", board_id);
 		}
 	} else {
+		std::println!("INVALID BOARD ID for is_winner");
 		debug!("could not read board id");
 	}
 

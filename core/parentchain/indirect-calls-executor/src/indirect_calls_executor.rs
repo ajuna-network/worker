@@ -99,6 +99,7 @@ where
 	{
 		let (_call, games, shard) = &xt.function;
 
+		std::println!("handle_ack_game");
 		info!("found {:?} games", games.len());
 
 		for game in games {
@@ -116,6 +117,7 @@ where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
 		let (_call, game_id, _winner, shard) = &xt.function;
+		std::println!("handle_finish_game");
 
 		info!("handle finish game {}", game_id);
 
@@ -176,6 +178,7 @@ where
 				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
 			{
 				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
+					std::println!("Finish game xt found!!!!!!!!!!!!!");
 					if let Err(e) = self.handle_finish_game_xt(&xt, block) {
 						error!("Error performing finish game. Error: {:?}", e);
 					} else {
