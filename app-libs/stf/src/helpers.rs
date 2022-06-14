@@ -15,8 +15,8 @@
 
 */
 use crate::{
-	stf_sgx_primitives::types::*, AccountId, Index, SgxBoardId, SgxWinningBoard, StfError,
-	StfResult, H256,
+	stf_sgx_primitives::types::*, AccountId, Index, SgxBoardId, SgxGuessingBoardStruct,
+	SgxWinningBoard, StfError, StfResult, H256,
 };
 use codec::{Decode, Encode};
 use itp_storage::{storage_double_map_key, storage_map_key, storage_value_key, StorageHasher};
@@ -25,7 +25,6 @@ use std::prelude::v1::*;
 
 #[cfg(feature = "sgx")]
 use crate::stf_sgx_primitives::types::{AccountData, AccountInfo};
-use crate::SgxGuessingBoardStruct;
 #[cfg(feature = "std")]
 use itp_types::{AccountData, AccountInfo};
 

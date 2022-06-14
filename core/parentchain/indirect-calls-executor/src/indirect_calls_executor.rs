@@ -177,7 +177,7 @@ where
 			{
 				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
 					if let Err(e) = self.handle_finish_game_xt(&xt, block) {
-						error!("Error performing acknowledge game. Error: {:?}", e);
+						error!("Error performing finish game. Error: {:?}", e);
 					} else {
 						// Cache successfully executed shielding call.
 						executed_extrinsics.push(hash_of(xt))

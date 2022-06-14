@@ -58,8 +58,8 @@ impl Get<u32> for MaxPlayers {
 pub type SgxBoardId = u32;
 pub type SgxGuessingGameState = pallet_ajuna_board::guessing::GameState<AccountId>;
 pub type SgxGuessingBoardStruct = pallet_ajuna_board::BoardGame<
+	SgxBoardId,
 	SgxGuessingGameState,
-	AccountId,
 	BoundedVec<AccountId, MaxPlayers>,
 >;
 pub type SgxGuessingTurn = pallet_ajuna_board::guessing::Guess;

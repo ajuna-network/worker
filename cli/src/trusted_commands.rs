@@ -123,7 +123,7 @@ pub enum TrustedCommands {
 		amount: Balance,
 	},
 
-	/// Play a turn of connect four
+	/// Play a turn of a board game
 	PlayTurn {
 		/// Player's incognito AccountId in ss58check format
 		player: String,
