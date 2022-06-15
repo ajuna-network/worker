@@ -243,7 +243,7 @@ impl<
 		// Create extrinsic for finish game.
 		let finish_game_extrinsic = self
 			.extrinsics_factory
-			.create_extrinsics(calls.as_slice())
+			.create_extrinsics(calls.as_slice(), None)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
 		// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
