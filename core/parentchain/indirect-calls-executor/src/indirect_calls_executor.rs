@@ -30,12 +30,14 @@ use itp_settings::node::{
 use itp_sgx_crypto::{key_repository::AccessKey, ShieldingCryptoDecrypt, ShieldingCryptoEncrypt};
 use itp_stf_executor::traits::{StfEnclaveSigning, StfExecuteGames};
 use itp_top_pool_author::traits::AuthorApi;
-use itp_types::{AckGameFn, CallWorkerFn, FinishGameFn, ShardIdentifier, ShieldFundsFn, H256};
+use itp_types::{
+	AckGameFn, CallWorkerFn, FinishGameFn, ParentchainUncheckedExtrinsic, ShardIdentifier,
+	ShieldFundsFn, H256,
+};
 use log::*;
 use sp_core::blake2_256;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
 use std::{sync::Arc, vec::Vec};
-use substrate_api_client::UncheckedExtrinsicV4;
 
 /// Trait to execute the indirect calls found in the extrinsics of a block.
 pub trait ExecuteIndirectCalls {
@@ -86,7 +88,10 @@ where
 		}
 	}
 
-	fn handle_shield_funds_xt(&self, xt: UncheckedExtrinsicV4<ShieldFundsFn>) -> Result<()> {
+	fn handle_shield_funds_xt(
+		&self,
+		xt: ParentchainUncheckedExtrinsic<ShieldFundsFn>,
+	) -> Result<()> {
 		let (call, account_encrypted, amount, shard) = xt.function;
 		info!("Found ShieldFunds extrinsic in block: \nCall: {:?} \nAccount Encrypted {:?} \nAmount: {} \nShard: {}",
         	call, account_encrypted, amount, bs58::encode(shard.encode()).into_string());
@@ -111,7 +116,7 @@ where
 
 	fn handle_ack_game_xt<ParentchainBlock>(
 		&self,
-		xt: &UncheckedExtrinsicV4<AckGameFn>,
+		xt: &ParentchainUncheckedExtrinsic<AckGameFn>,
 		block: &ParentchainBlock,
 	) -> Result<()>
 	where
@@ -126,7 +131,10 @@ where
 		Ok(())
 	}
 
-	fn handle_finish_game_xt(&self, xt: &UncheckedExtrinsicV4<FinishGameFn>) -> Result<()> {
+	fn handle_finish_game_xt(
+		&self,
+		xt: &ParentchainUncheckedExtrinsic<FinishGameFn>,
+	) -> Result<()> {
 		let (_call, game_id, _winner, shard) = &xt.function;
 		info!("handle finish game {}", game_id);
 
@@ -164,9 +172,9 @@ where
 		let mut executed_shielding_calls = Vec::<H256>::new();
 		for xt_opaque in block.extrinsics().iter() {
 			// Found ShieldFunds extrinsic in block.
-			if let Ok(xt) =
-				UncheckedExtrinsicV4::<ShieldFundsFn>::decode(&mut xt_opaque.encode().as_slice())
-			{
+			if let Ok(xt) = ParentchainUncheckedExtrinsic::<ShieldFundsFn>::decode(
+				&mut xt_opaque.encode().as_slice(),
+			) {
 				if xt.function.0 == [TEEREX_MODULE, SHIELD_FUNDS] {
 					let hash_of_xt = hash_of(&xt);
 
@@ -182,9 +190,9 @@ where
 				}
 			}
 			// Found Ack_Game extrinsic in block.
-			else if let Ok(xt) =
-				UncheckedExtrinsicV4::<AckGameFn>::decode(&mut xt_opaque.encode().as_slice())
-			{
+			else if let Ok(xt) = ParentchainUncheckedExtrinsic::<AckGameFn>::decode(
+				&mut xt_opaque.encode().as_slice(),
+			) {
 				if xt.function.0 == [GAME_REGISTRY_MODULE, ACK_GAME] {
 					match self.handle_ack_game_xt(&xt, block) {
 						Err(e) => {
@@ -198,9 +206,9 @@ where
 				}
 			}
 			// Found Finish_Game extrinsic in block.
-			else if let Ok(xt) =
-				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
-			{
+			else if let Ok(xt) = ParentchainUncheckedExtrinsic::<FinishGameFn>::decode(
+				&mut xt_opaque.encode().as_slice(),
+			) {
 				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
 					match self.handle_finish_game_xt(&xt) {
 						Err(e) => {
@@ -214,9 +222,9 @@ where
 				}
 			}
 			// Found CallWorker extrinsic in block.
-			else if let Ok(xt) =
-				UncheckedExtrinsicV4::<CallWorkerFn>::decode(&mut xt_opaque.encode().as_slice())
-			{
+			else if let Ok(xt) = ParentchainUncheckedExtrinsic::<CallWorkerFn>::decode(
+				&mut xt_opaque.encode().as_slice(),
+			) {
 				if xt.function.0 == [TEEREX_MODULE, CALL_WORKER] {
 					let (_, request) = xt.function;
 					let (shard, cypher_text) = (request.shard, request.cyphertext);
@@ -242,11 +250,13 @@ mod test {
 		mock::shielding_crypto_mock::ShieldingCryptoMock,
 	};
 	use itp_top_pool_author::mocks::AuthorApiMock;
-	use itp_types::{Request, ShardIdentifier};
+	use itp_types::{
+		ParentchainExtrinsicParams, ParentchainExtrinsicParamsBuilder, Request, ShardIdentifier,
+	};
 	use sp_core::{ed25519, Pair};
 	use sp_runtime::{MultiSignature, OpaqueExtrinsic};
 	use std::assert_matches::assert_matches;
-	use substrate_api_client::{GenericAddress, GenericExtra};
+	use substrate_api_client::{ExtrinsicParams, GenericAddress};
 
 	type TestShieldingKeyRepo = KeyRepositoryMock<ShieldingCryptoMock>;
 	type TestStfEnclaveSigner = StfEnclaveSignerMock;
@@ -270,11 +280,11 @@ mod test {
 		let request = Request { shard: shard_id(), cyphertext: vec![1u8, 2u8] };
 
 		let opaque_extrinsic = OpaqueExtrinsic::from_bytes(
-			UncheckedExtrinsicV4::<CallWorkerFn>::new_signed(
+			ParentchainUncheckedExtrinsic::<CallWorkerFn>::new_signed(
 				([TEEREX_MODULE, CALL_WORKER], request),
 				GenericAddress::Address32([1u8; 32]),
 				MultiSignature::Ed25519(default_signature()),
-				GenericExtra::default(),
+				default_extrinsic_params().signed_extra(),
 			)
 			.encode()
 			.as_slice(),
@@ -304,11 +314,11 @@ mod test {
 		let target_account = shielding_key.encrypt(&AccountId::new([2u8; 32]).encode()).unwrap();
 
 		let opaque_extrinsic = OpaqueExtrinsic::from_bytes(
-			UncheckedExtrinsicV4::<ShieldFundsFn>::new_signed(
+			ParentchainUncheckedExtrinsic::<ShieldFundsFn>::new_signed(
 				([TEEREX_MODULE, SHIELD_FUNDS], target_account, 1000u128, shard_id()),
 				GenericAddress::Address32([1u8; 32]),
 				MultiSignature::Ed25519(default_signature()),
-				GenericExtra::default(),
+				default_extrinsic_params().signed_extra(),
 			)
 			.encode()
 			.as_slice(),
@@ -346,6 +356,15 @@ mod test {
 		ShardIdentifier::default()
 	}
 
+	fn default_extrinsic_params() -> ParentchainExtrinsicParams {
+		ParentchainExtrinsicParams::new(
+			0,
+			0,
+			0,
+			H256::default(),
+			ParentchainExtrinsicParamsBuilder::default(),
+		)
+	}
 	fn test_fixtures(
 		mr_enclave: [u8; 32],
 	) -> (TestIndirectCallExecutor, Arc<TestTopPoolAuthor>, Arc<TestShieldingKeyRepo>) {
