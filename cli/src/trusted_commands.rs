@@ -164,7 +164,7 @@ impl FromStr for SideCommand {
 		if s.eq("west") {
 			return Ok(SideCommand(Side::West))
 		}
-		return Err("Invalid side")
+		Err("Invalid side")
 	}
 }
 
