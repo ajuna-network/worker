@@ -249,8 +249,8 @@ fn set_balance(cli: &Cli, trusted_args: &TrustedArgs, arg_who: &str, amount: &Ba
 		*amount,
 		*amount,
 	)
-		.sign(&KeyPair::Sr25519(signer), nonce, &mrenclave, &shard)
-		.into_trusted_operation(trusted_args.direct);
+	.sign(&KeyPair::Sr25519(signer), nonce, &mrenclave, &shard)
+	.into_trusted_operation(trusted_args.direct);
 	let _ = perform_operation(cli, trusted_args, &top);
 }
 

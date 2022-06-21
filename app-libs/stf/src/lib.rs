@@ -62,7 +62,7 @@ pub type Coordinates = pallet_ajuna_board::dot4gravity::Coordinates;
 pub type Side = pallet_ajuna_board::dot4gravity::Side;
 
 pub type SgxGameBoardStruct =
-pallet_ajuna_board::BoardGame<SgxBoardId, SgxGameState, BoundedVec<AccountId, MaxPlayers>>;
+	pallet_ajuna_board::BoardGame<SgxBoardId, SgxGameState, BoundedVec<AccountId, MaxPlayers>>;
 
 pub struct SgxWinningBoard {
 	pub winner: AccountId,
