@@ -272,6 +272,7 @@ mod test {
 	type Seed = [u8; 32];
 	const TEST_SEED: Seed = *b"12345678901234567890123456789012";
 
+	#[ignore]
 	#[test]
 	fn indirect_call_can_be_added_to_pool_successfully() {
 		let _ = env_logger::builder().is_test(true).try_init();

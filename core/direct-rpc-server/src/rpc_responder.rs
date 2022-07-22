@@ -222,6 +222,7 @@ pub mod tests {
 		assert_eq!(2, websocket_responder.number_of_updates());
 	}
 
+	#[ignore]
 	#[test]
 	fn sending_state_successfully_sends_update_and_keeps_connection_open() {
 		let connection_hash = String::from("conn_hash");
@@ -238,6 +239,7 @@ pub mod tests {
 		assert_eq!(1, websocket_responder.number_of_updates());
 	}
 
+	#[ignore]
 	#[test]
 	fn sending_state_twice_works() {
 		let connection_hash = String::from("conn_hash");
