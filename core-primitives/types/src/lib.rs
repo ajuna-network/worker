@@ -11,7 +11,7 @@ use sp_runtime::{
 };
 use std::vec::Vec;
 use substrate_api_client::{
-	PlainTip, PlainTipExtrinsicParams, PlainTipExtrinsicParamsBuilder, SubstrateDefaultSignedExtra,
+	AssetTipExtrinsicParams, AssetTipExtrinsicParamsBuilder, AssetTip, SubstrateDefaultSignedExtra,
 	UncheckedExtrinsicV4,
 };
 
@@ -54,14 +54,14 @@ pub type Enclave = EnclaveGen<AccountId>;
 
 /// Configuration for the ExtrinsicParams.
 /// PlainTipExtrinsicParams to construct a transaction for the default integritee node
-pub type ParentchainExtrinsicParams = PlainTipExtrinsicParams;
-pub type ParentchainExtrinsicParamsBuilder = PlainTipExtrinsicParamsBuilder;
+// pub type ParentchainExtrinsicParams = PlainTipExtrinsicParams;
+// pub type ParentchainExtrinsicParamsBuilder = PlainTipExtrinsicParamsBuilder;
 /// To pay in asset fees use different ExtrinsicParams Config.
 /// For asset payment in default substrate node :
-//pub type ParentchainExtrinsicParams = AssetTipExtrinsicParams;
-//pub type ParentchainExtrinsicParamsBuilder = AssetTipExtrinsicParamsBuilder;
+pub type ParentchainExtrinsicParams = AssetTipExtrinsicParams;
+pub type ParentchainExtrinsicParamsBuilder = AssetTipExtrinsicParamsBuilder;
 pub type ParentchainUncheckedExtrinsic<Call> =
-	UncheckedExtrinsicV4<Call, SubstrateDefaultSignedExtra<PlainTip>>;
+	UncheckedExtrinsicV4<Call, SubstrateDefaultSignedExtra<AssetTip>>;
 
 /// Simple blob to hold an encoded call
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
