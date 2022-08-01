@@ -273,7 +273,6 @@ mod tests {
 		assert_eq!(time_until_next_slot(Duration::from_nanos(999)), Default::default())
 	}
 
-	#[ignore]
 	#[test]
 	fn slot_info_ends_at_does_not_change_after_second_calculation() {
 		let timestamp = duration_now();
