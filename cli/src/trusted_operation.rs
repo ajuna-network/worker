@@ -184,10 +184,10 @@ fn send_direct_request(
 	loop {
 		match receiver.recv() {
 			Ok(response) => {
-				debug!("received response");
 				let response: RpcResponse = serde_json::from_str(&response).unwrap();
+				debug!("received response: {:?}", response);
 				if let Ok(return_value) = RpcReturnValue::from_hex(&response.result) {
-					debug!("successfully decoded rpc response");
+					debug!("successfully decoded rpc response: {:?}", return_value);
 					match return_value.status {
 						DirectRequestStatus::Error => {
 							debug!("request status is error");
