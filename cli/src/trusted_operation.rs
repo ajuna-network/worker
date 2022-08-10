@@ -199,7 +199,18 @@ fn send_direct_request(
 						},
 						DirectRequestStatus::TrustedOperationStatus(status) => {
 							debug!("request status is: {:?}", status);
+							let text = String::decode(&mut return_value.value.as_slice());
+
 							if let Ok(value) = Hash::decode(&mut return_value.value.as_slice()) {
+								match text {
+									Ok(t) => {
+										debug!("request text is: {}", t);
+									},
+									Err(e) => {
+										debug!("request text is error: {:?}", e);
+									}
+								}
+
 								println!("Trusted call {:?} is {:?}", value, status);
 							}
 							if connection_can_be_closed(status) {
