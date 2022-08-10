@@ -13,7 +13,7 @@ itp-storage = { path = "../storage", default-features = false }
 itp-types = { path = "../types", default-features = false }
 
 # node deps
-pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", rev = "polkadot-v0.9.20-dev" }
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "el/PLAT-382-make-last-player-winner-on-idle" }
 
 [features]
 default = ["std"]

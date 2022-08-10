@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 log = { version = "0.4.14", default-features = false }
 finality-grandpa = { version = "0.15.0", default-features = false, features = ["derive-codec"] }
-sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", rev = "polkadot-v0.9.20-dev", optional = true }
+sgx-externalities = { default-features = false, git = "https://github.com/ajuna-network/sgx-runtime", branch = "el/PLAT-382-make-last-player-winner-on-idle", optional = true }
 
 # sgx deps
 sgx_tstd = { branch = "master", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
@@ -39,7 +39,7 @@ its-state = { path = "../../state", default-features = false }
 its-top-pool-executor = { path = "../../top-pool-executor", default-features = false }
 its-validateer-fetch = { path = "../../validateer-fetch", default-features = false }
 
-pallet-ajuna-board = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", rev = "polkadot-v0.9.20-dev" }
+pallet-ajuna-board = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "el/PLAT-382-make-last-player-winner-on-idle" }
 
 [dev-dependencies]
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }

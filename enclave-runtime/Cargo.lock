@@ -90,7 +90,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#028534df8156c49171b4119fac50cdf455f5b576"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=el/PLAT-382-make-last-player-winner-on-idle#7b16c91bcba734e6a9f1b047e9ea938e1be3fb72"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2150,7 +2150,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-board"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#028534df8156c49171b4119fac50cdf455f5b576"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=el/PLAT-382-make-last-player-winner-on-idle#7b16c91bcba734e6a9f1b047e9ea938e1be3fb72"
 dependencies = [
  "ajuna-common",
  "dot4gravity",
@@ -2165,7 +2165,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#028534df8156c49171b4119fac50cdf455f5b576"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=el/PLAT-382-make-last-player-winner-on-idle#7b16c91bcba734e6a9f1b047e9ea938e1be3fb72"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2181,7 +2181,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#028534df8156c49171b4119fac50cdf455f5b576"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=el/PLAT-382-make-last-player-winner-on-idle#7b16c91bcba734e6a9f1b047e9ea938e1be3fb72"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2961,7 +2961,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#d061243c60097e37139854b450aede9003cff1c3"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=el/PLAT-382-make-last-player-winner-on-idle#38422c79291e154fc89c80d2b3ef979fcbe18df4"
 dependencies = [
  "derive_more",
  "environmental",
@@ -2976,7 +2976,7 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#d061243c60097e37139854b450aede9003cff1c3"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=el/PLAT-382-make-last-player-winner-on-idle#38422c79291e154fc89c80d2b3ef979fcbe18df4"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -3494,7 +3494,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#d061243c60097e37139854b450aede9003cff1c3"
+source = "git+https://github.com/ajuna-network/sgx-runtime?branch=el/PLAT-382-make-last-player-winner-on-idle#38422c79291e154fc89c80d2b3ef979fcbe18df4"
 dependencies = [
  "environmental",
  "hash-db",
