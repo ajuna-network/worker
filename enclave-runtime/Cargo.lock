@@ -576,7 +576,7 @@ dependencies = [
  "jsonrpc-core",
  "lazy_static",
  "linked-hash-map",
- "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
+ "log 0.4.17",
  "multibase",
  "num-bigint",
  "parity-scale-codec",
@@ -615,8 +615,8 @@ dependencies = [
 
 [[package]]
 name = "env_logger"
-version = "0.7.1"
-source = "git+https://github.com/mesalock-linux/env_logger-sgx#839ef5144497dd61e7a5dc99ace41c561b576f20"
+version = "0.9.0"
+source = "git+https://github.com/integritee-network/env_logger-sgx#55745829b2ae8a77f0915af3671ec8a9a00cace9"
 dependencies = [
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
  "sgx_tstd",
@@ -1789,8 +1789,8 @@ dependencies = [
 
 [[package]]
 name = "jsonrpc-core"
-version = "16.1.0"
-source = "git+https://github.com/scs/jsonrpc?branch=no_std#694656d8153005de90c849fce2633586849846e4"
+version = "18.0.0"
+source = "git+https://github.com/scs/jsonrpc?branch=no_std_v18#eb7cdf49c0e5d35174f972743a7e3ff460aadedc"
 dependencies = [
  "futures 0.3.8",
  "log 0.4.14 (git+https://github.com/mesalock-linux/log-sgx)",
@@ -1901,10 +1901,10 @@ dependencies = [
 [[package]]
 name = "log"
 version = "0.4.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
+source = "git+https://github.com/integritee-network/log-sgx#483383a9be3e2e900042eef9b6b2d0837411783f"
 dependencies = [
  "cfg-if 1.0.0",
+ "sgx_tstd",
 ]
 
 [[package]]
