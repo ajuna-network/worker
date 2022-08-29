@@ -37,6 +37,7 @@ use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::{collections::BTreeSet, string::String};
 use support::{traits::Get, BoundedVec};
+use itp_types::BlockNumber;
 
 pub type Signature = MultiSignature;
 pub type AuthorityId = <Signature as Verify>::Signer;
@@ -59,7 +60,7 @@ pub type Coordinates = pallet_ajuna_board::dot4gravity::Coordinates;
 pub type Side = pallet_ajuna_board::dot4gravity::Side;
 
 pub type SgxGameBoardStruct =
-	pallet_ajuna_board::BoardGame<SgxBoardId, SgxGameState, BoundedVec<AccountId, MaxPlayers>>;
+	pallet_ajuna_board::BoardGame<SgxBoardId, SgxGameState, BoundedVec<AccountId, MaxPlayers>, BlockNumber>;
 
 pub struct SgxWinningBoard {
 	pub winner: AccountId,
