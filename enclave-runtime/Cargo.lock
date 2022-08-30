@@ -2961,7 +2961,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#9340fd182070ab2b3b7dbc479c0e2da92274b1b2"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#350f3cdc5722be27cfa36a8024b0f034a5fc819f"
 dependencies = [
  "derive_more",
  "environmental",
@@ -2976,7 +2976,7 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#9340fd182070ab2b3b7dbc479c0e2da92274b1b2"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#350f3cdc5722be27cfa36a8024b0f034a5fc819f"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -3494,7 +3494,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#9340fd182070ab2b3b7dbc479c0e2da92274b1b2"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#350f3cdc5722be27cfa36a8024b0f034a5fc819f"
 dependencies = [
  "environmental",
  "hash-db",
