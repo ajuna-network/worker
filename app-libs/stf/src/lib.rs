@@ -33,6 +33,7 @@ pub use sgx_runtime::{Balance, Index};
 
 use codec::{Compact, Decode, Encode};
 use derive_more::Display;
+use itp_types::BlockNumber;
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
 use std::{collections::BTreeSet, string::String};
@@ -58,8 +59,12 @@ pub type SgxGameTurn = pallet_ajuna_board::dot4gravity::Turn;
 pub type Coordinates = pallet_ajuna_board::dot4gravity::Coordinates;
 pub type Side = pallet_ajuna_board::dot4gravity::Side;
 
-pub type SgxGameBoardStruct =
-	pallet_ajuna_board::BoardGame<SgxBoardId, SgxGameState, BoundedVec<AccountId, MaxPlayers>>;
+pub type SgxGameBoardStruct = pallet_ajuna_board::BoardGame<
+	SgxBoardId,
+	SgxGameState,
+	BoundedVec<AccountId, MaxPlayers>,
+	BlockNumber,
+>;
 
 pub struct SgxWinningBoard {
 	pub winner: AccountId,
@@ -207,6 +212,7 @@ pub enum TrustedCall {
 	board_new_game(AccountId, SgxBoardId, BTreeSet<AccountId>),
 	board_play_turn(AccountId, SgxGameTurn),
 	board_finish_game(AccountId, SgxBoardId),
+	board_dispute_game(AccountId, SgxBoardId),
 }
 
 impl TrustedCall {
@@ -219,6 +225,7 @@ impl TrustedCall {
 			TrustedCall::board_new_game(account, _, _) => account,
 			TrustedCall::board_play_turn(account, _) => account,
 			TrustedCall::board_finish_game(account, _) => account,
+			TrustedCall::board_dispute_game(account, _) => account,
 		}
 	}
 
