@@ -90,7 +90,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#de79911ca4190ad5ae01e41bab99d823cc1bf967"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2150,7 +2150,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-board"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#de79911ca4190ad5ae01e41bab99d823cc1bf967"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal"
 dependencies = [
  "ajuna-common",
  "dot4gravity",
@@ -2165,7 +2165,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#de79911ca4190ad5ae01e41bab99d823cc1bf967"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2181,7 +2181,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?rev=polkadot-v0.9.20-dev#de79911ca4190ad5ae01e41bab99d823cc1bf967"
+source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2961,7 +2961,7 @@ dependencies = [
 [[package]]
 name = "sgx-externalities"
 version = "0.4.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#9340fd182070ab2b3b7dbc479c0e2da92274b1b2"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#350f3cdc5722be27cfa36a8024b0f034a5fc819f"
 dependencies = [
  "derive_more",
  "environmental",
@@ -2976,7 +2976,7 @@ dependencies = [
 [[package]]
 name = "sgx-runtime"
 version = "0.8.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#9340fd182070ab2b3b7dbc479c0e2da92274b1b2"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#350f3cdc5722be27cfa36a8024b0f034a5fc819f"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -3494,7 +3494,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#9340fd182070ab2b3b7dbc479c0e2da92274b1b2"
+source = "git+https://github.com/ajuna-network/sgx-runtime?rev=polkadot-v0.9.20-dev#350f3cdc5722be27cfa36a8024b0f034a5fc819f"
 dependencies = [
  "environmental",
  "hash-db",
