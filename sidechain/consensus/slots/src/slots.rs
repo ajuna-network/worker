@@ -184,12 +184,12 @@ mod tests {
 		traits::{Block as BlockT, SignBlock},
 		types::block::{Block, SignedBlock},
 	};
-	use its_test::{
+	use parentchain_test::parentchain_header_builder::ParentchainHeaderBuilder;
+	use sidechain_primitives::{
 		sidechain_block_data_builder::SidechainBlockDataBuilder,
 		sidechain_header_builder::SidechainHeaderBuilder,
 	};
 	use sp_keyring::ed25519::Keyring;
-	use sp_runtime::traits::Header as HeaderT;
 	use std::{fmt::Debug, thread, time::SystemTime};
 
 	const SLOT_DURATION: Duration = Duration::from_millis(1000);
@@ -266,7 +266,7 @@ mod tests {
 	#[test]
 	fn slot_info_ends_at_does_not_change_after_second_calculation() {
 		let timestamp = duration_now();
-		let pc_header = default_header();
+		let pc_header = ParentchainHeaderBuilder::default().build();
 		let slot: Slot = 1000.into();
 
 		let slot_one: SlotInfo<ParentchainBlock> =
@@ -284,16 +284,6 @@ mod tests {
 			difference_of_ends_at,
 			ALLOWED_THRESHOLD.as_millis()
 		);
-	}
-
-	#[test]
-	fn timestamp_within_slot_returns_true_for_correct_timestamp() {
-		let slot = slot(1);
-		let time_stamp_in_slot = timestamp_in_the_future(SLOT_DURATION / 2);
-
-		let block = test_block_with_time_stamp(time_stamp_in_slot);
-
-		assert!(timestamp_within_slot(&slot, &block));
 	}
 
 	#[test]
@@ -329,6 +319,16 @@ mod tests {
 		let block_too_early = test_block_with_time_stamp(time_stamp_before_slot);
 
 		assert!(!timestamp_within_slot(&slot, &block_too_early));
+	}
+
+	#[test]
+	fn timestamp_within_slot_returns_true_for_correct_timestamp() {
+		let slot = slot(1);
+		let time_stamp_in_slot = timestamp_in_the_future(SLOT_DURATION / 2);
+
+		let block = test_block_with_time_stamp(time_stamp_in_slot);
+
+		assert!(timestamp_within_slot(&slot, &block));
 	}
 
 	#[test]
