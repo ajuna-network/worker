@@ -17,10 +17,8 @@
 
 #[cfg(feature = "test")]
 use crate::test_genesis::test_genesis_setup;
-use alloc::format;
-
 use crate::{
-	helpers::{enclave_signer_account, ensure_enclave_signer_account},
+	helpers::{enclave_signer_account, ensure_enclave_signer_account, get_board_for},
 	AccountData, AccountId, Getter, Index, ParentchainHeader, PublicGetter, ShardIdentifier, State,
 	StateTypeDiff, Stf, StfError, StfResult, TrustedCall, TrustedCallSigned, TrustedGetter,
 	ENCLAVE_ACCOUNT_KEY,
@@ -44,7 +42,7 @@ use ita_sgx_runtime::{AddressMapping, HashedAddressMapping};
 
 #[cfg(feature = "evm")]
 use crate::evm_helpers::{
-	create_code_hash, evm_create2_address, evm_create_address, get_evm_account,
+	create_code_hash, evm_create2_address, evm_create_address, get_board_for, get_evm_account,
 	get_evm_account_codes, get_evm_account_storages,
 };
 
@@ -116,6 +114,12 @@ impl Stf {
 					debug!("Account nonce is {}", nonce);
 					Some(nonce.encode())
 				},
+				TrustedGetter::board(who) =>
+					if let Some(game) = get_board_for(who) {
+						Some(game.encode())
+					} else {
+						None
+					},
 				#[cfg(feature = "evm")]
 				TrustedGetter::evm_nonce(who) => {
 					let evm_account = get_evm_account(&who);
@@ -346,33 +350,33 @@ impl Stf {
 					Ok(())
 				},
 				TrustedCall::board_new_game(root, board_id, players) => {
-					let origin = sgx_runtime::Origin::signed(root.clone());
+					let origin = ita_sgx_runtime::Origin::signed(root.clone());
 					debug!("board_new_game {:x?} => {:x?})", board_id, players);
-					sgx_runtime::AjunaBoardCall::<Runtime>::new_game { board_id, players }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::new_game { board_id, players }
 						.dispatch_bypass_filter(origin)
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_play_turn(sender, turn) => {
-					let origin = sgx_runtime::Origin::signed(sender.clone());
+					let origin = ita_sgx_runtime::Origin::signed(sender.clone());
 					debug!("board play turn ({:x?}, {:?})", sender.encode(), turn);
-					sgx_runtime::AjunaBoardCall::<Runtime>::play_turn { turn }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::play_turn { turn }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_finish_game(sender, board_id) => {
-					let origin = sgx_runtime::Origin::signed(sender.clone());
+					let origin = ita_sgx_runtime::Origin::signed(sender.clone());
 					debug!("board finished ({:x?}, {:?})", sender.encode(), board_id);
-					sgx_runtime::AjunaBoardCall::<Runtime>::finish_game { board_id }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::finish_game { board_id }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_dispute_game(sender, board_id) => {
-					let origin = sgx_runtime::Origin::signed(sender.clone());
+					let origin = ita_sgx_runtime::Origin::signed(sender.clone());
 					debug!("board disputed ({:x?}, {:?})", sender.encode(), board_id);
-					sgx_runtime::AjunaBoardCall::<Runtime>::dispute_game { board_id }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::dispute_game { board_id }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())

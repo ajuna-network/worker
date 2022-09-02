@@ -43,4 +43,6 @@ sgx = [
     "sgx_tstd",
     "thiserror_sgx",
 ]
-mocks = []
+mocks = [
+    "itp-node-api/mocks",
+]

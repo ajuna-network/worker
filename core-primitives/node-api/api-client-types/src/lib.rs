@@ -22,6 +22,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use substrate_api_client::{AssetTip, AssetTipExtrinsicParams, AssetTipExtrinsicParamsBuilder};
 pub use substrate_api_client::{
 	PlainTip, PlainTipExtrinsicParams, PlainTipExtrinsicParamsBuilder, SubstrateDefaultSignedExtra,
 	UncheckedExtrinsicV4,
@@ -30,17 +31,17 @@ pub use substrate_api_client::{
 /// Configuration for the ExtrinsicParams.
 ///
 /// Valid for the default integritee node
-pub type ParentchainExtrinsicParams = PlainTipExtrinsicParams;
-pub type ParentchainExtrinsicParamsBuilder = PlainTipExtrinsicParamsBuilder;
+//pub type ParentchainExtrinsicParams = PlainTipExtrinsicParams;
+//pub type ParentchainExtrinsicParamsBuilder = PlainTipExtrinsicParamsBuilder;
 
 // Pay in asset fees.
 //
 // This needs to be used if the node uses the `pallet_asset_tx_payment`.
-//pub type ParentchainExtrinsicParams = AssetTipExtrinsicParams;
-//pub type ParentchainExtrinsicParamsBuilder = AssetTipExtrinsicParamsBuilder;
+pub type ParentchainExtrinsicParams = AssetTipExtrinsicParams;
+pub type ParentchainExtrinsicParamsBuilder = AssetTipExtrinsicParamsBuilder;
 
 pub type ParentchainUncheckedExtrinsic<Call> =
-	UncheckedExtrinsicV4<Call, SubstrateDefaultSignedExtra<PlainTip>>;
+	UncheckedExtrinsicV4<Call, SubstrateDefaultSignedExtra<AssetTip>>;
 
 #[cfg(feature = "std")]
 pub use api::*;

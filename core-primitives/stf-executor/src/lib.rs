@@ -41,6 +41,9 @@ pub mod state_getter;
 pub mod traits;
 
 #[cfg(feature = "sgx")]
+pub mod game_executor;
+
+#[cfg(feature = "sgx")]
 pub mod executor;
 
 #[cfg(feature = "sgx")]

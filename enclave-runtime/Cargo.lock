@@ -122,6 +122,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ajuna-common"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#953bb8fc554323484d23d4a3fd3c7e5cf91a9cc2"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -603,6 +614,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "dot4gravity"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/ajuna-games?rev=polkadot-v0.9.20-dev#fea4a210dae6f6f0c8bfb02cc144aac9b861ffe9"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+]
+
+[[package]]
 name = "ecdsa"
 version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -682,6 +702,7 @@ dependencies = [
  "itc-direct-rpc-server",
  "itc-offchain-worker-executor",
  "itc-parentchain",
+ "itc-parentchain-light-client",
  "itc-parentchain-test",
  "itc-tls-websocket-server",
  "itertools",
@@ -1466,12 +1487,14 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
+ "pallet-ajuna-board",
  "pallet-aura",
  "pallet-balances",
  "pallet-evm",
  "pallet-grandpa",
  "pallet-parentchain",
  "pallet-randomness-collective-flip",
+ "pallet-scheduler",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -1507,6 +1530,7 @@ dependencies = [
  "its-primitives",
  "its-state",
  "log",
+ "pallet-ajuna-board",
  "pallet-balances",
  "parity-scale-codec",
  "rlp",
@@ -1586,8 +1610,11 @@ dependencies = [
  "itc-parentchain-indirect-calls-executor",
  "itc-parentchain-light-client",
  "itp-extrinsics-factory",
+ "itp-node-api",
+ "itp-ocall-api",
  "itp-settings",
  "itp-stf-executor",
+ "itp-stf-state-handler",
  "itp-types",
  "log",
  "parity-scale-codec",
@@ -1907,6 +1934,7 @@ dependencies = [
 name = "itp-stf-executor"
 version = "0.9.0"
 dependencies = [
+ "ajuna-common",
  "ita-stf",
  "itc-parentchain-test",
  "itp-node-api",
@@ -1920,6 +1948,7 @@ dependencies = [
  "itp-time-utils",
  "itp-types",
  "log",
+ "pallet-ajuna-gameregistry",
  "parity-scale-codec",
  "sgx_crypto_helper",
  "sgx_tstd",
@@ -2145,7 +2174,10 @@ dependencies = [
  "frame-support",
  "ita-stf",
  "itc-parentchain-block-import-dispatcher",
+ "itc-parentchain-light-client",
  "itp-enclave-metrics",
+ "itp-extrinsics-factory",
+ "itp-node-api",
  "itp-ocall-api",
  "itp-settings",
  "itp-sgx-crypto",
@@ -2164,6 +2196,7 @@ dependencies = [
  "its-state",
  "its-validateer-fetch",
  "log",
+ "pallet-ajuna-board",
  "sgx_tstd",
  "sp-core",
  "sp-runtime",
@@ -2647,6 +2680,51 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
+name = "pallet-ajuna-board"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#953bb8fc554323484d23d4a3fd3c7e5cf91a9cc2"
+dependencies = [
+ "ajuna-common",
+ "dot4gravity",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
+]
+
+[[package]]
+name = "pallet-ajuna-gameregistry"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#953bb8fc554323484d23d4a3fd3c7e5cf91a9cc2"
+dependencies = [
+ "ajuna-common",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-ajuna-matchmaker",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
+]
+
+[[package]]
+name = "pallet-ajuna-matchmaker"
+version = "0.1.0"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#953bb8fc554323484d23d4a3fd3c7e5cf91a9cc2"
+dependencies = [
+ "ajuna-common",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
+]
+
+[[package]]
 name = "pallet-aura"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27#8eff668a42325aeb4433eace1604f4d286a6ec05"
@@ -2761,6 +2839,21 @@ dependencies = [
  "parity-scale-codec",
  "safe-mix",
  "scale-info",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
+]
+
+[[package]]
+name = "pallet-scheduler"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27#8eff668a42325aeb4433eace1604f4d286a6ec05"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
 ]
@@ -4516,7 +4609,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "digest 0.10.3",
  "static_assertions",
 ]

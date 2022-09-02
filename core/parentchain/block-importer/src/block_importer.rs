@@ -17,7 +17,10 @@
 
 //! Imports parentchain blocks and executes any indirect calls found in the extrinsics.
 
-use crate::{error::Result, ImportParentchainBlocks};
+use crate::{
+	error::{Error, Result},
+	ImportParentchainBlocks,
+};
 use ita_stf::ParentchainHeader;
 use itc_parentchain_indirect_calls_executor::ExecuteIndirectCalls;
 use itc_parentchain_light_client::{
@@ -25,14 +28,15 @@ use itc_parentchain_light_client::{
 	Validator,
 };
 use itp_extrinsics_factory::CreateExtrinsics;
-use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
-use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
-use itp_settings::node::{
-	ACK_GAME, GAME_REGISTRY_MODULE, PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE,
+use itp_node_api::metadata::{
+	pallet_ajuna_game_registry::{GameRegistryCallIndexes, GameRegistryStorageIndexes},
+	pallet_ajuna_runner::GameId,
+	provider::AccessNodeMetadata,
 };
+use itp_ocall_api::EnclaveOnChainOCallApi;
 use itp_stf_executor::traits::StfUpdateState;
 use itp_stf_state_handler::query_shard_state::QueryShardState;
-use itp_types::{GameId, OpaqueCall, H256};
+use itp_types::{OpaqueCall, H256};
 use log::*;
 use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
@@ -48,6 +52,8 @@ pub struct ParentchainBlockImporter<
 	ExtrinsicsFactory,
 	IndirectCallsExecutor,
 	StateHandler,
+	OCallApi,
+	NodeMetadataProvider,
 > where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -56,12 +62,17 @@ pub struct ParentchainBlockImporter<
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	OCallApi: EnclaveOnChainOCallApi,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 {
 	validator_accessor: Arc<ValidatorAccessor>,
 	stf_executor: Arc<StfExecutor>,
 	extrinsics_factory: Arc<ExtrinsicsFactory>,
 	indirect_calls_executor: Arc<IndirectCallsExecutor>,
 	file_state_handler: Arc<StateHandler>,
+	ocall_api: Arc<OCallApi>,
+	node_meta_data_provider: Arc<NodeMetadataProvider>,
 	_phantom: PhantomData<ParentchainBlock>,
 }
 
@@ -72,6 +83,8 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
+		NodeMetadataProvider,
 	>
 	ParentchainBlockImporter<
 		ParentchainBlock,
@@ -80,6 +93,8 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
+		NodeMetadataProvider,
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -88,6 +103,9 @@ impl<
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	OCallApi: EnclaveOnChainOCallApi,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 {
 	pub fn new(
 		validator_accessor: Arc<ValidatorAccessor>,
@@ -95,6 +113,8 @@ impl<
 		extrinsics_factory: Arc<ExtrinsicsFactory>,
 		indirect_calls_executor: Arc<IndirectCallsExecutor>,
 		file_state_handler: Arc<StateHandler>,
+		ocall_api: Arc<OCallApi>,
+		node_meta_data_provider: Arc<NodeMetadataProvider>,
 	) -> Self {
 		ParentchainBlockImporter {
 			validator_accessor,
@@ -102,6 +122,8 @@ impl<
 			extrinsics_factory,
 			indirect_calls_executor,
 			file_state_handler,
+			ocall_api,
+			node_meta_data_provider,
 			_phantom: Default::default(),
 		}
 	}
@@ -114,6 +136,8 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
+		NodeMetadataProvider,
 	> ImportParentchainBlocks
 	for ParentchainBlockImporter<
 		ParentchainBlock,
@@ -122,6 +146,8 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
+		NodeMetadataProvider,
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -130,6 +156,9 @@ impl<
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	OCallApi: EnclaveOnChainOCallApi,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes + GameRegistryStorageIndexes,
 {
 	type SignedBlockType = SignedBlockG<ParentchainBlock>;
 
@@ -173,60 +202,46 @@ impl<
 				block.header().number,
 				block.header().hash()
 			);
+
+			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
+			let queue_call_fn = self
+				.node_meta_data_provider
+				.get_from_metadata(|m| m.queued_storage_map_key())??;
+			let maybe_queued: Option<Vec<GameId>> = self
+				.ocall_api
+				.get_storage_verified(queue_call_fn.0, block.header())
+				.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
+				.into_tuple()
+				.1;
+
+			match maybe_queued {
+				Some(queued) => {
+					if !queued.is_empty() {
+						//FIXME: we currently only take the first shard. How we handle sharding in general?
+						let shard = self.file_state_handler.list_shards().unwrap()[0];
+						let ack_game_indexes = self
+							.node_meta_data_provider
+							.get_from_metadata(|m| m.ack_game_call_indexes())??;
+						let ack_game_call =
+							OpaqueCall::from_tuple(&(ack_game_indexes, queued, shard));
+
+						calls.push(ack_game_call);
+					}
+				},
+				None => {
+					debug!("No game queued in GameRegistry pallet.");
+				},
+			}
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.
-		let parentchain_extrinsics = self.extrinsics_factory.create_extrinsics(calls.as_slice())?;
+		let parentchain_extrinsics =
+			self.extrinsics_factory.create_extrinsics(calls.as_slice(), None)?;
 
 		// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
-		self.validator_accessor.execute_mut_on_validator(|v| {
-			v.send_extrinsics(self.ocall_api.as_ref(), parentchain_extrinsics)
-		})?;
+		self.validator_accessor
+			.execute_mut_on_validator(|v| v.send_extrinsics(parentchain_extrinsics))?;
 
-		calls.push(ack_game_call);
-	}
-}
-
-/// Creates a processed_parentchain_block extrinsic for a given parentchain block hash and the merkle executed extrinsics.
-///
-/// Calculates the merkle root of the extrinsics. In case no extrinsics are supplied, the root will be a hash filled with zeros.
-fn create_processed_parentchain_block_call(block_hash: H256, extrinsics: Vec<H256>) -> OpaqueCall {
-	let root: H256 = merkle_root::<Keccak256, _, _>(extrinsics).into();
-	OpaqueCall::from_tuple(&([TEEREX_MODULE, PROCESSED_PARENTCHAIN_BLOCK], block_hash, root))
-}
-
-#[cfg(test)]
-pub mod tests {
-	use super::*;
-	use codec::Encode;
-
-	#[test]
-	fn ensure_empty_extrinsic_vec_triggers_zero_filled_merkle_root() {
-		// given
-		let block_hash = H256::from([1; 32]);
-		let extrinsics = Vec::new();
-		let expected_call =
-			([TEEREX_MODULE, PROCESSED_PARENTCHAIN_BLOCK], block_hash, H256::default()).encode();
-
-		// when
-		let call = create_processed_parentchain_block_call(block_hash, extrinsics);
-
-		// then
-		assert_eq!(call.0, expected_call);
-	}
-
-	#[test]
-	fn ensure_non_empty_extrinsic_vec_triggers_non_zero_merkle_root() {
-		// given
-		let block_hash = H256::from([1; 32]);
-		let extrinsics = vec![H256::from([4; 32]), H256::from([9; 32])];
-		let zero_root_call =
-			([TEEREX_MODULE, PROCESSED_PARENTCHAIN_BLOCK], block_hash, H256::default()).encode();
-
-		// when
-		let call = create_processed_parentchain_block_call(block_hash, extrinsics);
-
-		// then
-		assert_ne!(call.0, zero_root_call);
+		Ok(())
 	}
 }

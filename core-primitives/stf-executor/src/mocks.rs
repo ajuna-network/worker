@@ -27,8 +27,9 @@ use ita_stf::{
 	AccountId, KeyPair, ShardIdentifier, TrustedCall, TrustedCallSigned, TrustedGetterSigned,
 	TrustedOperation,
 };
+use itp_node_api::metadata::pallet_ajuna_runner::GameId;
 use itp_sgx_externalities::SgxExternalitiesTrait;
-use itp_types::{Amount, GameId, OpaqueCall, H256};
+use itp_types::H256;
 use sp_core::Pair;
 use sp_runtime::traits::Header as HeaderTrait;
 use std::{marker::PhantomData, time::Duration, vec::Vec};
@@ -57,18 +58,75 @@ where
 		PH: HeaderTrait<Hash = H256>,
 		F: FnOnce(Self::Externalities) -> Self::Externalities,
 	{
-		todo!()
+		let executed_operations: Vec<ExecutedOperation> = trusted_calls
+			.iter()
+			.map(|c| {
+				let operation_hash = c.hash();
+				let top_or_hash = TrustedOperationOrHash::from_top(c.clone());
+				ExecutedOperation::success(operation_hash, top_or_hash, Vec::new())
+			})
+			.collect();
+		Ok(BatchExecutionResult {
+			executed_operations,
+			state_hash_before_execution: H256::default(),
+			state_after_execution: Self::Externalities::new(),
+		})
 	}
 }
 
-impl StfExecuteShieldFunds for StfExecutorMock {
-	fn execute_shield_funds(
+/// Enclave signer mock.
+pub struct StfEnclaveSignerMock {
+	mr_enclave: [u8; 32],
+	signer: sp_core::ed25519::Pair,
+}
+
+impl StfEnclaveSignerMock {
+	pub fn new(mr_enclave: [u8; 32]) -> Self {
+		type Seed = [u8; 32];
+		const TEST_SEED: Seed = *b"42345678901234567890123456789012";
+
+		Self { mr_enclave, signer: sp_core::ed25519::Pair::from_seed(&TEST_SEED) }
+	}
+}
+
+impl Default for StfEnclaveSignerMock {
+	fn default() -> Self {
+		Self::new([0u8; 32])
+	}
+}
+
+impl StfEnclaveSigning for StfEnclaveSignerMock {
+	fn get_enclave_account(&self) -> Result<AccountId> {
+		Ok(self.signer.public().into())
+	}
+
+	fn sign_call_with_self(
 		&self,
-		_account: AccountId,
-		_amount: Amount,
+		trusted_call: &TrustedCall,
+		shard: &ShardIdentifier,
+	) -> Result<TrustedCallSigned> {
+		Ok(trusted_call.sign(&KeyPair::Ed25519(self.signer.clone()), 1, &self.mr_enclave, shard))
+	}
+}
+
+#[derive(Default)]
+pub struct StfGameExecutorMock;
+
+impl crate::traits::StfExecuteGames for StfGameExecutorMock {
+	fn new_game<ParentchainBlock>(
+		&self,
+		_game_id: GameId,
 		_shard: &ShardIdentifier,
-	) -> Result<H256> {
-		todo!()
+		_block: &ParentchainBlock,
+	) -> Result<GameId>
+	where
+		ParentchainBlock: sp_runtime::traits::Block<Hash = itp_types::H256>,
+	{
+		Ok(GameId::default())
+	}
+
+	fn finish_game(&self, _game_id: GameId, _shard: &ShardIdentifier) -> Result<GameId> {
+		Ok(GameId::default())
 	}
 }
 

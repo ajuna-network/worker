@@ -116,6 +116,7 @@ pub fn produce_sidechain_block_and_import_it() {
 		ocall_api.clone(),
 		Arc::new(ExtrinsicsFactoryMock::default()),
 		Arc::new(ValidatorAccessMock::default()),
+		node_metadata_repo.clone(),
 	));
 	let block_composer = Arc::new(TestBlockComposer::new(signer.clone(), state_key_repo.clone()));
 	let proposer_environment =

@@ -32,6 +32,10 @@ pub mod pallet_system;
 pub mod pallet_teeracle;
 pub mod pallet_teerex;
 
+// Ajuna.
+pub mod pallet_ajuna_game_registry;
+pub mod pallet_ajuna_runner;
+
 #[cfg(feature = "mocks")]
 pub mod metadata_mocks;
 

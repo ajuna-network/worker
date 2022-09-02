@@ -45,6 +45,12 @@ sp-version = { default-features = false, git = "https://github.com/paritytech/su
 pallet-parentchain = { default-features = false, git = "https://github.com/integritee-network/pallets.git", branch = "sdk-v0.10.0-polkadot-v0.9.27" }
 pallet-evm = { default-features = false, optional = true, git = "https://github.com/integritee-network/frontier.git", branch = "polkadot-v0.9.27" }
 
+# Ajuna dependencies
+pallet-ajuna-board = { default-features = false, git = "https://github.com/ajuna-network/Ajuna.git", branch = "release/bengal" }
+pallet-scheduler = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
+
+
+
 [features]
 default = ["std"]
 # Compile the sgx-runtime with evm-pallet support in `no_std`.
@@ -72,11 +78,13 @@ std = [
     "frame-executive/std",
     "frame-support/std",
     "frame-system/std",
+    "pallet-ajuna-board/std",
     "frame-system-rpc-runtime-api/std",
     "pallet-aura/std",
     "pallet-balances/std",
     "pallet-grandpa/std",
     "pallet-randomness-collective-flip/std",
+    "pallet-scheduler/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment/std",

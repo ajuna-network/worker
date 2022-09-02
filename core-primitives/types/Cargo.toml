@@ -20,9 +20,6 @@ sp-core = { default-features = false, features = ["full_crypto"], git = "https:/
 sp-finality-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 
-# node deps
-pallet-ajuna-gameregistry  = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "release/bengal" }
-
 [features]
 default = ["std"]
 std = [ "codec/std",

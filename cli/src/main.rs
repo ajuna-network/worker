@@ -40,6 +40,9 @@ mod trusted_command_utils;
 mod trusted_commands;
 mod trusted_operation;
 
+// Ajuna
+mod ajuna;
+
 use crate::commands::Commands;
 use clap::Parser;
 
