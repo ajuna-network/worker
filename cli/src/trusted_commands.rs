@@ -52,8 +52,13 @@ pub enum TrustedCommands {
 	#[clap(flatten)]
 	EvmCommands(EvmCommands),
 
+	#[clap(flatten)]
+	Ajuna(AjunaCommands),
+
 	/// Run Benchmark
 	Benchmark(BenchmarkCommands),
+
+
 }
 
 	/// Play a turn of a board game
@@ -128,31 +133,5 @@ impl TrustedArgs {
 			#[cfg(feature = "evm")]
 			TrustedCommands::EvmCommands(evm_commands) => evm_commands.run(cli, self),
 		}
-	} else {
-		0
-	};
-	println!("{}", bal);
-}
-
-fn unshield_funds(
-	cli: &Cli,
-	trusted_args: &TrustedArgs,
-	arg_from: &str,
-	arg_to: &str,
-	amount: &Balance,
-) {
-	let from = get_pair_from_str(trusted_args, arg_from);
-	let to = get_accountid_from_str(arg_to);
-	println!("from ss58 is {}", from.public().to_ss58check());
-	println!("to   ss58 is {}", to.to_ss58check());
-
-	println!("send trusted call unshield_funds from {} to {}: {}", from.public(), to, amount);
-
-	let (mrenclave, shard) = get_identifiers(trusted_args);
-	let nonce = get_layer_two_nonce!(from, cli, trusted_args);
-	let top: TrustedOperation =
-		TrustedCall::balance_unshield(from.public().into(), to, *amount, shard)
-			.sign(&KeyPair::Sr25519(from), nonce, &mrenclave, &shard)
-			.into_trusted_operation(trusted_args.direct);
-	let _ = perform_operation(cli, trusted_args, &top);
+	}
 }

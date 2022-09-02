@@ -255,7 +255,7 @@ pub(crate) fn init_light_client<WorkerModeProvider: ProvideWorkerMode>(
 	let state_handler = GLOBAL_STATE_HANDLER_COMPONENT.get()?;
 
 	let validator_access = Arc::new(EnclaveValidatorAccessor::new(validator));
-	GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.initialize(validator_access.clone());
+	GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONfn get_trusted_call_hash(&self, call: &TrustedCallSigned)ENT.initialize(validator_access.clone());
 
 	let genesis_hash = validator_access.execute_on_validator(|v| v.genesis_hash(v.num_relays()))?;
 
