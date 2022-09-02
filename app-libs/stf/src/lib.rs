@@ -218,15 +218,66 @@ pub enum TrustedCall {
 	balance_transfer(AccountId, AccountId, Balance),
 	balance_unshield(AccountId, AccountId, Balance, ShardIdentifier), // (AccountIncognito, BeneficiaryPublicAccount, Amount, Shard)
 	balance_shield(AccountId, AccountId, Balance), // (Root, AccountIncognito, Amount)
+	#[cfg(feature = "evm")]
+	evm_withdraw(AccountId, H160, Balance), // (Origin, Address EVM Account, Value)
+	// (Origin, Source, Target, Input, Value, Gas limit, Max fee per gas, Max priority fee per gas, Nonce, Access list)
+	#[cfg(feature = "evm")]
+	evm_call(
+		AccountId,
+		H160,
+		H160,
+		Vec<u8>,
+		U256,
+		u64,
+		U256,
+		Option<U256>,
+		Option<U256>,
+		Vec<(H160, Vec<H256>)>,
+	),
+	// (Origin, Source, Init, Value, Gas limit, Max fee per gas, Max priority fee per gas, Nonce, Access list)
+	#[cfg(feature = "evm")]
+	evm_create(
+		AccountId,
+		H160,
+		Vec<u8>,
+		U256,
+		u64,
+		U256,
+		Option<U256>,
+		Option<U256>,
+		Vec<(H160, Vec<H256>)>,
+	),
+	// (Origin, Source, Init, Salt, Value, Gas limit, Max fee per gas, Max priority fee per gas, Nonce, Access list)
+	#[cfg(feature = "evm")]
+	evm_create2(
+		AccountId,
+		H160,
+		Vec<u8>,
+		H256,
+		U256,
+		u64,
+		U256,
+		Option<U256>,
+		Option<U256>,
+		Vec<(H160, Vec<H256>)>,
+	),
 }
 
 impl TrustedCall {
 	pub fn sender_account(&self) -> &AccountId {
 		match self {
-			TrustedCall::balance_set_balance(account, _, _, _) => account,
-			TrustedCall::balance_transfer(account, _, _) => account,
-			TrustedCall::balance_unshield(account, _, _, _) => account,
-			TrustedCall::balance_shield(account, _, _) => account,
+			TrustedCall::balance_set_balance(sender_account, ..) => sender_account,
+			TrustedCall::balance_transfer(sender_account, ..) => sender_account,
+			TrustedCall::balance_unshield(sender_account, ..) => sender_account,
+			TrustedCall::balance_shield(sender_account, ..) => sender_account,
+			#[cfg(feature = "evm")]
+			TrustedCall::evm_withdraw(sender_account, ..) => sender_account,
+			#[cfg(feature = "evm")]
+			TrustedCall::evm_call(sender_account, ..) => sender_account,
+			#[cfg(feature = "evm")]
+			TrustedCall::evm_create(sender_account, ..) => sender_account,
+			#[cfg(feature = "evm")]
+			TrustedCall::evm_create2(sender_account, ..) => sender_account,
 		}
 	}
 
@@ -252,14 +303,26 @@ pub enum TrustedGetter {
 	free_balance(AccountId),
 	reserved_balance(AccountId),
 	nonce(AccountId),
+	#[cfg(feature = "evm")]
+	evm_nonce(AccountId),
+	#[cfg(feature = "evm")]
+	evm_account_codes(AccountId, H160),
+	#[cfg(feature = "evm")]
+	evm_account_storages(AccountId, H160, H256),
 }
 
 impl TrustedGetter {
 	pub fn sender_account(&self) -> &AccountId {
 		match self {
-			TrustedGetter::free_balance(account) => account,
-			TrustedGetter::reserved_balance(account) => account,
-			TrustedGetter::nonce(account) => account,
+			TrustedGetter::free_balance(sender_account) => sender_account,
+			TrustedGetter::reserved_balance(sender_account) => sender_account,
+			TrustedGetter::nonce(sender_account) => sender_account,
+			#[cfg(feature = "evm")]
+			TrustedGetter::evm_nonce(sender_account) => sender_account,
+			#[cfg(feature = "evm")]
+			TrustedGetter::evm_account_codes(sender_account, _) => sender_account,
+			#[cfg(feature = "evm")]
+			TrustedGetter::evm_account_storages(sender_account, ..) => sender_account,
 		}
 	}
 

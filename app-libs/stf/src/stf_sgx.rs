@@ -140,6 +140,28 @@ impl Stf {
 						Some(info.nonce.encode())
 					} else {
 						None
+					};
+					maybe_nonce
+				},
+				#[cfg(feature = "evm")]
+				TrustedGetter::evm_account_codes(_who, evm_account) =>
+				// TODO: This probably needs some security check if who == evm_account (or assosciated)
+					if let Some(info) = get_evm_account_codes(&evm_account) {
+						debug!("TrustedGetter Evm Account Codes");
+						debug!("AccountCodes for {} is {:?}", evm_account, info);
+						Some(info) // TOOD: encoded?
+					} else {
+						None
+					},
+				#[cfg(feature = "evm")]
+				TrustedGetter::evm_account_storages(_who, evm_account, index) =>
+				// TODO: This probably needs some security check if who == evm_account (or assosciated)
+					if let Some(value) = get_evm_account_storages(&evm_account, &index) {
+						debug!("TrustedGetter Evm Account Storages");
+						debug!("AccountStorages for {} is {:?}", evm_account, value);
+						Some(value.encode())
+					} else {
+						None
 					},
 			},
 			Getter::public(g) => match g {
@@ -485,7 +507,6 @@ impl Stf {
 			TrustedCall::board_dispute_game(_, _) => debug!("No storage updates needed..."),
 			#[cfg(feature = "evm")]
 			_ => debug!("No storage updates needed..."),
-
 		};
 		key_hashes
 	}

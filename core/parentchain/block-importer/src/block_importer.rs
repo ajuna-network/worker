@@ -176,57 +176,13 @@ impl<
 		}
 
 		// Create extrinsics for all `unshielding` and `block processed` calls we've gathered.
-		let parentchain_extrinsics = self.extrinsics_factory.create_extrinsics(calls.as_slice())?;
+		let parentchain_extrinsics =
+			self.extrinsics_factory.create_extrinsics(calls.as_slice(), None)?;
 
 		// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
-		self.validator_accessor.execute_mut_on_validator(|v| {
-			v.send_extrinsics(self.ocall_api.as_ref(), parentchain_extrinsics)
-		})?;
+		self.validator_accessor
+		.execute_mut_on_validator(|v| v.send_extrinsics(parentchain_extrinsics))?;
 
 		calls.push(ack_game_call);
-	}
-}
-
-/// Creates a processed_parentchain_block extrinsic for a given parentchain block hash and the merkle executed extrinsics.
-///
-/// Calculates the merkle root of the extrinsics. In case no extrinsics are supplied, the root will be a hash filled with zeros.
-fn create_processed_parentchain_block_call(block_hash: H256, extrinsics: Vec<H256>) -> OpaqueCall {
-	let root: H256 = merkle_root::<Keccak256, _, _>(extrinsics).into();
-	OpaqueCall::from_tuple(&([TEEREX_MODULE, PROCESSED_PARENTCHAIN_BLOCK], block_hash, root))
-}
-
-#[cfg(test)]
-pub mod tests {
-	use super::*;
-	use codec::Encode;
-
-	#[test]
-	fn ensure_empty_extrinsic_vec_triggers_zero_filled_merkle_root() {
-		// given
-		let block_hash = H256::from([1; 32]);
-		let extrinsics = Vec::new();
-		let expected_call =
-			([TEEREX_MODULE, PROCESSED_PARENTCHAIN_BLOCK], block_hash, H256::default()).encode();
-
-		// when
-		let call = create_processed_parentchain_block_call(block_hash, extrinsics);
-
-		// then
-		assert_eq!(call.0, expected_call);
-	}
-
-	#[test]
-	fn ensure_non_empty_extrinsic_vec_triggers_non_zero_merkle_root() {
-		// given
-		let block_hash = H256::from([1; 32]);
-		let extrinsics = vec![H256::from([4; 32]), H256::from([9; 32])];
-		let zero_root_call =
-			([TEEREX_MODULE, PROCESSED_PARENTCHAIN_BLOCK], block_hash, H256::default()).encode();
-
-		// when
-		let call = create_processed_parentchain_block_call(block_hash, extrinsics);
-
-		// then
-		assert_ne!(call.0, zero_root_call);
 	}
 }
