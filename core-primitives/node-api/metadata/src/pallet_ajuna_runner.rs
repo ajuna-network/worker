@@ -37,31 +37,3 @@ impl RunnerStorageIndexes for NodeMetadata {
 		self.storage_map_key(RUNNER, "Players", &game_hash)
 	}
 }
-
-pub trait RunnerCallIndexes {
-	fn queue_call_indexes(&self) -> Result<[u8; 2]>;
-
-	fn drop_game_call_indexes(&self) -> Result<[u8; 2]>;
-
-	fn ack_game_call_indexes(&self) -> Result<[u8; 2]>;
-
-	fn finish_game_call_indexes(&self) -> Result<[u8; 2]>;
-}
-
-impl RunnerCallIndexes for NodeMetadata {
-	fn queue_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(RUNNER, "queue")
-	}
-
-	fn drop_game_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(RUNNER, "drop_game")
-	}
-
-	fn ack_game_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(RUNNER, "ack_game")
-	}
-
-	fn finish_game_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(RUNNER, "finish_game")
-	}
-}

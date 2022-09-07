@@ -25,20 +25,20 @@ use itc_parentchain_light_client::{
 	Validator,
 };
 use itp_extrinsics_factory::CreateExtrinsics;
-use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
-use itp_registry_storage::{RegistryStorage, RegistryStorageKeys};
-use itp_settings::node::{
-	ACK_GAME, GAME_REGISTRY_MODULE, PROCESSED_PARENTCHAIN_BLOCK, TEEREX_MODULE,
-};
 use itp_stf_executor::traits::StfUpdateState;
 use itp_stf_state_handler::query_shard_state::QueryShardState;
-use itp_types::{GameId, OpaqueCall, H256};
+use itp_types::{OpaqueCall, H256};
 use log::*;
 use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
 };
+use itp_node_api::metadata::provider::AccessNodeMetadata;
+use itp_node_api::metadata::pallet_ajuna_game_registry::GameRegistryCallIndexes;
+use itp_node_api::metadata::pallet_ajuna_game_registry::GameRegistryStorageIndexes;
 use std::{format, marker::PhantomData, sync::Arc, vec::Vec};
+use itp_node_api::metadata::pallet_ajuna_runner::GameId;
+use crate::error::Error;
 
 /// Parentchain block import implementation.
 pub struct ParentchainBlockImporter<
@@ -48,21 +48,26 @@ pub struct ParentchainBlockImporter<
 	ExtrinsicsFactory,
 	IndirectCallsExecutor,
 	StateHandler,
+	NodeMetadataProvider
 > where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
-	ValidatorAccessor: ValidatorAccess<ParentchainBlock, OCallApi>,
+	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
 	StfExecutor: StfUpdateState,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
+
 {
 	validator_accessor: Arc<ValidatorAccessor>,
 	stf_executor: Arc<StfExecutor>,
 	extrinsics_factory: Arc<ExtrinsicsFactory>,
 	indirect_calls_executor: Arc<IndirectCallsExecutor>,
 	file_state_handler: Arc<StateHandler>,
-	_phantom: PhantomData<ParentchainBlock, OCallApi>,
+	node_meta_data_provider: Arc<NodeMetadataProvider>,
+	_phantom: PhantomData<ParentchainBlock>,
 }
 
 impl<
@@ -72,6 +77,7 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		NodeMetadataProvider
 	>
 	ParentchainBlockImporter<
 		ParentchainBlock,
@@ -80,6 +86,7 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		NodeMetadataProvider
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -88,6 +95,8 @@ impl<
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 {
 	pub fn new(
 		validator_accessor: Arc<ValidatorAccessor>,
@@ -95,6 +104,7 @@ impl<
 		extrinsics_factory: Arc<ExtrinsicsFactory>,
 		indirect_calls_executor: Arc<IndirectCallsExecutor>,
 		file_state_handler: Arc<StateHandler>,
+		node_meta_data_provider: Arc<NodeMetadataProvider>,
 	) -> Self {
 		ParentchainBlockImporter {
 			validator_accessor,
@@ -102,6 +112,7 @@ impl<
 			extrinsics_factory,
 			indirect_calls_executor,
 			file_state_handler,
+			node_meta_data_provider,
 			_phantom: Default::default(),
 		}
 	}
@@ -114,6 +125,7 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		NodeMetadataProvider
 	> ImportParentchainBlocks
 	for ParentchainBlockImporter<
 		ParentchainBlock,
@@ -122,14 +134,18 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		NodeMetadataProvider
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
-	ValidatorAccessor: ValidatorAccess<ParentchainBlock, OCallApi>,
+	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
 	StfExecutor: StfUpdateState,
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes + GameRegistryStorageIndexes,
+
 {
 	type SignedBlockType = SignedBlockG<ParentchainBlock>;
 
@@ -175,9 +191,10 @@ impl<
 			);
 
 			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
+			let queue_call = self.node_meta_data_provider.get_from_metadata(|m| m.queued_storage_map_key());
 			let maybe_queued: Option<Vec<GameId>> = self
 				.ocall_api
-				.get_storage_verified(RegistryStorage::queued(), block.header())
+				.get_storage_verified(queue_call, block.header())
 				.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
 				.into_tuple()
 				.1;

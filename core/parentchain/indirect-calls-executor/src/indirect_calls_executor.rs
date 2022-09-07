@@ -24,29 +24,23 @@ use crate::error::Result;
 use beefy_merkle_tree::{merkle_root, Keccak256};
 use codec::{Decode, Encode};
 use futures::executor;
-use ita_stf::AccountId;
-use itp_settings::node::{
-	ACK_GAME, CALL_WORKER, FINISH_GAME, GAME_REGISTRY_MODULE, SHIELD_FUNDS, TEEREX_MODULE,
+use ita_stf::{AccountId, TrustedCall, TrustedOperation};
+use itp_node_api::{
+	api_client::ParentchainUncheckedExtrinsic,
+	metadata::{
+		pallet_ajuna_game_registry::{AckGameFn, FinishGameFn, GameRegistryCallIndexes},
+		pallet_teerex::TeerexCallIndexes,
+		provider::AccessNodeMetadata,
+	},
 };
-use itp_sgx_crypto::{key_repository::AccessKey, ShieldingCryptoDecrypt};
-use itp_stf_executor::traits::StfExecuteShieldFunds;
+use itp_sgx_crypto::{key_repository::AccessKey, ShieldingCryptoDecrypt, ShieldingCryptoEncrypt};
+use itp_stf_executor::traits::{StfEnclaveSigning, StfExecuteGames};
 use itp_top_pool_author::traits::AuthorApi;
-use itp_types::{CallWorkerFn, ShieldFundsFn, H256};
+use itp_types::{CallWorkerFn, OpaqueCall, ShardIdentifier, ShieldFundsFn, H256};
 use log::*;
 use sp_core::blake2_256;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
-use itp_node_api::metadata::pallet_ajuna_game_registry::FinishGameFn;
 use std::{sync::Arc, vec::Vec};
-use itp_node_api::api_client::UncheckedExtrinsicV4;
-use itp_node_api::metadata::pallet_ajuna_game_registry::AckGameFn;
-use itp_types::OpaqueCall;
-use itp_sgx_crypto::ShieldingCryptoEncrypt;
-use itp_stf_executor::traits::StfEnclaveSigning;
-use itp_types::ShardIdentifier;
-use itp_node_api::metadata::pallet_teerex::TeerexCallIndexes;
-use ita_stf::TrustedOperation;
-use itp_node_api::api_client::ParentchainUncheckedExtrinsic;
-use ita_stf::TrustedCall;
 
 /// Trait to execute the indirect calls found in the extrinsics of a block.
 pub trait ExecuteIndirectCalls {
@@ -66,35 +60,51 @@ pub struct IndirectCallsExecutor<
 	StfEnclaveSigner,
 	TopPoolAuthor,
 	NodeMetadataProvider,
+	StfGameExecutor,
 > {
 	shielding_key_repo: Arc<ShieldingKeyRepository>,
 	stf_enclave_signer: Arc<StfEnclaveSigner>,
 	top_pool_author: Arc<TopPoolAuthor>,
 	node_meta_data_provider: Arc<NodeMetadataProvider>,
+	stf_game_executor: Arc<StfGameExecutor>,
 }
 
-impl<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvider>
-	IndirectCallsExecutor<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvider>
-where
+impl<
+		ShieldingKeyRepository,
+		StfEnclaveSigner,
+		TopPoolAuthor,
+		NodeMetadataProvider,
+		StfGameExecutor,
+	>
+	IndirectCallsExecutor<
+		ShieldingKeyRepository,
+		StfEnclaveSigner,
+		TopPoolAuthor,
+		NodeMetadataProvider,
+		StfGameExecutor,
+	> where
 	ShieldingKeyRepository: AccessKey,
 	<ShieldingKeyRepository as AccessKey>::KeyType: ShieldingCryptoDecrypt<Error = itp_sgx_crypto::Error>
 		+ ShieldingCryptoEncrypt<Error = itp_sgx_crypto::Error>,
 	StfEnclaveSigner: StfEnclaveSigning,
 	TopPoolAuthor: AuthorApi<H256, H256> + Send + Sync + 'static,
 	NodeMetadataProvider: AccessNodeMetadata,
-	NodeMetadataProvider::MetadataType: TeerexCallIndexes,
+	NodeMetadataProvider::MetadataType: TeerexCallIndexes + GameRegistryCallIndexes,
+	StfGameExecutor: StfExecuteGames,
 {
 	pub fn new(
 		shielding_key_repo: Arc<ShieldingKeyRepository>,
 		stf_enclave_signer: Arc<StfEnclaveSigner>,
 		top_pool_author: Arc<TopPoolAuthor>,
 		node_meta_data_provider: Arc<NodeMetadataProvider>,
+		stf_game_executor: Arc<StfGameExecutor>,
 	) -> Self {
 		IndirectCallsExecutor {
 			shielding_key_repo,
 			stf_enclave_signer,
 			top_pool_author,
 			node_meta_data_provider,
+			stf_game_executor,
 		}
 	}
 
@@ -130,7 +140,7 @@ where
 		if let Err(e) = executor::block_on(top_submit_future) {
 			error!("Error adding indirect trusted call to TOP pool: {:?}", e);
 		}
-
+	}
 	/// Creates a processed_parentchain_block extrinsic for a given parentchain block hash and the merkle executed extrinsics.
 	///
 	/// Calculates the merkle root of the extrinsics. In case no extrinsics are supplied, the root will be a hash filled with zeros.
@@ -207,10 +217,9 @@ where
 			.unwrap_or(false)
 	}
 
-
 	fn handle_ack_game_xt<ParentchainBlock>(
 		&self,
-		xt: &UncheckedExtrinsicV4<AckGameFn>,
+		xt: &ParentchainUncheckedExtrinsic<AckGameFn>,
 		block: &ParentchainBlock,
 	) -> Result<()>
 	where
@@ -222,38 +231,40 @@ where
 
 		// TODO: We should actually submit a call here, not execute directly.
 		for game in games {
-			self.stf_executor.new_game(*game, shard, block)?;
+			self.stf_game_executor.new_game(*game, shard, block)?;
 		}
 
 		Ok(())
 	}
 
-	fn handle_finish_game_xt<ParentchainBlock>(
+	fn handle_finish_game_xt(
 		&self,
-		xt: &UncheckedExtrinsicV4<FinishGameFn>,
-		block: &ParentchainBlock,
-	) -> Result<()>
-	where
-		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
-	{
+		xt: &ParentchainUncheckedExtrinsic<FinishGameFn>,
+	) -> Result<()> {
 		let (_call, game_id, _winner, shard) = &xt.function;
 
 		info!("handle finish game {}", game_id);
 
 		// TODO: We should actually submit a call here, not execute directly.
-		self.stf_executor.finish_game(*game_id, shard, block)?;
+		self.stf_game_executor.finish_game(*game_id, shard)?;
 
 		Ok(())
 	}
 }
 
-impl<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvider>
-	ExecuteIndirectCalls
+impl<
+		ShieldingKeyRepository,
+		StfEnclaveSigner,
+		TopPoolAuthor,
+		NodeMetadataProvider,
+		StfGameExecutor,
+	> ExecuteIndirectCalls
 	for IndirectCallsExecutor<
 		ShieldingKeyRepository,
 		StfEnclaveSigner,
 		TopPoolAuthor,
 		NodeMetadataProvider,
+		StfGameExecutor,
 	> where
 	ShieldingKeyRepository: AccessKey,
 	<ShieldingKeyRepository as AccessKey>::KeyType: ShieldingCryptoDecrypt<Error = itp_sgx_crypto::Error>
@@ -261,7 +272,8 @@ impl<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvid
 	StfEnclaveSigner: StfEnclaveSigning,
 	TopPoolAuthor: AuthorApi<H256, H256> + Send + Sync + 'static,
 	NodeMetadataProvider: AccessNodeMetadata,
-	NodeMetadataProvider::MetadataType: TeerexCallIndexes,
+	NodeMetadataProvider::MetadataType: TeerexCallIndexes + GameRegistryCallIndexes,
+	StfGameExecutor: StfExecuteGames,
 {
 	fn execute_indirect_calls_in_extrinsics<ParentchainBlock>(
 		&self,
@@ -349,7 +361,6 @@ impl<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvid
 	}
 }
 
-
 fn hash_of<T: Encode>(xt: &T) -> H256 {
 	blake2_256(&xt.encode()).into()
 }
@@ -363,7 +374,7 @@ mod test {
 		metadata::{metadata_mocks::NodeMetadataMock, provider::NodeMetadataRepository},
 	};
 	use itp_sgx_crypto::mocks::KeyRepositoryMock;
-	use itp_stf_executor::mocks::StfEnclaveSignerMock;
+	use itp_stf_executor::mocks::StfGameExecutorMock;
 	use itp_test::mock::shielding_crypto_mock::ShieldingCryptoMock;
 	use itp_top_pool_author::mocks::AuthorApiMock;
 	use itp_types::{Request, ShardIdentifier};
@@ -382,6 +393,7 @@ mod test {
 		TestStfEnclaveSigner,
 		TestTopPoolAuthor,
 		TestNodeMetadataRepository,
+		TestStfGameExecutor,
 	>;
 
 	type Seed = [u8; 32];

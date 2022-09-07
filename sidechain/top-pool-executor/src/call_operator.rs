@@ -52,7 +52,7 @@ pub trait TopPoolCallOperator<
 		shard: &ShardIdentifierFor<SignedSidechainBlock>,
 		executed_calls: Vec<ExecutedOperation>,
 	) -> Vec<ExecutedOperation>;
-	timestamp_within_slot_returns_true_for_correct_timestamp
+
 	// Notify pool about block import for status updates
 	fn on_block_imported(&self, block: &SignedSidechainBlock::Block);
 }
