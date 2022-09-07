@@ -27,11 +27,14 @@ use substrate_api_client::{Metadata, MetadataError};
 pub use crate::error::Error;
 
 pub mod error;
-pub mod pallet_game_registry;
 pub mod pallet_sidechain;
 pub mod pallet_system;
 pub mod pallet_teeracle;
 pub mod pallet_teerex;
+
+// Ajuna.
+pub mod pallet_ajuna_game_registry;
+pub mod pallet_ajuna_runner;
 
 #[cfg(feature = "mocks")]
 pub mod metadata_mocks;

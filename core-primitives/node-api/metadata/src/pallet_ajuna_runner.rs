@@ -18,27 +18,23 @@ use crate::{error::Result, NodeMetadata};
 use sp_core::storage::StorageKey;
 
 pub type GameId = u32;
-pub type AckGameFn = ([u8; 2], Vec<GameId>, ShardIdentifier);
-pub type FinishGameFn = ([u8; 2], GameId, AccountId, ShardIdentifier);
-
-pub type Enclave = EnclaveGen<AccountId>;
 
 /// Pallet' name:
-const GAME_REGISTRY: &str = "GameRegistry";
+pub const RUNNER: &str = "Runner";
 
 pub trait GameRegistryStorageIndexes {
-	fn game_queues_storage_map_key(&self, index: u64) -> Result<StorageKey>;
+	fn queued_storage_map_key(&self, index: u64) -> Result<StorageKey>;
 
-	fn game_registry_storage_map_key(&self, index: u64) -> Result<StorageKey>;
+	fn players_storage_map_key(&self, index: u64) -> Result<StorageKey>;
 }
 
 impl GameRegistryStorageIndexes for NodeMetadata {
-	fn game_queues_storage_map_key(&self, game_engine: GameEngine) -> Result<StorageKey> {
-		self.storage_map_key(GAME_REGISTRY, "GameQueues", &game_engine)
+	fn runner_storage_map_key(&self, runner_id: GameId) -> Result<StorageKey> {
+		self.storage_map_key(RUNNER, "Runners", &runner_id)
 	}
 
-	fn game_registry_storage_map_key(&self, game_hash: Hash) -> Result<StorageKey> {
-		self.storage_map_key(GAME_REGISTRY, "GameRegistry", &game_hash)
+	fn players_storage_map_key(&self, game_hash: Hash) -> Result<StorageKey> {
+		self.storage_map_key(RUNNER, "Players", &game_hash)
 	}
 }
 
@@ -49,29 +45,23 @@ pub trait GameRegistryCallIndexes {
 
 	fn ack_game_call_indexes(&self) -> Result<[u8; 2]>;
 
-	fn ready_game_call_indexes(&self) -> Result<[u8; 2]>;
-
 	fn finish_game_call_indexes(&self) -> Result<[u8; 2]>;
 }
 
 impl GameRegistryCallIndexes for NodeMetadata {
 	fn queue_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(GAME_REGISTRY, "queue")
+		self.call_indexes(RUNNER, "queue")
 	}
 
 	fn drop_game_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(GAME_REGISTRY, "drop_game")
+		self.call_indexes(RUNNER, "drop_game")
 	}
 
 	fn ack_game_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(GAME_REGISTRY, "ack_game")
-	}
-
-	fn ready_game_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(GAME_REGISTRY, "ready_game")
+		self.call_indexes(RUNNER, "ack_game")
 	}
 
 	fn finish_game_call_indexes(&self) -> Result<[u8; 2]> {
-		self.call_indexes(GAME_REGISTRY, "finish_game")
+		self.call_indexes(RUNNER, "finish_game")
 	}
 }

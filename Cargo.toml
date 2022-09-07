@@ -48,7 +48,6 @@ members = [
     "core-primitives/time-utils",
     "core-primitives/top-pool",
     "core-primitives/top-pool-author",
-    "core-primitives/types",
     "service",
     "sidechain/block-composer",
     "sidechain/consensus/aura",
