@@ -38,32 +38,35 @@ use substrate_api_client::Metadata;
 use substrate_client_keystore::{KeystoreExt, LocalKeystore};
 
 mod commands;
+mod trusted_commands;
 
 #[derive(Subcommand)]
-pub enum AjunaCli {
+pub enum AjunaPublicCli {
 	/// query parentchain balance for AccountId
 	QueueGame(QueueGameCommand),
 }
 
-impl AjunaCli {
+impl AjunaPublicCli {
 	pub fn run(&self, cli: &Cli) {
 		match self {
-			AjunaCli::QueueGame(cmd) => cmd.run(cli),
+			AjunaPublicCli::QueueGame(cmd) => cmd.run(cli),
 		}
 	}
 }
 
-
 #[derive(Subcommand)]
-pub enum AjunaTrustedCli {
+pub enum AjunaTrustedCommands {
 	/// query parentchain balance for AccountId
-	QueueGame(QueueGameCommand),
+	DropBomb(DropBombCommand),
 }
 
-impl AjunaTrustedCli {
+impl AjunaTrustedCommands {
 	pub fn run(&self, cli: &Cli) {
 		match self {
-			AjunaTrustedCli::QueueGame(cmd) => cmd.run(cli),
+			AjunaTrustedCommands::DropBombCommand(cmd) => cmd.run(cli, trusted_args),
+			AjunaTrustedCommands::DropStoneCommand(cmd) => cmd.run(cli, trusted_args),
+			AjunaTrustedCommands::GetBoardCommand(cmd) => cmd.run(cli, trusted_args),
+			AjunaTrustedCommands::DisputeCommand(cmd) => cmd.run(cli, trusted_args),
 		}
 	}
 }

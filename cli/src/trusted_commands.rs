@@ -52,12 +52,11 @@ pub enum TrustedCommands {
 	#[clap(flatten)]
 	EvmCommands(EvmCommands),
 
-	#[clap(flatten)]
-	Ajuna(AjunaCommands),
-
 	/// Run Benchmark
 	Benchmark(BenchmarkCommands),
 
+	#[clap(flatten)]
+	AjunaTrusted(AjunaTrustedCommands),
 
 }
 
@@ -119,17 +118,7 @@ impl TrustedArgs {
 		match &self.command {
 			TrustedCommands::BaseTrusted(cmd) => cmd.run(cli, self),
 			TrustedCommands::Benchmark(benchmark_commands) => benchmark_commands.run(cli, self),
-			TrustedCommands::DropBomb { player, col, row } => play_turn(
-				cli,
-				trusted_args,
-				player,
-				SgxGameTurn::DropBomb(Coordinates { col: *col, row: *row }),
-			),
-			TrustedCommands::DropStone { player, side, n } =>
-				play_turn(cli, trusted_args, player, SgxGameTurn::DropStone(((*side).0.clone(), *n))),
-			TrustedCommands::GetBoard { player } => get_board(cli, trusted_args, player),
-			TrustedCommands::Dispute { player, board_id } =>
-				dispute_game(cli, trusted_args, player, board_id),
+			TrustedCommands::AjunaTrusted(ajuna_commands) => ajuna_commands.run(cli, self),
 			#[cfg(feature = "evm")]
 			TrustedCommands::EvmCommands(evm_commands) => evm_commands.run(cli, self),
 		}

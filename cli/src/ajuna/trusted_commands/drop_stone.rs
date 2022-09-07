@@ -17,25 +17,21 @@
 
 //! Play a turn of a board game
 
-use crate::{trusted_command_utils::play_turn, Cli};
+use crate::{
+	trusted_command_utils::play_turn,
+	Cli,
+};
 
 #[derive(Parser)]
-pub struct DropBombCommand {
+pub struct DropStoneCommand {
 	/// Player's incognito AccountId in ss58check format
 	player: String,
-	// Column
-	col: u8,
-	// Row
-	row: u8,
+	side: SideCommand,
+	n: u8,
 }
 
-impl DropBombCommand {
+impl DropStoneCommand {
 	pub(crate) fn run(&self, cli: &Cli, trusted_args: &TrustedArgs) {
-		play_turn(
-			cli,
-			trusted_args,
-			player,
-			SgxGameTurn::DropBomb(Coordinates { col: *col, row: *row }),
-		)
+		play_turn(cli, trusted_args, player, SgxGameTurn::DropStone(((*side).0.clone(), *n))),
 	}
 }

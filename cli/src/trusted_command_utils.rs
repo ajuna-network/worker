@@ -125,3 +125,17 @@ pub(crate) fn get_pair_from_str(trusted_args: &TrustedArgs, account: &str) -> sr
 		},
 	}
 }
+
+fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str, turn: SgxGameTurn) {
+	let player = get_pair_from_str(trusted_args, arg_player);
+	println!("player ss58 is {}", player.public().to_ss58check());
+
+	println!("send trusted call play-turn from {} with turn {:?}", player.public(), turn);
+	let (mrenclave, shard) = get_identifiers(trusted_args);
+	let nonce = get_layer_two_nonce!(player, cli, trusted_args);
+
+	let top: TrustedOperation = TrustedCall::board_play_turn(player.public().into(), turn)
+		.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
+		.into_trusted_operation(trusted_args.direct);
+	let _ = perform_operation(cli, trusted_args, &top);
+}

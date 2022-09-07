@@ -36,8 +36,7 @@ pub enum Commands {
 	ExchangeOracle(ExchangeOracleSubCommand),
 
 	#[clap(flatten)]
-	Ajuna(BaseCli),
-
+	AjunaPublic(AjunaPublicCli),
 }
 
 pub fn match_command(cli: &Cli) {
@@ -45,6 +44,6 @@ pub fn match_command(cli: &Cli) {
 		Commands::Base(cmd) => cmd.run(cli),
 		Commands::Trusted(cmd) => cmd.run(cli),
 		Commands::ExchangeOracle(cmd) => cmd.run(cli),
-		Commands::Ajuna(cmd) => cmd.run(cli),
+		Commands::AjunaPublic(cmd) => cmd.run(cli),
 	};
 }
