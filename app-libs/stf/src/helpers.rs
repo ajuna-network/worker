@@ -24,11 +24,6 @@ use itp_utils::stringify::account_id_to_string;
 use log::*;
 use std::prelude::v1::*;
 
-#[cfg(feature = "sgx")]
-use crate::stf_sgx_primitives::types::{AccountData, AccountInfo};
-#[cfg(feature = "std")]
-use itp_types::{AccountData, AccountInfo};
-
 pub fn get_storage_value<V: Decode>(
 	storage_prefix: &'static str,
 	storage_key_name: &'static str,

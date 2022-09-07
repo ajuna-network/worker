@@ -20,7 +20,9 @@ pub use sp_consensus_slots::Slot;
 use itp_sgx_io::StaticSealedIO;
 use itp_time_utils::duration_now;
 use its_consensus_common::Error as ConsensusError;
-use its_primitives::traits::{
+use log::warn;
+use sidechain_block_verification::slot::slot_from_timestamp_and_duration;
+use sidechain_primitives::traits::{
 	Block as SidechainBlockTrait, BlockData, SignedBlock as SignedSidechainBlockTrait,
 };
 use sp_runtime::traits::Block as ParentchainBlockTrait;
@@ -41,7 +43,7 @@ pub fn time_until_next_slot(slot_duration: Duration) -> Duration {
 }
 
 /// Information about a slot.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SlotInfo<ParentchainBlock: ParentchainBlockTrait> {
 	/// The slot number as found in the inherent data.
 	pub slot: Slot,
@@ -63,16 +65,25 @@ impl<ParentchainBlock: ParentchainBlockTrait> SlotInfo<ParentchainBlock> {
 		slot: Slot,
 		timestamp: Duration,
 		duration: Duration,
+		ends_at: Duration,
 		parentchain_head: ParentchainBlock::Header,
 	) -> Self {
 		Self {
 			slot,
 			timestamp,
 			duration,
-			ends_at: duration_now() + time_until_next_slot(duration),
+			ends_at,
 			last_imported_parentchain_head: parentchain_head,
 		}
 	}
+}
+
+/// The time at which the slot ends.
+///
+/// !! Slot duration needs to be the 'global' slot duration that is used for the sidechain.
+/// Do not use this with 'custom' slot durations, as used e.g. for the shard slots.
+pub fn slot_ends_at(slot: Slot, slot_duration: Duration) -> Duration {
+	Duration::from_millis(*slot.saturating_add(1u64) * (slot_duration.as_millis() as u64))
 }
 
 pub(crate) fn timestamp_within_slot<
@@ -84,12 +95,19 @@ pub(crate) fn timestamp_within_slot<
 ) -> bool {
 	let proposal_stamp = proposal.block().block_data().timestamp();
 
-	slot.timestamp.as_millis() as u64 <= proposal_stamp
-		&& slot.ends_at.as_millis() as u64 >= proposal_stamp
-}
+	let is_within_slot = slot.timestamp.as_millis() as u64 <= proposal_stamp
+		&& slot.ends_at.as_millis() as u64 >= proposal_stamp;
 
-pub fn slot_from_timestamp_and_duration(timestamp: Duration, duration: Duration) -> Slot {
-	((timestamp.as_millis() / duration.as_millis()) as u64).into()
+	if !is_within_slot {
+		warn!(
+			"Proposed block slot time: {} ms, slot start: {} ms , slot end: {} ms",
+			proposal_stamp,
+			slot.timestamp.as_millis(),
+			slot.ends_at.as_millis()
+		);
+	}
+
+	is_within_slot
 }
 
 pub fn yield_next_slot<SlotGetter, ParentchainBlock>(
@@ -115,7 +133,8 @@ where
 
 	last_slot_getter.set_last_slot(slot)?;
 
-	Ok(Some(SlotInfo::new(slot, timestamp, duration, header)))
+	let slot_ends_time = slot_ends_at(slot, duration);
+	Ok(Some(SlotInfo::new(slot, timestamp, duration, slot_ends_time, header)))
 }
 
 pub trait GetLastSlot {
@@ -176,16 +195,16 @@ mod tests {
 	use core::assert_matches::assert_matches;
 	use itp_sgx_io::StaticSealedIO;
 	use itp_types::{Block as ParentchainBlock, Header as ParentchainHeader};
-	use its_primitives::{
+	use parentchain_test::parentchain_header_builder::ParentchainHeaderBuilder;
+	use sidechain_primitives::{
 		traits::{Block as BlockT, SignBlock},
 		types::block::{Block, SignedBlock},
 	};
-	use its_test::{
+	use sidechain_test::{
 		sidechain_block_data_builder::SidechainBlockDataBuilder,
 		sidechain_header_builder::SidechainHeaderBuilder,
 	};
 	use sp_keyring::ed25519::Keyring;
-	use sp_runtime::traits::Header as HeaderT;
 	use std::{fmt::Debug, thread, time::SystemTime};
 
 	const SLOT_DURATION: Duration = Duration::from_millis(1000);
@@ -262,9 +281,10 @@ mod tests {
 	#[test]
 	fn slot_info_ends_at_does_not_change_after_second_calculation() {
 		let timestamp = duration_now();
-		let pc_header = default_header();
+		let pc_header = ParentchainHeaderBuilder::default().build();
 		let slot: Slot = 1000.into();
 
+		let slot_end_time = slot_ends_at(slot, SLOT_DURATION);
 		let slot_one: SlotInfo<ParentchainBlock> =
 			SlotInfo::new(slot, timestamp, SLOT_DURATION, slot_end_time, pc_header.clone());
 		thread::sleep(Duration::from_millis(200));
@@ -283,16 +303,6 @@ mod tests {
 	}
 
 	#[test]
-	fn timestamp_within_slot_returns_true_for_correct_timestamp() {
-		let slot = slot(1);
-		let time_stamp_in_slot = timestamp_in_the_future(SLOT_DURATION / 2);
-
-		let block = test_block_with_time_stamp(time_stamp_in_slot);
-
-		assert!(timestamp_within_slot(&slot, &block));
-	}
-
-	#[test]
 	fn slot_info_ends_at_does_is_correct_even_if_delay_is_more_than_slot_duration() {
 		let timestamp = duration_now();
 		let pc_header = ParentchainHeaderBuilder::default().build();
@@ -304,6 +314,16 @@ mod tests {
 			SlotInfo::new(slot, timestamp, SLOT_DURATION, slot_end_time, pc_header);
 
 		assert!(slot.ends_at < duration_now());
+	}
+
+	#[test]
+	fn timestamp_within_slot_returns_true_for_correct_timestamp() {
+		let slot = slot(1);
+		let time_stamp_in_slot = timestamp_in_the_future(SLOT_DURATION / 2);
+
+		let block = test_block_with_time_stamp(time_stamp_in_slot);
+
+		assert!(timestamp_within_slot(&slot, &block));
 	}
 
 	#[test]

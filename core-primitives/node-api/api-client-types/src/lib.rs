@@ -22,6 +22,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use substrate_api_client::{AssetTip, AssetTipExtrinsicParams, AssetTipExtrinsicParamsBuilder};
 pub use substrate_api_client::{
 	PlainTip, PlainTipExtrinsicParams, PlainTipExtrinsicParamsBuilder, SubstrateDefaultSignedExtra,
 	UncheckedExtrinsicV4,

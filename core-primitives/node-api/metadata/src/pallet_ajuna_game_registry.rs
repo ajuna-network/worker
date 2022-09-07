@@ -16,9 +16,10 @@
 */
 
 use crate::{error::Result, NodeMetadata};
+use itp_types::{AccountId, ShardIdentifier};
 use sp_core::storage::StorageKey;
 
-pub use crate::pallet_ajuna_game_registry::GameId;
+pub use crate::pallet_ajuna_runner::GameId;
 pub type AckGameFn = ([u8; 2], Vec<GameId>, ShardIdentifier);
 pub type FinishGameFn = ([u8; 2], GameId, AccountId, ShardIdentifier);
 
@@ -28,7 +29,7 @@ const GAME_REGISTRY: &str = "GameRegistry";
 pub trait GameRegistryStorageIndexes {
 	fn queued_storage_map_key(&self) -> Result<StorageKey>;
 
-	fn players_storage_map_key(&self, game_hash: u64) -> Result<StorageKey>;
+	fn players_storage_map_key(&self, game_id: GameId) -> Result<StorageKey>;
 }
 
 impl GameRegistryStorageIndexes for NodeMetadata {

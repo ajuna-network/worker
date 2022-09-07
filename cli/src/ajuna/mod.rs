@@ -16,26 +16,16 @@
 */
 
 use crate::{
-	base_cli::commands::{
-		balance::BalanceCommand, faucet::FaucetCommand, listen::ListenCommand,
-		shield_funds::ShieldFundsCommand, transfer::TransferCommand,
+	ajuna::{
+		commands::queue_game::QueueGameCommand,
+		trusted_commands::{
+			dispute::DisputeCommand, drop_bomb::DropBombCommand, drop_stone::DropStoneCommand,
+			get_board::GetBoardCommand,
+		},
 	},
-	command_utils::*,
+	trusted_commands::TrustedArgs,
 	Cli,
 };
-use base58::ToBase58;
-use chrono::{DateTime, Utc};
-use clap::Subcommand;
-use itc_rpc_client::direct_client::DirectApi;
-use itp_node_api::api_client::PalletTeerexApi;
-use sp_application_crypto::{ed25519, sr25519};
-use sp_core::{crypto::Ss58Codec, Pair};
-use std::{
-	path::PathBuf,
-	time::{Duration, UNIX_EPOCH},
-};
-use substrate_api_client::Metadata;
-use substrate_client_keystore::{KeystoreExt, LocalKeystore};
 
 mod commands;
 mod trusted_commands;
@@ -56,17 +46,19 @@ impl AjunaPublicCli {
 
 #[derive(Subcommand)]
 pub enum AjunaTrustedCommands {
-	/// query parentchain balance for AccountId
 	DropBomb(DropBombCommand),
+	DropStone(DropStoneCommand),
+	GetBoard(GetBoardCommand),
+	Dispute(DisputeCommand),
 }
 
 impl AjunaTrustedCommands {
-	pub fn run(&self, cli: &Cli) {
+	pub fn run(&self, cli: &Cli, trusted_args: &TrustedArgs) {
 		match self {
-			AjunaTrustedCommands::DropBombCommand(cmd) => cmd.run(cli, trusted_args),
-			AjunaTrustedCommands::DropStoneCommand(cmd) => cmd.run(cli, trusted_args),
-			AjunaTrustedCommands::GetBoardCommand(cmd) => cmd.run(cli, trusted_args),
-			AjunaTrustedCommands::DisputeCommand(cmd) => cmd.run(cli, trusted_args),
+			AjunaTrustedCommands::DropBomb(cmd) => cmd.run(cli, trusted_args),
+			AjunaTrustedCommands::DropStone(cmd) => cmd.run(cli, trusted_args),
+			AjunaTrustedCommands::GetBoard(cmd) => cmd.run(cli, trusted_args),
+			AjunaTrustedCommands::Dispute(cmd) => cmd.run(cli, trusted_args),
 		}
 	}
 }

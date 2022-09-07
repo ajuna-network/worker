@@ -15,7 +15,7 @@
 
 */
 use crate::{error::Result, NodeMetadata};
-use sp_core::storage::StorageKey;
+use sp_core::{storage::StorageKey, H256};
 
 pub type GameId = u32;
 
@@ -23,9 +23,9 @@ pub type GameId = u32;
 pub const RUNNER: &str = "Runner";
 
 pub trait GameRegistryStorageIndexes {
-	fn queued_storage_map_key(&self, index: u64) -> Result<StorageKey>;
+	fn runner_storage_map_key(&self, runner_id: GameId) -> Result<StorageKey>;
 
-	fn players_storage_map_key(&self, index: u64) -> Result<StorageKey>;
+	fn players_storage_map_key(&self, game_hash: H256) -> Result<StorageKey>;
 }
 
 impl GameRegistryStorageIndexes for NodeMetadata {
@@ -33,7 +33,7 @@ impl GameRegistryStorageIndexes for NodeMetadata {
 		self.storage_map_key(RUNNER, "Runners", &runner_id)
 	}
 
-	fn players_storage_map_key(&self, game_hash: Hash) -> Result<StorageKey> {
+	fn players_storage_map_key(&self, game_hash: H256) -> Result<StorageKey> {
 		self.storage_map_key(RUNNER, "Players", &game_hash)
 	}
 }

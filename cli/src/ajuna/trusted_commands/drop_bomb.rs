@@ -17,7 +17,8 @@
 
 //! Play a turn of a board game
 
-use crate::{trusted_command_utils::play_turn, Cli};
+use crate::{ajuna::TrustedArgs, trusted_command_utils::play_turn, Cli};
+use ita_stf::{Coordinates, SgxGameTurn};
 
 #[derive(Parser)]
 pub struct DropBombCommand {

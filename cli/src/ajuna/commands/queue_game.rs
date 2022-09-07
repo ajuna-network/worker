@@ -19,9 +19,11 @@
 //! Sign up for a game, ready to be matched
 
 use crate::{
-	command_utils::{get_pair_from_str, get_chain_api},
+	command_utils::{get_chain_api, get_pair_from_str},
 	Cli,
 };
+use log::*;
+use sp_application_crypto::{Pair, Ss58Codec};
 use substrate_api_client::{compose_extrinsic, UncheckedExtrinsicV4, XtStatus};
 
 #[derive(Parser)]
@@ -35,8 +37,11 @@ impl QueueGameCommand {
 		let who = get_pair_from_str(&self.account);
 		info!("Queueing player: {}", who.public().to_ss58check());
 		let api = get_chain_api(cli).set_signer(sr25519_core::Pair::from(who));
-		let xt: UncheckedExtrinsicV4<([u8; 2])> = compose_extrinsic!(api, REGISTRY, "queue");
+		let xt: UncheckedExtrinsicV4<([u8; 2]), _> = compose_extrinsic!(api, REGISTRY, "queue");
 		let tx_hash = api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();
-		println!("[+] Successfully registered player in game queue. Extrinsic Hash: {:?}\n", tx_hash);
+		println!(
+			"[+] Successfully registered player in game queue. Extrinsic Hash: {:?}\n",
+			tx_hash
+		);
 	}
 }

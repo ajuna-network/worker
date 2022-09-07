@@ -18,17 +18,14 @@
 //! Dispute a board
 
 use crate::{
-	trusted_command_utils::get_pair_from_str, trusted_commands::TrustedArgs,
-	trusted_operation::perform_trusted_operation, Cli,
+	get_layer_two_nonce,
+	trusted_command_utils::{get_identifiers, get_pair_from_str},
+	trusted_commands::TrustedArgs,
+	trusted_operation::perform_trusted_operation,
+	Cli,
 };
-use codec::Decode;
-use ita_stf::{KeyPair, TrustedGetter, TrustedOperation};
-use itp_types::AccountId;
-use log::*;
-use sp_core::{crypto::Ss58Codec, Pair, H160, H256};
-use std::vec::Vec;
-use substrate_api_client::utils::FromHexString;
-
+use ita_stf::{KeyPair, TrustedCall, TrustedOperation};
+use sp_core::{crypto::Ss58Codec, Pair};
 #[derive(Parser)]
 pub struct DisputeCommand {
 	/// Player's incognito AccountId in ss58check format
@@ -55,6 +52,6 @@ impl DisputeCommand {
 				.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
 				.into_trusted_operation(trusted_args.direct);
 
-		let _ = perform_operation(cli, trusted_args, &top);
+		let _ = perform_trusted_operation(cli, trusted_args, &top);
 	}
 }

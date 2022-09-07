@@ -20,7 +20,8 @@ use crate::sgx_reexport_prelude::*;
 
 use crate::{DetermineWatch, RpcConnectionRegistry, RpcHash};
 use itc_tls_websocket_server::{error::WebSocketResult, ConnectionToken, WebSocketMessageHandler};
-use itp_types::{DirectRequestStatus, RpcReturnValue, TrustedOperationStatus};
+use itp_rpc::RpcReturnValue;
+use itp_types::{DirectRequestStatus, TrustedOperationStatus};
 use itp_utils::FromHexPrefixed;
 use jsonrpc_core::IoHandler;
 use log::*;

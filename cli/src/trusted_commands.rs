@@ -19,7 +19,7 @@ use crate::{benchmark::BenchmarkCommands, Cli};
 
 #[cfg(feature = "evm")]
 use crate::evm::EvmCommands;
-use crate::trusted_base_cli::TrustedBaseCli;
+use crate::{ajuna::AjunaTrustedCommands, trusted_base_cli::TrustedBaseCli};
 
 #[derive(Args)]
 pub struct TrustedArgs {
@@ -57,60 +57,6 @@ pub enum TrustedCommands {
 
 	#[clap(flatten)]
 	AjunaTrusted(AjunaTrustedCommands),
-
-}
-
-	/// Play a turn of a board game
-	DropBomb {
-		/// Player's incognito AccountId in ss58check format
-		player: String,
-		// Column
-		col: u8,
-		// Row
-		row: u8,
-	},
-
-	DropStone {
-		player: String,
-		side: SideCommand,
-		n: u8,
-	},
-
-	/// Query board state for account in keystore
-	GetBoard {
-		/// Player's incognito AccountId in ss58check format
-		player: String,
-	},
-
-	/// Dispute a board
-	Dispute {
-		/// Player's incognito AccountId in ss58check format
-		player: String,
-		/// The board id
-		board_id: ita_stf::SgxBoardId,
-	},
-}
-
-pub struct SideCommand(Side);
-use std::str::FromStr;
-
-impl FromStr for SideCommand {
-	type Err = &'static str;
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		if s.eq("north") {
-			return Ok(SideCommand(Side::North))
-		}
-		if s.eq("east") {
-			return Ok(SideCommand(Side::East))
-		}
-		if s.eq("south") {
-			return Ok(SideCommand(Side::South))
-		}
-		if s.eq("west") {
-			return Ok(SideCommand(Side::West))
-		}
-		Err("Invalid side")
-	}
 }
 
 impl TrustedArgs {

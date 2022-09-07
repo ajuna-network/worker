@@ -26,7 +26,6 @@
 #[cfg(all(not(feature = "std"), feature = "sgx"))]
 extern crate sgx_tstd as std;
 
-use alloc::collections::BTreeSet;
 #[cfg(feature = "sgx")]
 pub use ita_sgx_runtime::{Balance, Index};
 #[cfg(feature = "std")]
@@ -43,7 +42,7 @@ use derive_more::Display;
 use itp_types::BlockNumber;
 use sp_core::{crypto::AccountId32, ed25519, sr25519, Pair, H256};
 use sp_runtime::{traits::Verify, MultiSignature};
-use std::string::String;
+use std::{collections::BTreeSet, string::String};
 use support::{traits::Get, BoundedVec};
 
 pub type Signature = MultiSignature;
@@ -64,7 +63,6 @@ pub type SgxBoardId = u32;
 pub type SgxGameState = pallet_ajuna_board::dot4gravity::GameState<AccountId>;
 pub type SgxGameTurn = pallet_ajuna_board::dot4gravity::Turn;
 pub type Coordinates = pallet_ajuna_board::dot4gravity::Coordinates;
-pub type Side = pallet_ajuna_board::dot4gravity::Side;
 
 pub type SgxGameBoardStruct = pallet_ajuna_board::BoardGame<
 	SgxBoardId,

@@ -22,12 +22,9 @@ use crate::{
 	trusted_operation::perform_trusted_operation, Cli,
 };
 use codec::Decode;
-use ita_stf::{KeyPair, TrustedGetter, TrustedOperation};
-use itp_types::AccountId;
+use ita_stf::{KeyPair, SgxGameBoardStruct, TrustedGetter, TrustedOperation};
 use log::*;
-use sp_core::{crypto::Ss58Codec, Pair, H160, H256};
-use std::vec::Vec;
-use substrate_api_client::utils::FromHexString;
+use sp_core::Pair;
 
 #[derive(Parser)]
 pub struct GetBoardCommand {
@@ -41,7 +38,7 @@ impl GetBoardCommand {
 		let top: TrustedOperation = TrustedGetter::board(player.public().into())
 			.sign(&KeyPair::Sr25519(player))
 			.into();
-		let res = perform_operation(cli, trusted_args, &top);
+		let res = perform_trusted_operation(cli, trusted_args, &top);
 		debug!("received result for board");
 		if let Some(v) = res {
 			if let Ok(board) = SgxGameBoardStruct::decode(&mut v.as_slice()) {

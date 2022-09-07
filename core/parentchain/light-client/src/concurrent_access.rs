@@ -40,11 +40,10 @@ use std::marker::PhantomData;
 /// either a mutating, or a non-mutating function on the validator.
 /// The reason we have this additional wrapper around `SealedIO`, is that we need
 /// to guard against concurrent access by using RWLocks (which `SealedIO` does not do).
-pub trait ValidatorAccess<ParentchainBlock, OCallApi>
+pub trait ValidatorAccess<ParentchainBlock>
 where
 	ParentchainBlock: ParentchainBlockTrait,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
-	OCallApi: EnclaveOnChainOCallApi,
 {
 	type ValidatorType: ValidatorTrait<ParentchainBlock>
 		+ LightClientState<ParentchainBlock>
@@ -63,7 +62,7 @@ where
 
 /// Implementation of a validator access based on a global lock and corresponding file.
 #[derive(Debug)]
-pub struct ValidatorAccessor<Validator, ParentchainBlock, Seal, OCallApi>
+pub struct ValidatorAccessor<Validator, ParentchainBlock, Seal>
 where
 	Validator: ValidatorTrait<ParentchainBlock>
 		+ LightClientState<ParentchainBlock>
@@ -71,14 +70,12 @@ where
 	Seal: StaticSealedIO<Error = Error, Unsealed = LightValidationState<ParentchainBlock>>,
 	ParentchainBlock: ParentchainBlockTrait,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
-	OCallApi: EnclaveOnChainOCallApi,
 {
 	light_validation: RwLock<Validator>,
 	_phantom: PhantomData<(Seal, Validator, ParentchainBlock)>,
 }
 
-impl<Validator, ParentchainBlock, Seal>
-	ValidatorAccessor<Validator, ParentchainBlock, Seal, OCallApi>
+impl<Validator, ParentchainBlock, Seal> ValidatorAccessor<Validator, ParentchainBlock, Seal>
 where
 	Validator: ValidatorTrait<ParentchainBlock>
 		+ LightClientState<ParentchainBlock>
@@ -86,15 +83,14 @@ where
 	Seal: StaticSealedIO<Error = Error, Unsealed = LightValidationState<ParentchainBlock>>,
 	ParentchainBlock: ParentchainBlockTrait,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
-	OCallApi: EnclaveOnChainOCallApi,
 {
 	pub fn new(validator: Validator) -> Self {
 		ValidatorAccessor { light_validation: RwLock::new(validator), _phantom: Default::default() }
 	}
 }
 
-impl<Validator, ParentchainBlock, Seal> ValidatorAccess<ParentchainBlock, OCallApi>
-	for ValidatorAccessor<Validator, ParentchainBlock, Seal, OCallApi>
+impl<Validator, ParentchainBlock, Seal> ValidatorAccess<ParentchainBlock>
+	for ValidatorAccessor<Validator, ParentchainBlock, Seal>
 where
 	Validator: ValidatorTrait<ParentchainBlock>
 		+ LightClientState<ParentchainBlock>
@@ -102,7 +98,6 @@ where
 	Seal: StaticSealedIO<Error = Error, Unsealed = LightValidationState<ParentchainBlock>>,
 	ParentchainBlock: ParentchainBlockTrait,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
-	OCallApi: EnclaveOnChainOCallApi,
 {
 	type ValidatorType = Validator;
 
