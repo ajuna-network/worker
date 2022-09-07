@@ -35,8 +35,8 @@ impl DropBombCommand {
 		play_turn(
 			cli,
 			trusted_args,
-			player,
-			SgxGameTurn::DropBomb(Coordinates { col: *col, row: *row }),
+			&self.player,
+			SgxGameTurn::DropBomb(Coordinates { col: self.col, row: self.row }),
 		)
 	}
 }

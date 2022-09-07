@@ -18,9 +18,7 @@
 //! Play a turn of a board game
 
 use crate::{ajuna::TrustedArgs, trusted_command_utils::play_turn, Cli};
-use ita_stf::SgxGameTurn;
-
-pub type Side = pallet_ajuna_board::dot4gravity::Side;
+use ita_stf::{SgxGameTurn, Side};
 
 pub struct SideCommand(Side);
 use std::str::FromStr;
@@ -54,6 +52,11 @@ pub struct DropStoneCommand {
 
 impl DropStoneCommand {
 	pub(crate) fn run(&self, cli: &Cli, trusted_args: &TrustedArgs) {
-		play_turn(cli, trusted_args, player, SgxGameTurn::DropStone(((*side).0.clone(), *n)))
+		play_turn(
+			cli,
+			trusted_args,
+			&self.player,
+			SgxGameTurn::DropStone(((self.side).0.clone(), self.n)),
+		)
 	}
 }

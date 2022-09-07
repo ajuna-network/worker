@@ -22,8 +22,10 @@ use crate::{
 	command_utils::{get_chain_api, get_pair_from_str},
 	Cli,
 };
+use itp_node_api::metadata::pallet_ajuna_game_registry::GAME_REGISTRY;
 use log::*;
 use sp_application_crypto::{Pair, Ss58Codec};
+use sp_core::sr25519 as sr25519_core;
 use substrate_api_client::{compose_extrinsic, UncheckedExtrinsicV4, XtStatus};
 
 #[derive(Parser)]
@@ -37,7 +39,8 @@ impl QueueGameCommand {
 		let who = get_pair_from_str(&self.account);
 		info!("Queueing player: {}", who.public().to_ss58check());
 		let api = get_chain_api(cli).set_signer(sr25519_core::Pair::from(who));
-		let xt: UncheckedExtrinsicV4<([u8; 2]), _> = compose_extrinsic!(api, REGISTRY, "queue");
+		let xt: UncheckedExtrinsicV4<([u8; 2]), _> =
+			compose_extrinsic!(api, GAME_REGISTRY, "queue");
 		let tx_hash = api.send_extrinsic(xt.hex_encode(), XtStatus::InBlock).unwrap();
 		println!(
 			"[+] Successfully registered player in game queue. Extrinsic Hash: {:?}\n",

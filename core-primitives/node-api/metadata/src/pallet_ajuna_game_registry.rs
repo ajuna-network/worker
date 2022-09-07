@@ -18,13 +18,14 @@
 use crate::{error::Result, NodeMetadata};
 use itp_types::{AccountId, ShardIdentifier};
 use sp_core::storage::StorageKey;
+use std::vec::Vec;
 
 pub use crate::pallet_ajuna_runner::GameId;
 pub type AckGameFn = ([u8; 2], Vec<GameId>, ShardIdentifier);
 pub type FinishGameFn = ([u8; 2], GameId, AccountId, ShardIdentifier);
 
 /// Pallet' name:
-const GAME_REGISTRY: &str = "GameRegistry";
+pub const GAME_REGISTRY: &str = "GameRegistry";
 
 pub trait GameRegistryStorageIndexes {
 	fn queued_storage_map_key(&self) -> Result<StorageKey>;

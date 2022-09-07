@@ -140,5 +140,5 @@ pub fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str, turn: 
 	let top: TrustedOperation = TrustedCall::board_play_turn(player.public().into(), turn)
 		.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
 		.into_trusted_operation(trusted_args.direct);
-	let _ = perform_operation(cli, trusted_args, &top);
+	let _ = perform_trusted_operation(cli, trusted_args, &top);
 }

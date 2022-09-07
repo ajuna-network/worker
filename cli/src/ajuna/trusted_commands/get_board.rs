@@ -34,7 +34,7 @@ pub struct GetBoardCommand {
 
 impl GetBoardCommand {
 	pub(crate) fn run(&self, cli: &Cli, trusted_args: &TrustedArgs) {
-		let player = get_pair_from_str(trusted_args, arg_player);
+		let player = get_pair_from_str(trusted_args, &self.player);
 		let top: TrustedOperation = TrustedGetter::board(player.public().into())
 			.sign(&KeyPair::Sr25519(player))
 			.into();

@@ -63,6 +63,7 @@ pub type SgxBoardId = u32;
 pub type SgxGameState = pallet_ajuna_board::dot4gravity::GameState<AccountId>;
 pub type SgxGameTurn = pallet_ajuna_board::dot4gravity::Turn;
 pub type Coordinates = pallet_ajuna_board::dot4gravity::Coordinates;
+pub type Side = pallet_ajuna_board::dot4gravity::Side;
 
 pub type SgxGameBoardStruct = pallet_ajuna_board::BoardGame<
 	SgxBoardId,

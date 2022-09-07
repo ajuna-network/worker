@@ -24,8 +24,11 @@ use crate::{
 	trusted_operation::perform_trusted_operation,
 	Cli,
 };
-use ita_stf::{KeyPair, TrustedCall, TrustedOperation};
+use codec::Decode;
+use ita_stf::{Index, KeyPair, TrustedCall, TrustedGetter, TrustedOperation};
+use log::*;
 use sp_core::{crypto::Ss58Codec, Pair};
+
 #[derive(Parser)]
 pub struct DisputeCommand {
 	/// Player's incognito AccountId in ss58check format
@@ -36,19 +39,19 @@ pub struct DisputeCommand {
 
 impl DisputeCommand {
 	pub(crate) fn run(&self, cli: &Cli, trusted_args: &TrustedArgs) {
-		let player = get_pair_from_str(trusted_args, arg_player);
+		let player = get_pair_from_str(trusted_args, &self.player);
 		println!("player ss58 is {}", player.public().to_ss58check());
 
 		println!(
 			"send trusted call dispute-game from {} for board {:?}",
 			player.public(),
-			board_id
+			self.board_id
 		);
 		let (mrenclave, shard) = get_identifiers(trusted_args);
 		let nonce = get_layer_two_nonce!(player, cli, trusted_args);
 
 		let top: TrustedOperation =
-			TrustedCall::board_dispute_game(player.public().into(), *board_id)
+			TrustedCall::board_dispute_game(player.public().into(), self.board_id)
 				.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
 				.into_trusted_operation(trusted_args.direct);
 
