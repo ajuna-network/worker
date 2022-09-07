@@ -120,6 +120,83 @@ where
 			error!("Error adding indirect trusted call to TOP pool: {:?}", e);
 		}
 
+	/// Creates a processed_parentchain_block extrinsic for a given parentchain block hash and the merkle executed extrinsics.
+	///
+	/// Calculates the merkle root of the extrinsics. In case no extrinsics are supplied, the root will be a hash filled with zeros.
+	fn create_processed_parentchain_block_call(
+		&self,
+		block_hash: H256,
+		extrinsics: Vec<H256>,
+	) -> Result<OpaqueCall> {
+		let call = self.node_meta_data_provider.get_from_metadata(|meta_data| {
+			meta_data.confirm_processed_parentchain_block_call_indexes()
+		})??;
+
+		let root: H256 = merkle_root::<Keccak256, _, _>(extrinsics).into();
+		Ok(OpaqueCall::from_tuple(&(call, block_hash, root)))
+	}
+
+	fn is_shield_funds_function(&self, function: &[u8; 2]) -> bool {
+		self.node_meta_data_provider
+			.get_from_metadata(|meta_data| {
+				let call = match meta_data.shield_funds_call_indexes() {
+					Ok(c) => c,
+					Err(e) => {
+						error!("Failed to get the indexes for the shield_funds call from the metadata: {:?}", e);
+						return false
+					},
+				};
+				function == &call
+			})
+			.unwrap_or(false)
+	}
+
+	fn is_call_worker_function(&self, function: &[u8; 2]) -> bool {
+		self.node_meta_data_provider
+			.get_from_metadata(|meta_data| {
+				let call = match meta_data.call_worker_call_indexes() {
+					Ok(c) => c,
+					Err(e) => {
+						error!("Failed to get the indexes for the call_worker call from the metadata: {:?}", e);
+						return false
+					},
+				};
+				function == &call
+			})
+			.unwrap_or(false)
+	}
+
+	fn is_ack_game_function(&self, function: &[u8; 2]) -> bool {
+		self.node_meta_data_provider
+			.get_from_metadata(|meta_data| {
+				let call = match meta_data.ack_game_call_indexes() {
+					Ok(c) => c,
+					Err(e) => {
+						error!("Failed to get the indexes for the ack_game call from the metadata: {:?}", e);
+						return false
+					},
+				};
+				function == &call
+			})
+			.unwrap_or(false)
+	}
+
+	fn is_finish_game_function(&self, function: &[u8; 2]) -> bool {
+		self.node_meta_data_provider
+			.get_from_metadata(|meta_data| {
+				let call = match meta_data.finish_game_call_indexes() {
+					Ok(c) => c,
+					Err(e) => {
+						error!("Failed to get the indexes for the finish_game call from the metadata: {:?}", e);
+						return false
+					},
+				};
+				function == &call
+			})
+			.unwrap_or(false)
+	}
+
+
 	fn handle_ack_game_xt<ParentchainBlock>(
 		&self,
 		xt: &UncheckedExtrinsicV4<AckGameFn>,
@@ -200,10 +277,28 @@ where
 				}
 			};
 
+			// Found Ack_Game extrinsic in block.
+			else if let Ok(xt) = ParentchainUncheckedExtrinsic::<AckGameFn>::decode(
+				&mut xt_opaque.encode().as_slice(),
+			) {
+				if self.is_ack_game_function(&xt.function.0) {
+					match self.handle_ack_game_xt(&xt, block) {
+						Err(e) => {
+							error!("Error performing acknowledge game. Error: {:?}", e);
+						},
+						Ok(_) => {
+							// Cache successfully executed shielding call.
+							executed_shielding_calls.push(hash_of(&xt))
+						},
+					}
+				}
+			}
+
+			// Found Finish_Game extrinsic in block.
 			if let Ok(xt) =
 				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
 			{
-				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
+				if self.is_finish_game_function(&xt.function.0) {
 					if let Err(e) = self.handle_finish_game_xt(&xt, block) {
 						error!("Error performing finish game. Error: {:?}", e);
 					} else {
@@ -213,18 +308,6 @@ where
 				}
 			};
 
-			if let Ok(xt) =
-				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
-			{
-				if xt.function.0 == [GAME_REGISTRY_MODULE, FINISH_GAME] {
-					if let Err(e) = self.handle_finish_game_xt(&xt, block) {
-						error!("Error performing finish game. Error: {:?}", e);
-					} else {
-						// Cache successfully executed shielding call.
-						executed_extrinsics.push(hash_of(xt))
-					}
-				}
-			};
 
 			// Found CallWorker extrinsic in block.
 			if let Ok(xt) =

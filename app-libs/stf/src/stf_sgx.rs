@@ -125,6 +125,12 @@ impl Stf {
 					} else {
 						None
 					},
+				TrustedGetter::board(who) =>
+					if let Some(game) = get_board_for(who) {
+						Some(game.encode())
+					} else {
+						None
+					},
 				#[cfg(feature = "evm")]
 				TrustedGetter::evm_nonce(who) => {
 					let evm_account = get_evm_account(&who);

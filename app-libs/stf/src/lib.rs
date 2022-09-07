@@ -218,6 +218,10 @@ pub enum TrustedCall {
 	balance_transfer(AccountId, AccountId, Balance),
 	balance_unshield(AccountId, AccountId, Balance, ShardIdentifier), // (AccountIncognito, BeneficiaryPublicAccount, Amount, Shard)
 	balance_shield(AccountId, AccountId, Balance), // (Root, AccountIncognito, Amount)
+	board_new_game(AccountId, SgxBoardId, BTreeSet<AccountId>),
+	board_play_turn(AccountId, SgxGameTurn),
+	board_finish_game(AccountId, SgxBoardId),
+	board_dispute_game(AccountId, SgxBoardId),
 	#[cfg(feature = "evm")]
 	evm_withdraw(AccountId, H160, Balance), // (Origin, Address EVM Account, Value)
 	// (Origin, Source, Target, Input, Value, Gas limit, Max fee per gas, Max priority fee per gas, Nonce, Access list)
@@ -270,6 +274,10 @@ impl TrustedCall {
 			TrustedCall::balance_transfer(sender_account, ..) => sender_account,
 			TrustedCall::balance_unshield(sender_account, ..) => sender_account,
 			TrustedCall::balance_shield(sender_account, ..) => sender_account,
+			TrustedCall::board_new_game(account, _, _) => account,
+			TrustedCall::board_play_turn(account, _) => account,
+			TrustedCall::board_finish_game(account, _) => account,
+			TrustedCall::board_dispute_game(account, _) => account,
 			#[cfg(feature = "evm")]
 			TrustedCall::evm_withdraw(sender_account, ..) => sender_account,
 			#[cfg(feature = "evm")]
@@ -303,6 +311,7 @@ pub enum TrustedGetter {
 	free_balance(AccountId),
 	reserved_balance(AccountId),
 	nonce(AccountId),
+	board(AccountId),
 	#[cfg(feature = "evm")]
 	evm_nonce(AccountId),
 	#[cfg(feature = "evm")]
@@ -317,6 +326,7 @@ impl TrustedGetter {
 			TrustedGetter::free_balance(sender_account) => sender_account,
 			TrustedGetter::reserved_balance(sender_account) => sender_account,
 			TrustedGetter::nonce(sender_account) => sender_account,
+			TrustedGetter::board(sender_account) => sender_account,
 			#[cfg(feature = "evm")]
 			TrustedGetter::evm_nonce(sender_account) => sender_account,
 			#[cfg(feature = "evm")]

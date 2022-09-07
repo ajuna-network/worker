@@ -105,3 +105,27 @@ impl StfEnclaveSigning for StfEnclaveSignerMock {
 		Ok(trusted_call.sign(&KeyPair::Ed25519(self.signer.clone()), 1, &self.mr_enclave, shard))
 	}
 }
+
+#[derive(Default)]
+pub struct StfGameExecutorMock;
+
+impl crate::traits::StfExecuteGames for StfGameExecutorMock {
+	fn new_game<ParentchainBlock>(
+		&self,
+		_game_id: itp_types::GameId,
+		_block: &ParentchainBlock,
+	) -> Result<itp_types::GameId>
+	where
+		ParentchainBlock: sp_runtime::traits::Block<Hash = itp_types::H256>,
+	{
+		Ok(itp_types::GameId::default())
+	}
+
+	fn finish_game(
+		&self,
+		_game_id: itp_types::GameId,
+		_shard: &ShardIdentifier,
+	) -> Result<itp_types::GameId> {
+		Ok(itp_types::GameId::default())
+	}
+}

@@ -22,6 +22,28 @@ use crate::{
 	Cli,
 };
 
+pub struct SideCommand(Side);
+use std::str::FromStr;
+
+impl FromStr for SideCommand {
+	type Err = &'static str;
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		if s.eq("north") {
+			return Ok(SideCommand(Side::North))
+		}
+		if s.eq("east") {
+			return Ok(SideCommand(Side::East))
+		}
+		if s.eq("south") {
+			return Ok(SideCommand(Side::South))
+		}
+		if s.eq("west") {
+			return Ok(SideCommand(Side::West))
+		}
+		Err("Invalid side")
+	}
+}
+
 #[derive(Parser)]
 pub struct DropStoneCommand {
 	/// Player's incognito AccountId in ss58check format

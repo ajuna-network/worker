@@ -103,3 +103,17 @@ pub trait StfExecuteGenericUpdate {
 pub trait StfUpdateState {
 	fn update_states(&self, header: &ParentchainHeader) -> Result<()>;
 }
+
+/// Execute trusted calls for Ajuna games.
+pub trait StfExecuteGames {
+	fn new_game<ParentchainBlock>(
+		&self,
+		game_id: GameId,
+		shard: &ShardIdentifier,
+		block: &ParentchainBlock,
+	) -> Result<GameId>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>;
+
+	fn finish_game(&self, game_id: GameId, shard: &ShardIdentifier) -> Result<GameId>;
+}
