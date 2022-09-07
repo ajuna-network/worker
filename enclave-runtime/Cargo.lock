@@ -124,7 +124,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -1486,12 +1486,14 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
+ "pallet-ajuna-board",
  "pallet-aura",
  "pallet-balances",
  "pallet-evm",
  "pallet-grandpa",
  "pallet-parentchain",
  "pallet-randomness-collective-flip",
+ "pallet-scheduler",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -2636,7 +2638,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-board"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
 dependencies = [
  "ajuna-common",
  "dot4gravity",
@@ -2651,7 +2653,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2667,7 +2669,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#d957d077e71b8e3cc0b98be8947412735a91967d"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2792,6 +2794,21 @@ dependencies = [
  "parity-scale-codec",
  "safe-mix",
  "scale-info",
+ "sp-runtime",
+ "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
+]
+
+[[package]]
+name = "pallet-scheduler"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27#8eff668a42325aeb4433eace1604f4d286a6ec05"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
  "sp-runtime",
  "sp-std 4.0.0 (git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27)",
 ]
@@ -4595,7 +4612,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "digest 0.10.3",
  "static_assertions",
 ]

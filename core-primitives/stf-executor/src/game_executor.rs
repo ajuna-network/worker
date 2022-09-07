@@ -5,13 +5,14 @@ use crate::{
 use ajuna_common::RunnerState;
 use codec::Decode;
 use ita_stf::{AccountId, ShardIdentifier, Stf, TrustedCall, TrustedCallSigned};
+use itp_node_api::metadata::pallet_ajuna_runner::{GameId, RUNNER};
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
-use itp_registry_storage::{RunnerStorage, RunnerStorageKeys};
+use itp_sgx_externalities::SgxExternalitiesTrait;
 use itp_stf_state_handler::handle_state::HandleState;
-use itp_types::{GameId, OpaqueCall, H256};
+use itp_storage::{storage_map_key, storage_value_key, StorageHasher};
+use itp_types::{OpaqueCall, H256};
 use log::*;
 use pallet_ajuna_gameregistry::Game;
-use sgx_externalities::SgxExternalitiesTrait;
 use sp_core::ed25519;
 use sp_runtime::traits::Block as ParentchainBlockTrait;
 use std::{collections::BTreeSet, sync::Arc, vec::Vec};
@@ -47,11 +48,10 @@ where
 	where
 		ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	{
-		let game_entry: Option<RunnerState> = self
-			.ocall_api
-			.get_storage_verified(RunnerStorage::runner(game_id), block.header())?
-			.into_tuple()
-			.1;
+		// FIXME: We should take this from metadata.
+		let runner_key = storage_map_key(RUNNER, "Runners", &game_id, &StorageHasher::Blake2_128);
+		let game_entry: Option<RunnerState> =
+			self.ocall_api.get_storage_verified(runner_key, block.header())?.into_tuple().1;
 
 		match game_entry {
 			Some(runner) => {
@@ -75,8 +75,13 @@ where
 								ed25519::Signature::from_raw([0u8; 64]).into(), //don't care about signature here
 							);
 
-							Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
-								.map_err::<Error, _>(|e| e.into())?;
+							Stf::execute(
+								&mut state,
+								trusted_call,
+								&mut Vec::<OpaqueCall>::new(),
+								[0u8, 1u8],
+							)
+							.map_err::<Error, _>(|e| e.into())?;
 
 							self.state_handler
 								.write_after_mutation(state, state_lock, shard)
@@ -114,7 +119,7 @@ where
 			ed25519::Signature::from_raw([0u8; 64]).into(), //don't care about signature here
 		);
 
-		Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new())
+		Stf::execute(&mut state, trusted_call, &mut Vec::<OpaqueCall>::new(), [0u8, 1u8])
 			.map_err::<Error, _>(|e| e.into())?;
 
 		self.state_handler

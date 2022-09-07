@@ -35,7 +35,18 @@ use itp_types::{CallWorkerFn, ShieldFundsFn, H256};
 use log::*;
 use sp_core::blake2_256;
 use sp_runtime::traits::{Block as ParentchainBlockTrait, Header};
+use itp_node_api::metadata::pallet_ajuna_game_registry::FinishGameFn;
 use std::{sync::Arc, vec::Vec};
+use itp_node_api::api_client::UncheckedExtrinsicV4;
+use itp_node_api::metadata::pallet_ajuna_game_registry::AckGameFn;
+use itp_types::OpaqueCall;
+use itp_sgx_crypto::ShieldingCryptoEncrypt;
+use itp_stf_executor::traits::StfEnclaveSigning;
+use itp_types::ShardIdentifier;
+use itp_node_api::metadata::pallet_teerex::TeerexCallIndexes;
+use ita_stf::TrustedOperation;
+use itp_node_api::api_client::ParentchainUncheckedExtrinsic;
+use ita_stf::TrustedCall;
 
 /// Trait to execute the indirect calls found in the extrinsics of a block.
 pub trait ExecuteIndirectCalls {
@@ -209,9 +220,11 @@ where
 
 		info!("found {:?} games", games.len());
 
+		// TODO: We should actually submit a call here, not execute directly.
 		for game in games {
-			self.stf_executor.execute_new_game(*game, shard, block)?;
+			self.stf_executor.new_game(*game, shard, block)?;
 		}
+
 		Ok(())
 	}
 
@@ -227,15 +240,21 @@ where
 
 		info!("handle finish game {}", game_id);
 
+		// TODO: We should actually submit a call here, not execute directly.
 		self.stf_executor.finish_game(*game_id, shard, block)?;
 
 		Ok(())
 	}
 }
 
-impl<ShieldingKeyRepository, StfExecutor, TopPoolAuthor> ExecuteIndirectCalls
-	for IndirectCallsExecutor<ShieldingKeyRepository, StfExecutor, TopPoolAuthor>
-where
+impl<ShieldingKeyRepository, StfEnclaveSigner, TopPoolAuthor, NodeMetadataProvider>
+	ExecuteIndirectCalls
+	for IndirectCallsExecutor<
+		ShieldingKeyRepository,
+		StfEnclaveSigner,
+		TopPoolAuthor,
+		NodeMetadataProvider,
+	> where
 	ShieldingKeyRepository: AccessKey,
 	<ShieldingKeyRepository as AccessKey>::KeyType: ShieldingCryptoDecrypt<Error = itp_sgx_crypto::Error>
 		+ ShieldingCryptoEncrypt<Error = itp_sgx_crypto::Error>,
@@ -275,10 +294,23 @@ where
 						},
 					}
 				}
-			};
+			}
+
+			// Found CallWorker extrinsic in block.
+			// No else-if here! Because the same opaque extrinsic can contain multiple Fns at once (this lead to intermittent M6 failures)
+			if let Ok(xt) = ParentchainUncheckedExtrinsic::<CallWorkerFn>::decode(
+				&mut encoded_xt_opaque.as_slice(),
+			) {
+				if self.is_call_worker_function(&xt.function.0) {
+					let (_, request) = xt.function;
+					let (shard, cypher_text) = (request.shard, request.cyphertext);
+					debug!("Found trusted call extrinsic, submitting it to the top pool");
+					self.submit_trusted_call(shard, cypher_text);
+				}
+			}
 
 			// Found Ack_Game extrinsic in block.
-			else if let Ok(xt) = ParentchainUncheckedExtrinsic::<AckGameFn>::decode(
+			if let Ok(xt) = ParentchainUncheckedExtrinsic::<AckGameFn>::decode(
 				&mut xt_opaque.encode().as_slice(),
 			) {
 				if self.is_ack_game_function(&xt.function.0) {
@@ -295,29 +327,19 @@ where
 			}
 
 			// Found Finish_Game extrinsic in block.
-			if let Ok(xt) =
-				UncheckedExtrinsicV4::<FinishGameFn>::decode(&mut xt_opaque.encode().as_slice())
-			{
+			if let Ok(xt) = ParentchainUncheckedExtrinsic::<FinishGameFn>::decode(
+				&mut xt_opaque.encode().as_slice(),
+			) {
 				if self.is_finish_game_function(&xt.function.0) {
-					if let Err(e) = self.handle_finish_game_xt(&xt, block) {
-						error!("Error performing finish game. Error: {:?}", e);
-					} else {
-						// Cache successfully executed shielding call.
-						executed_extrinsics.push(hash_of(xt))
+					match self.handle_finish_game_xt(&xt) {
+						Err(e) => {
+							error!("Error performing finish game. Error: {:?}", e);
+						},
+						Ok(_) => {
+							// Cache successfully executed shielding call.
+							executed_shielding_calls.push(hash_of(&xt))
+						},
 					}
-				}
-			};
-
-
-			// Found CallWorker extrinsic in block.
-			if let Ok(xt) =
-				UncheckedExtrinsicV4::<CallWorkerFn>::decode(&mut xt_opaque.encode().as_slice())
-			{
-				if xt.function.0 == [TEEREX_MODULE, CALL_WORKER] {
-					let (_, request) = xt.function;
-					let (shard, cypher_text) = (request.shard, request.cyphertext);
-					debug!("Found trusted call extrinsic, submitting it to the top pool");
-					self.submit_trusted_call(shard, cypher_text);
 				}
 			}
 		}
@@ -326,6 +348,7 @@ where
 		self.create_processed_parentchain_block_call(block_hash, executed_shielding_calls)
 	}
 }
+
 
 fn hash_of<T: Encode>(xt: &T) -> H256 {
 	blake2_256(&xt.encode()).into()

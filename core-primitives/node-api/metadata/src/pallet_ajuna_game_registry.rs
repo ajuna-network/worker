@@ -14,11 +14,12 @@
 	limitations under the License.
 
 */
+extern crate alloc;
 
 use crate::{error::Result, NodeMetadata};
+use alloc::vec::Vec;
 use itp_types::{AccountId, ShardIdentifier};
 use sp_core::storage::StorageKey;
-use std::vec::Vec;
 
 pub use crate::pallet_ajuna_runner::GameId;
 pub type AckGameFn = ([u8; 2], Vec<GameId>, ShardIdentifier);

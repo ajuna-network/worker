@@ -17,12 +17,10 @@
 
 #[cfg(feature = "test")]
 use crate::test_genesis::test_genesis_setup;
-use alloc::format;
-
 use crate::{
 	helpers::{
 		account_data, account_nonce, enclave_signer_account, ensure_enclave_signer_account,
-		ensure_root, get_account_info, increment_nonce, root, validate_nonce,
+		ensure_root, get_account_info, get_board_for, increment_nonce, root, validate_nonce,
 	},
 	AccountData, AccountId, Getter, Index, ParentchainHeader, PublicGetter, ShardIdentifier, State,
 	StateTypeDiff, Stf, StfError, StfResult, TrustedCall, TrustedCallSigned, TrustedGetter,
@@ -372,33 +370,33 @@ impl Stf {
 					Ok(())
 				},
 				TrustedCall::board_new_game(root, board_id, players) => {
-					let origin = sgx_runtime::Origin::signed(root.clone());
+					let origin = ita_sgx_runtime::Origin::signed(root.clone());
 					debug!("board_new_game {:x?} => {:x?})", board_id, players);
-					sgx_runtime::AjunaBoardCall::<Runtime>::new_game { board_id, players }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::new_game { board_id, players }
 						.dispatch_bypass_filter(origin)
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_play_turn(sender, turn) => {
-					let origin = sgx_runtime::Origin::signed(sender.clone());
+					let origin = ita_sgx_runtime::Origin::signed(sender.clone());
 					debug!("board play turn ({:x?}, {:?})", sender.encode(), turn);
-					sgx_runtime::AjunaBoardCall::<Runtime>::play_turn { turn }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::play_turn { turn }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_finish_game(sender, board_id) => {
-					let origin = sgx_runtime::Origin::signed(sender.clone());
+					let origin = ita_sgx_runtime::Origin::signed(sender.clone());
 					debug!("board finished ({:x?}, {:?})", sender.encode(), board_id);
-					sgx_runtime::AjunaBoardCall::<Runtime>::finish_game { board_id }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::finish_game { board_id }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())
 				},
 				TrustedCall::board_dispute_game(sender, board_id) => {
-					let origin = sgx_runtime::Origin::signed(sender.clone());
+					let origin = ita_sgx_runtime::Origin::signed(sender.clone());
 					debug!("board disputed ({:x?}, {:?})", sender.encode(), board_id);
-					sgx_runtime::AjunaBoardCall::<Runtime>::dispute_game { board_id }
+					ita_sgx_runtime::AjunaBoardCall::<Runtime>::dispute_game { board_id }
 						.dispatch_bypass_filter(origin.clone())
 						.map_err(|e| StfError::Dispatch(format!("{:?}", e.error)))?;
 					Ok(())

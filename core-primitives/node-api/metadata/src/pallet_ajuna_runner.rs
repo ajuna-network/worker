@@ -22,13 +22,13 @@ pub type GameId = u32;
 /// Pallet' name:
 pub const RUNNER: &str = "Runner";
 
-pub trait GameRegistryStorageIndexes {
+pub trait RunnerStorageIndexes {
 	fn runner_storage_map_key(&self, runner_id: GameId) -> Result<StorageKey>;
 
 	fn players_storage_map_key(&self, game_hash: H256) -> Result<StorageKey>;
 }
 
-impl GameRegistryStorageIndexes for NodeMetadata {
+impl RunnerStorageIndexes for NodeMetadata {
 	fn runner_storage_map_key(&self, runner_id: GameId) -> Result<StorageKey> {
 		self.storage_map_key(RUNNER, "Runners", &runner_id)
 	}
@@ -38,7 +38,7 @@ impl GameRegistryStorageIndexes for NodeMetadata {
 	}
 }
 
-pub trait GameRegistryCallIndexes {
+pub trait RunnerCallIndexes {
 	fn queue_call_indexes(&self) -> Result<[u8; 2]>;
 
 	fn drop_game_call_indexes(&self) -> Result<[u8; 2]>;
@@ -48,7 +48,7 @@ pub trait GameRegistryCallIndexes {
 	fn finish_game_call_indexes(&self) -> Result<[u8; 2]>;
 }
 
-impl GameRegistryCallIndexes for NodeMetadata {
+impl RunnerCallIndexes for NodeMetadata {
 	fn queue_call_indexes(&self) -> Result<[u8; 2]> {
 		self.call_indexes(RUNNER, "queue")
 	}
