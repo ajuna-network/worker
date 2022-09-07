@@ -17,6 +17,12 @@
 use crate::{error::Result, NodeMetadata};
 use sp_core::storage::StorageKey;
 
+pub type GameId = u32;
+pub type AckGameFn = ([u8; 2], Vec<GameId>, ShardIdentifier);
+pub type FinishGameFn = ([u8; 2], GameId, AccountId, ShardIdentifier);
+
+pub type Enclave = EnclaveGen<AccountId>;
+
 /// Pallet' name:
 const GAME_REGISTRY: &str = "GameRegistry";
 
