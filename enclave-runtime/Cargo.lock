@@ -1610,6 +1610,7 @@ dependencies = [
  "itc-parentchain-light-client",
  "itp-extrinsics-factory",
  "itp-node-api",
+ "itp-ocall-api",
  "itp-settings",
  "itp-stf-executor",
  "itp-stf-state-handler",

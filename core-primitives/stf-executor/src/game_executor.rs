@@ -9,7 +9,7 @@ use itp_node_api::metadata::pallet_ajuna_runner::{GameId, RUNNER};
 use itp_ocall_api::{EnclaveAttestationOCallApi, EnclaveOnChainOCallApi};
 use itp_sgx_externalities::SgxExternalitiesTrait;
 use itp_stf_state_handler::handle_state::HandleState;
-use itp_storage::{storage_map_key, storage_value_key, StorageHasher};
+use itp_storage::{storage_map_key, StorageHasher};
 use itp_types::{OpaqueCall, H256};
 use log::*;
 use pallet_ajuna_gameregistry::Game;

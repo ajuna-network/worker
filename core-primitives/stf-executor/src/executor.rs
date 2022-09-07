@@ -41,10 +41,9 @@ use sp_runtime::{
 	traits::{Block as ParentchainBlockTrait, Header as HeaderTrait},
 };
 use std::{
-	collections::{BTreeMap, BTreeSet},
+	collections::{BTreeMap},
 	fmt::Debug,
 	format,
-	marker::PhantomData,
 	result::Result as StdResult,
 	sync::Arc,
 	time::Duration,

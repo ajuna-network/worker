@@ -33,6 +33,7 @@ use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
 };
+use itp_ocall_api::{EnclaveOnChainOCallApi};
 use itp_node_api::metadata::provider::AccessNodeMetadata;
 use itp_node_api::metadata::pallet_ajuna_game_registry::GameRegistryCallIndexes;
 use itp_node_api::metadata::pallet_ajuna_game_registry::GameRegistryStorageIndexes;
@@ -47,8 +48,9 @@ pub struct ParentchainBlockImporter<
 	StfExecutor,
 	ExtrinsicsFactory,
 	IndirectCallsExecutor,
+	OCallApi,
 	StateHandler,
-	NodeMetadataProvider
+	NodeMetadataProvider,
 > where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -57,6 +59,7 @@ pub struct ParentchainBlockImporter<
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	OCallApi: EnclaveOnChainOCallApi,
 	NodeMetadataProvider: AccessNodeMetadata,
 	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 
@@ -66,6 +69,7 @@ pub struct ParentchainBlockImporter<
 	extrinsics_factory: Arc<ExtrinsicsFactory>,
 	indirect_calls_executor: Arc<IndirectCallsExecutor>,
 	file_state_handler: Arc<StateHandler>,
+	ocall_api: Arc<OCallApi>,
 	node_meta_data_provider: Arc<NodeMetadataProvider>,
 	_phantom: PhantomData<ParentchainBlock>,
 }
@@ -77,6 +81,7 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
 		NodeMetadataProvider
 	>
 	ParentchainBlockImporter<
@@ -86,6 +91,7 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
 		NodeMetadataProvider
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
@@ -95,6 +101,7 @@ impl<
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	OCallApi: EnclaveOnChainOCallApi,
 	NodeMetadataProvider: AccessNodeMetadata,
 	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 {
@@ -104,6 +111,7 @@ impl<
 		extrinsics_factory: Arc<ExtrinsicsFactory>,
 		indirect_calls_executor: Arc<IndirectCallsExecutor>,
 		file_state_handler: Arc<StateHandler>,
+		ocall_api: Arc<OCallApi>,
 		node_meta_data_provider: Arc<NodeMetadataProvider>,
 	) -> Self {
 		ParentchainBlockImporter {
@@ -112,6 +120,7 @@ impl<
 			extrinsics_factory,
 			indirect_calls_executor,
 			file_state_handler,
+			ocall_api,
 			node_meta_data_provider,
 			_phantom: Default::default(),
 		}
@@ -125,6 +134,7 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
 		NodeMetadataProvider
 	> ImportParentchainBlocks
 	for ParentchainBlockImporter<
@@ -134,6 +144,7 @@ impl<
 		ExtrinsicsFactory,
 		IndirectCallsExecutor,
 		StateHandler,
+		OCallApi,
 		NodeMetadataProvider
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
@@ -143,6 +154,7 @@ impl<
 	ExtrinsicsFactory: CreateExtrinsics,
 	IndirectCallsExecutor: ExecuteIndirectCalls,
 	StateHandler: QueryShardState,
+	OCallApi: EnclaveOnChainOCallApi,
 	NodeMetadataProvider: AccessNodeMetadata,
 	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes + GameRegistryStorageIndexes,
 
@@ -204,8 +216,9 @@ impl<
 					if !queued.is_empty() {
 						//FIXME: we currently only take the first shard. How we handle sharding in general?
 						let shard = self.file_state_handler.list_shards().unwrap()[0];
+						let ack_game_indexes = self.node_meta_data_provider.get_from_metadata(|m| m.ack_game_call_indexes());
 						let ack_game_call = OpaqueCall::from_tuple(&(
-							[GAME_REGISTRY_MODULE, ACK_GAME],
+							ack_game_indexes,
 							queued,
 							shard,
 						));
@@ -226,7 +239,5 @@ impl<
 		// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
 		self.validator_accessor
 			.execute_mut_on_validator(|v| v.send_extrinsics(parentchain_extrinsics))?;
-
-		calls.push(ack_game_call);
 	}
 }
