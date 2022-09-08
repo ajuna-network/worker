@@ -51,8 +51,8 @@ pub struct ParentchainBlockImporter<
 	StfExecutor,
 	ExtrinsicsFactory,
 	IndirectCallsExecutor,
-	OCallApi,
 	StateHandler,
+	OCallApi,
 	NodeMetadataProvider,
 > where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256>,
@@ -204,11 +204,11 @@ impl<
 			);
 
 			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
-			let queue_call =
-				self.node_meta_data_provider.get_from_metadata(|m| m.queued_storage_map_key());
+			let queue_call_fn =
+				self.node_meta_data_provider.get_from_metadata(|m| m.queued_storage_map_key())??;
 			let maybe_queued: Option<Vec<GameId>> = self
 				.ocall_api
-				.get_storage_verified(queue_call, block.header())
+				.get_storage_verified(queue_call_fn.0, block.header())
 				.map_err(|e| Error::StorageVerified(format!("{:?}", e)))?
 				.into_tuple()
 				.1;
@@ -220,7 +220,7 @@ impl<
 						let shard = self.file_state_handler.list_shards().unwrap()[0];
 						let ack_game_indexes = self
 							.node_meta_data_provider
-							.get_from_metadata(|m| m.ack_game_call_indexes());
+							.get_from_metadata(|m| m.ack_game_call_indexes())??;
 						let ack_game_call =
 							OpaqueCall::from_tuple(&(ack_game_indexes, queued, shard));
 
@@ -240,5 +240,7 @@ impl<
 		// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
 		self.validator_accessor
 			.execute_mut_on_validator(|v| v.send_extrinsics(parentchain_extrinsics))?;
+
+		Ok(())
 	}
 }

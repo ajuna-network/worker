@@ -104,6 +104,8 @@ pub type EnclaveParentchainBlockImporter = ParentchainBlockImporter<
 	EnclaveExtrinsicsFactory,
 	EnclaveIndirectCallsExecutor,
 	EnclaveStateHandler,
+	EnclaveOCallApi,
+	EnclaveNodeMetadataRepository
 >;
 pub type EnclaveParentchainBlockImportQueue = BlockImportQueue<SignedParentchainBlock>;
 pub type EnclaveTriggeredParentchainBlockImportDispatcher =
