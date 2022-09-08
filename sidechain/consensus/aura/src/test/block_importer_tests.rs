@@ -34,6 +34,10 @@ use parentchain_test::{
 	parentchain_block_builder::ParentchainBlockBuilder,
 	parentchain_header_builder::ParentchainHeaderBuilder,
 };
+use itp_node_api::metadata::{
+	provider::NodeMetadataRepository,
+};
+use itp_node_api::metadata::metadata_mocks::NodeMetadataMock;
 use sidechain_primitives::{
 	traits::{SignBlock, SignedBlock},
 	types::{Block as SidechainBlock, SignedBlock as SignedSidechainBlock},

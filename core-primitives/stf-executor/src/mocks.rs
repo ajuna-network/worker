@@ -26,10 +26,11 @@ use ita_stf::{
 	AccountId, KeyPair, ShardIdentifier, TrustedCall, TrustedCallSigned, TrustedOperation,
 };
 use itp_sgx_externalities::SgxExternalitiesTrait;
-use itp_types::{Amount, GameId, OpaqueCall, H256};
+use itp_types::{H256};
 use sp_core::Pair;
 use sp_runtime::traits::Header as HeaderTrait;
 use std::{marker::PhantomData, time::Duration};
+use itp_node_api::metadata::pallet_ajuna_runner::GameId;
 
 /// Mock for the StfExecutor.
 #[derive(Default)]
@@ -112,20 +113,21 @@ pub struct StfGameExecutorMock;
 impl crate::traits::StfExecuteGames for StfGameExecutorMock {
 	fn new_game<ParentchainBlock>(
 		&self,
-		_game_id: itp_types::GameId,
+		_game_id: GameId,
+		_shard: &ShardIdentifier,
 		_block: &ParentchainBlock,
-	) -> Result<itp_types::GameId>
+	) -> Result<GameId>
 	where
 		ParentchainBlock: sp_runtime::traits::Block<Hash = itp_types::H256>,
 	{
-		Ok(itp_types::GameId::default())
+		Ok(GameId::default())
 	}
 
 	fn finish_game(
 		&self,
-		_game_id: itp_types::GameId,
+		_game_id: GameId,
 		_shard: &ShardIdentifier,
-	) -> Result<itp_types::GameId> {
-		Ok(itp_types::GameId::default())
+	) -> Result<GameId> {
+		Ok(GameId::default())
 	}
 }

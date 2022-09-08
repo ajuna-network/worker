@@ -20,9 +20,7 @@
 use crate::{
 	call_operator::{ExecutedOperation, TopPoolCallOperator},
 	error::Result,
-	H256,
 };
-use codec::Encode;
 use core::marker::PhantomData;
 use ita_stf::TrustedOperation;
 use sidechain_primitives::traits::{ShardIdentifierFor, SignedBlock as SignedSidechainBlockTrait};

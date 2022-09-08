@@ -383,9 +383,11 @@ mod test {
 	use sp_runtime::{MultiSignature, OpaqueExtrinsic};
 	use std::assert_matches::assert_matches;
 	use substrate_api_client::{ExtrinsicParams, GenericAddress};
+	use itp_stf_executor::mocks::StfEnclaveSignerMock;
 
 	type TestShieldingKeyRepo = KeyRepositoryMock<ShieldingCryptoMock>;
 	type TestStfEnclaveSigner = StfEnclaveSignerMock;
+	type TestStfGameExecutor = StfGameExecutorMock;
 	type TestTopPoolAuthor = AuthorApiMock<H256, H256>;
 	type TestNodeMetadataRepository = NodeMetadataRepository<NodeMetadataMock>;
 	type TestIndirectCallExecutor = IndirectCallsExecutor<
@@ -556,12 +558,14 @@ mod test {
 		let stf_enclave_signer = Arc::new(TestStfEnclaveSigner::new(mr_enclave));
 		let top_pool_author = Arc::new(TestTopPoolAuthor::default());
 		let node_metadata_repo = Arc::new(NodeMetadataRepository::new(metadata));
+		let stf_game_executor = Arc::new(TestStfGameExecutor::default());
 
 		let executor = IndirectCallsExecutor::new(
 			shielding_key_repo.clone(),
 			stf_enclave_signer,
 			top_pool_author.clone(),
 			node_metadata_repo,
+			stf_game_executor
 		);
 
 		(executor, top_pool_author, shielding_key_repo)
