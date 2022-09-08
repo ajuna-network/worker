@@ -70,6 +70,9 @@ std = [
     "sp-core/std",
     "sp-runtime/std",
     "thiserror",
+    #ajuna
+    "ajuna-common/std",
+    "pallet-ajuna-gameregistry/std",
 ]
 sgx = [
     "sgx_tstd",
