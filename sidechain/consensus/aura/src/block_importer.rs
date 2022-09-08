@@ -195,19 +195,9 @@ impl<
 			.get_trusted_calls(shard)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
-		// let calls = tops
-		// 	.iter()
-		// 	.filter_map(|top| top.to_call())
-		// 	.map(|top| top.to_owned())
-		// 	.collect::<Vec<_>>();
 		let filtered_tops: Vec<TrustedOperation> =
 			tops.iter().filter(|tops| top_hashes.contains(&tops.hash())).cloned().collect();
-		// let calls = filtered_tops
-		// 	.iter()
-		// 	.filter_map(|top| top.to_call())
-		// 	.map(|top| top.to_owned())
-		// 	.collect::<Vec<_>>();
-		//let filtered_call = filtered_tops.iter().map(|top| top.to_call().unwrap()).collect::<Vec<_>>();
+
 		Ok(filtered_tops
 			.iter()
 			.filter_map(|top| top.to_call())
