@@ -36,18 +36,10 @@ use itp_stf_state_handler::{handle_state::HandleState, query_shard_state::QueryS
 use itp_time_utils::duration_now;
 use itp_types::{storage::StorageEntryVerified, OpaqueCall, H256};
 use log::*;
-use sp_runtime::{
-	app_crypto::sp_core::blake2_256,
-	traits::{Block as ParentchainBlockTrait, Header as HeaderTrait},
-};
+use sp_runtime::{app_crypto::sp_core::blake2_256, traits::Header as HeaderTrait};
 use std::{
-	collections::{BTreeMap},
-	fmt::Debug,
-	format,
-	result::Result as StdResult,
-	sync::Arc,
-	time::Duration,
-	vec::Vec,
+	collections::BTreeMap, fmt::Debug, format, result::Result as StdResult, sync::Arc,
+	time::Duration, vec::Vec,
 };
 
 pub struct StfExecutor<OCallApi, StateHandler, NodeMetadataRepository> {

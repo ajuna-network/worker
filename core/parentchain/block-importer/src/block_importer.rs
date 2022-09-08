@@ -17,7 +17,10 @@
 
 //! Imports parentchain blocks and executes any indirect calls found in the extrinsics.
 
-use crate::{error::Result, ImportParentchainBlocks};
+use crate::{
+	error::{Error, Result},
+	ImportParentchainBlocks,
+};
 use ita_stf::ParentchainHeader;
 use itc_parentchain_indirect_calls_executor::ExecuteIndirectCalls;
 use itc_parentchain_light_client::{
@@ -25,6 +28,12 @@ use itc_parentchain_light_client::{
 	Validator,
 };
 use itp_extrinsics_factory::CreateExtrinsics;
+use itp_node_api::metadata::{
+	pallet_ajuna_game_registry::{GameRegistryCallIndexes, GameRegistryStorageIndexes},
+	pallet_ajuna_runner::GameId,
+	provider::AccessNodeMetadata,
+};
+use itp_ocall_api::EnclaveOnChainOCallApi;
 use itp_stf_executor::traits::StfUpdateState;
 use itp_stf_state_handler::query_shard_state::QueryShardState;
 use itp_types::{OpaqueCall, H256};
@@ -33,13 +42,7 @@ use sp_runtime::{
 	generic::SignedBlock as SignedBlockG,
 	traits::{Block as ParentchainBlockTrait, NumberFor},
 };
-use itp_ocall_api::{EnclaveOnChainOCallApi};
-use itp_node_api::metadata::provider::AccessNodeMetadata;
-use itp_node_api::metadata::pallet_ajuna_game_registry::GameRegistryCallIndexes;
-use itp_node_api::metadata::pallet_ajuna_game_registry::GameRegistryStorageIndexes;
 use std::{format, marker::PhantomData, sync::Arc, vec::Vec};
-use itp_node_api::metadata::pallet_ajuna_runner::GameId;
-use crate::error::Error;
 
 /// Parentchain block import implementation.
 pub struct ParentchainBlockImporter<
@@ -62,7 +65,6 @@ pub struct ParentchainBlockImporter<
 	OCallApi: EnclaveOnChainOCallApi,
 	NodeMetadataProvider: AccessNodeMetadata,
 	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
-
 {
 	validator_accessor: Arc<ValidatorAccessor>,
 	stf_executor: Arc<StfExecutor>,
@@ -82,7 +84,7 @@ impl<
 		IndirectCallsExecutor,
 		StateHandler,
 		OCallApi,
-		NodeMetadataProvider
+		NodeMetadataProvider,
 	>
 	ParentchainBlockImporter<
 		ParentchainBlock,
@@ -92,7 +94,7 @@ impl<
 		IndirectCallsExecutor,
 		StateHandler,
 		OCallApi,
-		NodeMetadataProvider
+		NodeMetadataProvider,
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -135,7 +137,7 @@ impl<
 		IndirectCallsExecutor,
 		StateHandler,
 		OCallApi,
-		NodeMetadataProvider
+		NodeMetadataProvider,
 	> ImportParentchainBlocks
 	for ParentchainBlockImporter<
 		ParentchainBlock,
@@ -145,7 +147,7 @@ impl<
 		IndirectCallsExecutor,
 		StateHandler,
 		OCallApi,
-		NodeMetadataProvider
+		NodeMetadataProvider,
 	> where
 	ParentchainBlock: ParentchainBlockTrait<Hash = H256, Header = ParentchainHeader>,
 	NumberFor<ParentchainBlock>: BlockNumberOps,
@@ -157,7 +159,6 @@ impl<
 	OCallApi: EnclaveOnChainOCallApi,
 	NodeMetadataProvider: AccessNodeMetadata,
 	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes + GameRegistryStorageIndexes,
-
 {
 	type SignedBlockType = SignedBlockG<ParentchainBlock>;
 
@@ -203,7 +204,8 @@ impl<
 			);
 
 			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
-			let queue_call = self.node_meta_data_provider.get_from_metadata(|m| m.queued_storage_map_key());
+			let queue_call =
+				self.node_meta_data_provider.get_from_metadata(|m| m.queued_storage_map_key());
 			let maybe_queued: Option<Vec<GameId>> = self
 				.ocall_api
 				.get_storage_verified(queue_call, block.header())
@@ -216,12 +218,11 @@ impl<
 					if !queued.is_empty() {
 						//FIXME: we currently only take the first shard. How we handle sharding in general?
 						let shard = self.file_state_handler.list_shards().unwrap()[0];
-						let ack_game_indexes = self.node_meta_data_provider.get_from_metadata(|m| m.ack_game_call_indexes());
-						let ack_game_call = OpaqueCall::from_tuple(&(
-							ack_game_indexes,
-							queued,
-							shard,
-						));
+						let ack_game_indexes = self
+							.node_meta_data_provider
+							.get_from_metadata(|m| m.ack_game_call_indexes());
+						let ack_game_call =
+							OpaqueCall::from_tuple(&(ack_game_indexes, queued, shard));
 
 						calls.push(ack_game_call);
 					}
