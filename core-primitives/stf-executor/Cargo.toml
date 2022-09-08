@@ -88,4 +88,6 @@ test = [
     "sgx-crypto-helper",
     "parentchain-test",
 ]
-mocks = []
+mocks = [
+    "itp-node-api/mocks"
+    ]

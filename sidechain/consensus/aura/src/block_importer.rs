@@ -18,26 +18,29 @@
 //! Imports sidechain blocks and applies the accompanying state diff to its state.
 
 // Reexport BlockImport trait which implements fn block_import()
-pub use its_consensus_common::BlockImport;
-
 use crate::{AuraVerifier, EnclaveOnChainOCallApi, SidechainBlockTrait};
-use ita_stf::hash::TrustedOperationOrHash;
+use ita_stf::{
+	hash::{Hash, TrustedOperationOrHash},
+	helpers::is_winner,
+	ParentchainHeader, SgxWinningBoard, TrustedCall, TrustedCallSigned, TrustedOperation,
+};
 use itc_parentchain_block_import_dispatcher::triggered_dispatcher::TriggerParentchainBlockImport;
-use itc_parentchain_light_client::{concurrent_access::ValidatorAccess, Validator};
+use itc_parentchain_light_client::{concurrent_access::ValidatorAccess, ExtrinsicSender};
 use itp_enclave_metrics::EnclaveMetric;
 use itp_extrinsics_factory::CreateExtrinsics;
-use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveSidechainOCallApi};
-use itp_settings::{
-	node::{FINISH_GAME, GAME_REGISTRY_MODULE},
-	sidechain::SLOT_DURATION,
+use itp_node_api::metadata::{
+	pallet_ajuna_game_registry::GameRegistryCallIndexes, provider::AccessNodeMetadata,
 };
+use itp_ocall_api::{EnclaveMetricsOCallApi, EnclaveSidechainOCallApi};
+use itp_settings::sidechain::SLOT_DURATION;
 use itp_sgx_crypto::{key_repository::AccessKey, StateCrypto};
-use itp_sgx_externalities::SgxExternalities;
+use itp_sgx_externalities::{SgxExternalities, SgxExternalitiesTrait};
 use itp_stf_executor::ExecutedOperation;
 use itp_stf_state_handler::handle_state::HandleState;
 use itp_types::{OpaqueCall, H256};
+pub use its_consensus_common::BlockImport;
 use its_consensus_common::Error as ConsensusError;
-use its_state::SidechainDB;
+use its_state::{SidechainDB, SidechainState};
 use its_top_pool_executor::TopPoolCallOperator;
 use its_validateer_fetch::ValidateerFetch;
 use log::*;
@@ -64,6 +67,7 @@ pub struct BlockImporter<
 	ParentchainBlockImporter,
 	ExtrinsicsFactory,
 	ValidatorAccessor,
+	NodeMetadataProvider,
 > {
 	state_handler: Arc<StateHandler>,
 	state_key_repository: Arc<StateKeyRepository>,
@@ -73,6 +77,7 @@ pub struct BlockImporter<
 	_phantom: PhantomData<(Authority, ParentchainBlock, SignedSidechainBlock, SidechainState)>,
 	extrinsics_factory: Arc<ExtrinsicsFactory>,
 	validator_accessor: Arc<ValidatorAccessor>,
+	node_meta_data_provider: Arc<NodeMetadataProvider>,
 }
 
 impl<
@@ -87,6 +92,7 @@ impl<
 		ParentchainBlockImporter,
 		ExtrinsicsFactory,
 		ValidatorAccessor,
+		NodeMetadataProvider,
 	>
 	BlockImporter<
 		Authority,
@@ -100,6 +106,7 @@ impl<
 		ParentchainBlockImporter,
 		ExtrinsicsFactory,
 		ValidatorAccessor,
+		NodeMetadataProvider,
 	> where
 	Authority: Pair,
 	Authority::Public: std::fmt::Debug,
@@ -118,12 +125,12 @@ impl<
 	<StateKeyRepository as AccessKey>::KeyType: StateCrypto,
 	TopPoolExecutor:
 		TopPoolCallOperator<ParentchainBlock, SignedSidechainBlock> + Send + Sync + 'static,
-	ParentchainBlockImporter: TriggerParentchainBlockImport<SignedParentchainBlock<ParentchainBlock>>
-		+ PeekParentchainBlockImportQueue<SignedParentchainBlock<ParentchainBlock>>
-		+ Send
-		+ Sync,
+	ParentchainBlockImporter:
+		TriggerParentchainBlockImport<SignedParentchainBlock<ParentchainBlock>> + Send + Sync,
 	ExtrinsicsFactory: CreateExtrinsics,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 {
 	pub fn new(
 		state_handler: Arc<StateHandler>,
@@ -133,6 +140,7 @@ impl<
 		ocall_api: Arc<OCallApi>,
 		extrinsics_factory: Arc<ExtrinsicsFactory>,
 		validator_accessor: Arc<ValidatorAccessor>,
+		node_meta_data_provider: Arc<NodeMetadataProvider>,
 	) -> Self {
 		Self {
 			state_handler,
@@ -143,6 +151,7 @@ impl<
 			_phantom: Default::default(),
 			extrinsics_factory,
 			validator_accessor,
+			node_meta_data_provider,
 		}
 	}
 
@@ -186,17 +195,24 @@ impl<
 			.get_trusted_calls(shard)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
-		let calls = tops
+		// let calls = tops
+		// 	.iter()
+		// 	.filter_map(|top| top.to_call())
+		// 	.map(|top| top.to_owned())
+		// 	.collect::<Vec<_>>();
+		let filtered_tops: Vec<TrustedOperation> =
+			tops.iter().filter(|tops| top_hashes.contains(&tops.hash())).cloned().collect();
+		// let calls = filtered_tops
+		// 	.iter()
+		// 	.filter_map(|top| top.to_call())
+		// 	.map(|top| top.to_owned())
+		// 	.collect::<Vec<_>>();
+		//let filtered_call = filtered_tops.iter().map(|top| top.to_call().unwrap()).collect::<Vec<_>>();
+		Ok(filtered_tops
 			.iter()
 			.filter_map(|top| top.to_call())
 			.map(|top| top.to_owned())
-			.collect::<Vec<_>>();
-
-		Ok(calls
-			.iter()
-			.filter(|call| top_hashes.contains(&self.top_pool_executor.get_trusted_call_hash(call)))
-			.cloned()
-			.collect())
+			.collect::<Vec<_>>())
 	}
 
 	fn get_board_if_game_finished(
@@ -226,8 +242,12 @@ impl<
 	) -> Result<(), ConsensusError> {
 		let shard = &sidechain_block.header().shard_id();
 
+		let finish_call_fn = self
+			.node_meta_data_provider
+			.get_from_metadata(|m| m.finish_game_call_indexes())??;
+
 		let opaque_call = OpaqueCall::from_tuple(&(
-			[GAME_REGISTRY_MODULE, FINISH_GAME],
+			finish_call_fn,
 			winning_board.board_id,
 			winning_board.winner,
 			shard,
@@ -238,14 +258,12 @@ impl<
 		// Create extrinsic for finish game.
 		let finish_game_extrinsic = self
 			.extrinsics_factory
-			.create_extrinsics(calls.as_slice())
+			.create_extrinsics(calls.as_slice(), None)
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 
 		// Sending the extrinsic requires mut access because the validator caches the sent extrinsics internally.
 		self.validator_accessor
-			.execute_mut_on_validator(|v| {
-				v.send_extrinsics(self.ocall_api.as_ref(), finish_game_extrinsic)
-			})
+			.execute_mut_on_validator(|v| v.send_extrinsics(finish_game_extrinsic))
 			.map_err(|e| ConsensusError::Other(format!("{:?}", e).into()))?;
 		trace!("extrinsic finish game sent");
 		Ok(())
@@ -263,6 +281,7 @@ impl<
 		ParentchainBlockImporter,
 		ExtrinsicsFactory,
 		ValidatorAccessor,
+		NodeMetadataProvider,
 	> BlockImport<ParentchainBlock, SignedSidechainBlock>
 	for BlockImporter<
 		Authority,
@@ -276,6 +295,7 @@ impl<
 		ParentchainBlockImporter,
 		ExtrinsicsFactory,
 		ValidatorAccessor,
+		NodeMetadataProvider,
 	> where
 	Authority: Pair,
 	Authority::Public: std::fmt::Debug,
@@ -294,13 +314,13 @@ impl<
 	<StateKeyRepository as AccessKey>::KeyType: StateCrypto,
 	TopPoolExecutor:
 		TopPoolCallOperator<ParentchainBlock, SignedSidechainBlock> + Send + Sync + 'static,
-	ParentchainBlockImporter: TriggerParentchainBlockImport<SignedParentchainBlock<ParentchainBlock>>
-		+ PeekParentchainBlockImportQueue<SignedParentchainBlock<ParentchainBlock>>
-		+ Send
-		+ Sync,
+	ParentchainBlockImporter:
+		TriggerParentchainBlockImport<SignedParentchainBlock<ParentchainBlock>> + Send + Sync,
 	ExtrinsicsFactory: CreateExtrinsics,
 	ValidatorAccessor: ValidatorAccess<ParentchainBlock>,
 	SidechainDB<SignedSidechainBlock::Block, SgxExternalities>: SidechainState,
+	NodeMetadataProvider: AccessNodeMetadata,
+	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 {
 	type Verifier = AuraVerifier<
 		Authority,

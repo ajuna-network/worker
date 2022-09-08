@@ -66,6 +66,10 @@ pub enum Error {
 	FailedToPopBlockImportQueue(#[from] itp_block_import_queue::error::Error),
 	#[error("Verification Error: {0}")]
 	VerificationError(sidechain_block_verification::error::Error),
+	#[error("Node metadata error: {0:?}")]
+	NodeMetadata(itp_node_api::metadata::Error),
+	#[error("Node metadata provider error: {0:?}")]
+	NodeMetadataProvider(#[from] itp_node_api::metadata::provider::Error),
 }
 
 impl core::convert::From<std::io::Error> for Error {
@@ -95,5 +99,11 @@ impl From<VerificationError> for Error {
 			VerificationError::BlockAlreadyImported(a, b) => Error::BlockAlreadyImported(a, b),
 			_ => Error::VerificationError(e),
 		}
+	}
+}
+
+impl From<itp_node_api::metadata::Error> for Error {
+	fn from(e: itp_node_api::metadata::Error) -> Self {
+		Self::NodeMetadata(e)
 	}
 }

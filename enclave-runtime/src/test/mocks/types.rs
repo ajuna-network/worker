@@ -103,4 +103,5 @@ pub type TestBlockImporter = BlockImporter<
 	TestParentchainBlockImportTrigger,
 	ExtrinsicsFactoryMock,
 	ValidatorAccessMock,
+	NodeMetadataRepository<NodeMetadataMock>,
 >;

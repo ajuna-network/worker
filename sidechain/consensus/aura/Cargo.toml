@@ -26,6 +26,7 @@ itc-parentchain-block-import-dispatcher = { path = "../../../core/parentchain/bl
 itc-parentchain-light-client = { path = "../../../core/parentchain/light-client", default-features = false }
 itp-enclave-metrics = { path = "../../../core-primitives/enclave-metrics", default-features = false }
 itp-extrinsics-factory = { path = "../../../core-primitives/extrinsics-factory", default-features = false }
+itp-node-api = { path = "../../../core-primitives/node-api", default-features = false }
 itp-ocall-api = { path = "../../../core-primitives/ocall-api", default-features = false }
 itp-settings = { path = "../../../core-primitives/settings" }
 itp-sgx-crypto = { path = "../../../core-primitives/sgx/crypto", default-features = false }
@@ -61,6 +62,7 @@ std = [
    "ita-stf/std",
    "itc-parentchain-block-import-dispatcher/std",
    "itp-enclave-metrics/std",
+   "itp-node-api/std",
    "itp-ocall-api/std",
    "itp-sgx-crypto/std",
    "itp-sgx-externalities/std",
@@ -86,6 +88,7 @@ sgx = [
    "ita-stf/sgx",
    "itc-parentchain-block-import-dispatcher/sgx",
    "itp-enclave-metrics/sgx",
+   "itp-node-api/sgx",
    "itp-sgx-crypto/sgx",
    "itp-sgx-externalities/sgx",
    "itp-stf-executor/sgx",

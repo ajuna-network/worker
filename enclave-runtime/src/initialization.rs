@@ -22,8 +22,9 @@ use crate::{
 		EnclaveShieldingKeyRepository, EnclaveSidechainApi, EnclaveSidechainBlockImportQueue,
 		EnclaveSidechainBlockImportQueueWorker, EnclaveSidechainBlockImporter,
 		EnclaveSidechainBlockSyncer, EnclaveStateFileIo, EnclaveStateHandler,
-		EnclaveStateKeyRepository, EnclaveStfEnclaveSigner, EnclaveStfExecutor, EnclaveTopPool,
-		EnclaveTopPoolAuthor, EnclaveTopPoolOperationHandler, EnclaveValidatorAccessor,
+		EnclaveStateKeyRepository, EnclaveStfEnclaveSigner, EnclaveStfExecutor,
+		EnclaveStfGameExecutor, EnclaveTopPool, EnclaveTopPoolAuthor,
+		EnclaveTopPoolOperationHandler, EnclaveValidatorAccessor,
 		GLOBAL_EXTRINSICS_FACTORY_COMPONENT,
 		GLOBAL_IMMEDIATE_PARENTCHAIN_IMPORT_DISPATCHER_COMPONENT,
 		GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT, GLOBAL_OCALL_API_COMPONENT,
@@ -32,7 +33,8 @@ use crate::{
 		GLOBAL_SIDECHAIN_BLOCK_SYNCER_COMPONENT, GLOBAL_SIDECHAIN_IMPORT_QUEUE_COMPONENT,
 		GLOBAL_SIDECHAIN_IMPORT_QUEUE_WORKER_COMPONENT, GLOBAL_STATE_HANDLER_COMPONENT,
 		GLOBAL_STATE_KEY_REPOSITORY_COMPONENT, GLOBAL_STF_EXECUTOR_COMPONENT,
-		GLOBAL_TOP_POOL_AUTHOR_COMPONENT, GLOBAL_TOP_POOL_OPERATION_HANDLER_COMPONENT,
+		GLOBAL_STF_GAME_EXECUTOR_COMPONENT, GLOBAL_TOP_POOL_AUTHOR_COMPONENT,
+		GLOBAL_TOP_POOL_OPERATION_HANDLER_COMPONENT,
 		GLOBAL_TRIGGERED_PARENTCHAIN_IMPORT_DISPATCHER_COMPONENT,
 		GLOBAL_WEB_SOCKET_SERVER_COMPONENT,
 	},
@@ -143,6 +145,10 @@ pub(crate) fn init_enclave(mu_ra_url: String, untrusted_worker_url: String) -> E
 	));
 	GLOBAL_STF_EXECUTOR_COMPONENT.initialize(stf_executor.clone());
 
+	let stf_game_executor =
+		Arc::new(EnclaveStfGameExecutor::new(state_handler.clone(), ocall_api.clone()));
+	GLOBAL_STF_GAME_EXECUTOR_COMPONENT.initialize(stf_game_executor);
+
 	// For debug purposes, list shards. no problem to panic if fails.
 	let shards = state_handler.list_shards().unwrap();
 	debug!("found the following {} shards on disk:", shards.len());
@@ -202,13 +208,11 @@ pub(crate) fn init_enclave_sidechain_components() -> EnclaveResult<()> {
 
 	let signer = Ed25519Seal::unseal_from_static_file()?;
 
-	let validator_access = Arc::new(EnclaveValidatorAccessor::default());
-	let genesis_hash = validator_access.execute_on_validator(|v| v.genesis_hash(v.num_relays()))?;
+	let validator_access = GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.get()?;
+	let extrinsics_factory = GLOBAL_EXTRINSICS_FACTORY_COMPONENT.get()?;
+	let node_metadata_repo = GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT.get()?;
 
-	let extrinsics_factory =
-		Arc::new(ExtrinsicsFactory::new(genesis_hash, signer.clone(), GLOBAL_NONCE_CACHE.clone()));
-
-	let sidechain_block_importer = Arc::<EnclaveSidechainBlockImporter>::new(BlockImporter::new(
+	let sidechain_block_importer = Arc::new(EnclaveSidechainBlockImporter::new(
 		state_handler,
 		state_key_repository.clone(),
 		top_pool_operation_handler,
@@ -216,6 +220,7 @@ pub(crate) fn init_enclave_sidechain_components() -> EnclaveResult<()> {
 		ocall_api.clone(),
 		extrinsics_factory,
 		validator_access,
+		node_metadata_repo.clone(),
 	));
 
 	let sidechain_block_import_queue = GLOBAL_SIDECHAIN_IMPORT_QUEUE_COMPONENT.get()?;
@@ -231,7 +236,6 @@ pub(crate) fn init_enclave_sidechain_components() -> EnclaveResult<()> {
 		));
 	GLOBAL_SIDECHAIN_IMPORT_QUEUE_WORKER_COMPONENT.initialize(sidechain_block_import_queue_worker);
 
-	let node_metadata_repo = GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT.get()?;
 	let block_composer =
 		Arc::new(BlockComposer::new(signer, state_key_repository, node_metadata_repo));
 	GLOBAL_SIDECHAIN_BLOCK_COMPOSER_COMPONENT.initialize(block_composer);
@@ -251,8 +255,6 @@ pub(crate) fn init_light_client<WorkerModeProvider: ProvideWorkerMode>(
 	// Initialize the global parentchain block import dispatcher instance.
 	let signer = Ed25519Seal::unseal_from_static_file()?;
 	let node_metadata_repository = GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT.get()?;
-	let shielding_key_repository = GLOBAL_SHIELDING_KEY_REPOSITORY_COMPONENT.get()?;
-	let state_handler = GLOBAL_STATE_HANDLER_COMPONENT.get()?;
 
 	let validator_access = Arc::new(EnclaveValidatorAccessor::new(validator));
 	GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.initialize(validator_access.clone());
@@ -283,26 +285,28 @@ fn initialize_parentchain_import_dispatcher<WorkerModeProvider: ProvideWorkerMod
 	let validator_access = GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.get()?;
 	let extrinsics_factory = GLOBAL_EXTRINSICS_FACTORY_COMPONENT.get()?;
 	let node_metadata_repository = GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT.get()?;
+	let stf_game_executor = GLOBAL_STF_GAME_EXECUTOR_COMPONENT.get()?;
 
 	let stf_enclave_signer = Arc::new(EnclaveStfEnclaveSigner::new(
 		state_handler.clone(),
-		ocall_api,
+		ocall_api.clone(),
 		shielding_key_repository.clone(),
 	));
 	let indirect_calls_executor = Arc::new(IndirectCallsExecutor::new(
 		shielding_key_repository,
 		stf_enclave_signer,
 		top_pool_author.clone(),
-		node_metadata_repository,
+		node_metadata_repository.clone(),
+		stf_game_executor,
 	));
 	let parentchain_block_importer = ParentchainBlockImporter::new(
 		validator_access.clone(),
 		stf_executor.clone(),
 		extrinsics_factory.clone(),
 		indirect_calls_executor,
-		state_handler,
-		ocall_api,
-		node_metadata_repository
+		state_handler.clone(),
+		ocall_api.clone(),
+		node_metadata_repository.clone(),
 	);
 
 	info!(

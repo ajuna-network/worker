@@ -204,8 +204,9 @@ impl<
 			);
 
 			// FIXME: Putting these blocks below in a separate function would be a little bit cleaner
-			let queue_call_fn =
-				self.node_meta_data_provider.get_from_metadata(|m| m.queued_storage_map_key())??;
+			let queue_call_fn = self
+				.node_meta_data_provider
+				.get_from_metadata(|m| m.queued_storage_map_key())??;
 			let maybe_queued: Option<Vec<GameId>> = self
 				.ocall_api
 				.get_storage_verified(queue_call_fn.0, block.header())

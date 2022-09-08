@@ -65,6 +65,7 @@ type TestBlockImporter = BlockImporter<
 	TestParentchainBlockImportTrigger,
 	ExtrinsicsFactoryMock,
 	ValidatorAccessMock,
+	NodeMetadataRepository<NodeMetadataMock>,
 >;
 
 fn state_key() -> Aes {
@@ -90,6 +91,7 @@ fn test_fixtures(
 		Some(vec![validateer(Keyring::Alice.public().into())]),
 	));
 	let state_key_repository = Arc::new(TestStateKeyRepo::new(state_key()));
+	let node_metadata_repo = Arc::new(NodeMetadataRepository::new(NodeMetadataMock::new()));
 
 	let block_importer = TestBlockImporter::new(
 		state_handler.clone(),
@@ -99,6 +101,7 @@ fn test_fixtures(
 		ocall_api,
 		Arc::new(ExtrinsicsFactoryMock::default()),
 		Arc::new(ValidatorAccessMock::default()),
+		node_metadata_repo,
 	);
 
 	(block_importer, state_handler, top_pool_call_operator)

@@ -45,7 +45,7 @@ use itp_node_api::{
 };
 use itp_ocall_api::EnclaveAttestationOCallApi;
 use itp_sgx_crypto::ShieldingCryptoEncrypt;
-use itp_stf_executor::enclave_signer::StfEnclaveSigner;
+use itp_stf_executor::{enclave_signer::StfEnclaveSigner, game_executor::StfGameExecutor};
 use itp_test::mock::metrics_ocall_mock::MetricsOCallMock;
 use itp_top_pool_author::{top_filter::AllowAllTopsFilter, traits::AuthorApi};
 use itp_types::{AccountId, Block, ShardIdentifier, ShieldFundsFn, H256};
@@ -109,6 +109,8 @@ pub fn submit_shielding_call_to_top_pool() {
 
 	let top_pool = create_top_pool();
 
+	let game_executor = Arc::new(StfGameExecutor::new(state_handler.clone(), ocall_api.clone()));
+
 	let top_pool_author = Arc::new(TestTopPoolAuthor::new(
 		top_pool,
 		AllowAllTopsFilter {},
@@ -129,6 +131,7 @@ pub fn submit_shielding_call_to_top_pool() {
 		enclave_signer,
 		top_pool_author.clone(),
 		node_meta_data_repository,
+		game_executor,
 	);
 
 	let block_with_shielding_call = create_shielding_call_extrinsic(shard_id, &shielding_key);

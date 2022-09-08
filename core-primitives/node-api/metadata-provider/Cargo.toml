@@ -29,4 +29,6 @@ sgx = [
     "thiserror_sgx",
 ]
 # used for unit testing only!
-mocks = []
+mocks = [
+    "itp-node-api-metadata/mocks",
+]

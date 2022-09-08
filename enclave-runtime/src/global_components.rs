@@ -47,7 +47,9 @@ use itp_node_api::metadata::{provider::NodeMetadataRepository, NodeMetadata};
 use itp_nonce_cache::NonceCache;
 use itp_sgx_crypto::{key_repository::KeyRepository, Aes, AesSeal, Rsa3072Seal};
 use itp_sgx_externalities::SgxExternalities;
-use itp_stf_executor::{enclave_signer::StfEnclaveSigner, executor::StfExecutor};
+use itp_stf_executor::{
+	enclave_signer::StfEnclaveSigner, executor::StfExecutor, game_executor::StfGameExecutor,
+};
 use itp_stf_state_handler::{
 	file_io::sgx::SgxStateFileIo, state_snapshot_repository::StateSnapshotRepository, StateHandler,
 };
@@ -86,11 +88,14 @@ pub type EnclaveStfEnclaveSigner =
 	StfEnclaveSigner<EnclaveOCallApi, EnclaveStateHandler, EnclaveShieldingKeyRepository>;
 pub type EnclaveExtrinsicsFactory =
 	ExtrinsicsFactory<Pair, NonceCache, EnclaveNodeMetadataRepository>;
+
+pub type EnclaveStfGameExecutor = StfGameExecutor<EnclaveOCallApi, EnclaveStateHandler>;
 pub type EnclaveIndirectCallsExecutor = IndirectCallsExecutor<
 	EnclaveShieldingKeyRepository,
 	EnclaveStfEnclaveSigner,
 	EnclaveTopPoolAuthor,
 	EnclaveNodeMetadataRepository,
+	EnclaveStfGameExecutor,
 >;
 pub type EnclaveValidatorAccessor = ValidatorAccessor<
 	LightValidation<ParentchainBlock, EnclaveOCallApi>,
@@ -105,7 +110,7 @@ pub type EnclaveParentchainBlockImporter = ParentchainBlockImporter<
 	EnclaveIndirectCallsExecutor,
 	EnclaveStateHandler,
 	EnclaveOCallApi,
-	EnclaveNodeMetadataRepository
+	EnclaveNodeMetadataRepository,
 >;
 pub type EnclaveParentchainBlockImportQueue = BlockImportQueue<SignedParentchainBlock>;
 pub type EnclaveTriggeredParentchainBlockImportDispatcher =
@@ -157,7 +162,8 @@ pub type EnclaveSidechainBlockImporter = SidechainBlockImporter<
 	EnclaveTopPoolOperationHandler,
 	EnclaveTriggeredParentchainBlockImportDispatcher,
 	EnclaveExtrinsicsFactory,
-	ValidatorAccessor<ParentchainBlock>,
+	EnclaveValidatorAccessor,
+	EnclaveNodeMetadataRepository,
 >;
 pub type EnclaveSidechainBlockImportQueue = BlockImportQueue<SignedSidechainBlock>;
 pub type EnclaveSidechainBlockSyncer = PeerBlockSync<
@@ -188,6 +194,10 @@ pub static GLOBAL_SHIELDING_KEY_REPOSITORY_COMPONENT: ComponentContainer<
 /// STF executor.
 pub static GLOBAL_STF_EXECUTOR_COMPONENT: ComponentContainer<EnclaveStfExecutor> =
 	ComponentContainer::new("STF executor");
+
+/// STF Game executor.
+pub static GLOBAL_STF_GAME_EXECUTOR_COMPONENT: ComponentContainer<EnclaveStfGameExecutor> =
+	ComponentContainer::new("STF Game executor");
 
 /// O-Call API
 pub static GLOBAL_OCALL_API_COMPONENT: ComponentContainer<EnclaveOCallApi> =

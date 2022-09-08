@@ -2132,6 +2132,7 @@ dependencies = [
  "itc-parentchain-light-client",
  "itp-enclave-metrics",
  "itp-extrinsics-factory",
+ "itp-node-api",
  "itp-ocall-api",
  "itp-settings",
  "itp-sgx-crypto",
@@ -2161,6 +2162,7 @@ name = "its-consensus-common"
 version = "0.8.0"
 dependencies = [
  "itp-block-import-queue",
+ "itp-node-api",
  "itp-ocall-api",
  "itp-sgx-crypto",
  "itp-types",

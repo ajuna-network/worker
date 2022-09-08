@@ -16,7 +16,8 @@
 */
 
 use crate::{
-	error::Result, pallet_sidechain::SidechainCallIndexes, pallet_teerex::TeerexCallIndexes,
+	error::Result, pallet_ajuna_game_registry::GameRegistryCallIndexes,
+	pallet_sidechain::SidechainCallIndexes, pallet_teerex::TeerexCallIndexes,
 };
 use codec::{Decode, Encode};
 
@@ -33,6 +34,11 @@ pub struct NodeMetadataMock {
 	proposed_sidechain_block: u8,
 	runtime_spec_version: u32,
 	runtime_transaction_version: u32,
+	game_registry_module: u8,
+	queue_call: u8,
+	drop_game: u8,
+	ack_game: u8,
+	finish_game: u8,
 }
 
 impl NodeMetadataMock {
@@ -49,6 +55,11 @@ impl NodeMetadataMock {
 			proposed_sidechain_block: 0u8,
 			runtime_spec_version: 24,
 			runtime_transaction_version: 3,
+			game_registry_module: 55u8,
+			queue_call: 0u8,
+			drop_game: 1u8,
+			ack_game: 2u8,
+			finish_game: 3u8,
 		}
 	}
 }
@@ -82,5 +93,23 @@ impl TeerexCallIndexes for NodeMetadataMock {
 impl SidechainCallIndexes for NodeMetadataMock {
 	fn confirm_proposed_sidechain_block_indexes(&self) -> Result<[u8; 2]> {
 		Ok([self.sidechain_module, self.proposed_sidechain_block])
+	}
+}
+
+impl GameRegistryCallIndexes for NodeMetadataMock {
+	fn queue_call_indexes(&self) -> Result<[u8; 2]> {
+		Ok([self.game_registry_module, self.queue_call])
+	}
+
+	fn drop_game_call_indexes(&self) -> Result<[u8; 2]> {
+		Ok([self.game_registry_module, self.drop_game])
+	}
+
+	fn ack_game_call_indexes(&self) -> Result<[u8; 2]> {
+		Ok([self.game_registry_module, self.ack_game])
+	}
+
+	fn finish_game_call_indexes(&self) -> Result<[u8; 2]> {
+		Ok([self.game_registry_module, self.finish_game])
 	}
 }
