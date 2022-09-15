@@ -52,11 +52,6 @@ pub struct DropStoneCommand {
 
 impl DropStoneCommand {
 	pub(crate) fn run(&self, cli: &Cli, trusted_args: &TrustedArgs) {
-		play_turn(
-			cli,
-			trusted_args,
-			&self.player,
-			SgxGameTurn::DropStone(((self.side).0.clone(), self.n)),
-		)
+		play_turn(cli, trusted_args, &self.player, SgxGameTurn::DropStone(((self.side).0, self.n)))
 	}
 }

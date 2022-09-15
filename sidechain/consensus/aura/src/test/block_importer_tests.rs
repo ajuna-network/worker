@@ -21,6 +21,7 @@ use core::assert_matches::assert_matches;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
 use itc_parentchain_light_client::mocks::validator_access_mock::ValidatorAccessMock;
 use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
+use itp_node_api::metadata::{metadata_mocks::NodeMetadataMock, provider::NodeMetadataRepository};
 use itp_sgx_crypto::{aes::Aes, mocks::KeyRepositoryMock, StateCrypto};
 use itp_sgx_externalities::{SgxExternalities, SgxExternalitiesDiffType};
 use itp_stf_state_handler::handle_state::HandleState;
@@ -34,10 +35,6 @@ use parentchain_test::{
 	parentchain_block_builder::ParentchainBlockBuilder,
 	parentchain_header_builder::ParentchainHeaderBuilder,
 };
-use itp_node_api::metadata::{
-	provider::NodeMetadataRepository,
-};
-use itp_node_api::metadata::metadata_mocks::NodeMetadataMock;
 use sidechain_primitives::{
 	traits::{SignBlock, SignedBlock},
 	types::{Block as SidechainBlock, SignedBlock as SignedSidechainBlock},

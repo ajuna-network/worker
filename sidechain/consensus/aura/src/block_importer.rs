@@ -132,6 +132,7 @@ impl<
 	NodeMetadataProvider: AccessNodeMetadata,
 	NodeMetadataProvider::MetadataType: GameRegistryCallIndexes,
 {
+	#[allow(clippy::too_many_arguments)]
 	pub fn new(
 		state_handler: Arc<StateHandler>,
 		state_key_repository: Arc<StateKeyRepository>,

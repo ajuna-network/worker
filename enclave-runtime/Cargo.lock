@@ -2649,6 +2649,7 @@ dependencies = [
  "dot4gravity",
  "frame-support",
  "frame-system",
+ "log",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",

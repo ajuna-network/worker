@@ -305,8 +305,8 @@ fn initialize_parentchain_import_dispatcher<WorkerModeProvider: ProvideWorkerMod
 		extrinsics_factory.clone(),
 		indirect_calls_executor,
 		state_handler.clone(),
-		ocall_api.clone(),
-		node_metadata_repository.clone(),
+		ocall_api,
+		node_metadata_repository,
 	);
 
 	info!(

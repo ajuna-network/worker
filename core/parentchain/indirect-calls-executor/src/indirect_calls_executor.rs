@@ -374,7 +374,7 @@ mod test {
 		metadata::{metadata_mocks::NodeMetadataMock, provider::NodeMetadataRepository},
 	};
 	use itp_sgx_crypto::mocks::KeyRepositoryMock;
-	use itp_stf_executor::mocks::StfGameExecutorMock;
+	use itp_stf_executor::mocks::{StfEnclaveSignerMock, StfGameExecutorMock};
 	use itp_test::mock::shielding_crypto_mock::ShieldingCryptoMock;
 	use itp_top_pool_author::mocks::AuthorApiMock;
 	use itp_types::{Request, ShardIdentifier};
@@ -383,7 +383,6 @@ mod test {
 	use sp_runtime::{MultiSignature, OpaqueExtrinsic};
 	use std::assert_matches::assert_matches;
 	use substrate_api_client::{ExtrinsicParams, GenericAddress};
-	use itp_stf_executor::mocks::StfEnclaveSignerMock;
 
 	type TestShieldingKeyRepo = KeyRepositoryMock<ShieldingCryptoMock>;
 	type TestStfEnclaveSigner = StfEnclaveSignerMock;
@@ -565,7 +564,7 @@ mod test {
 			stf_enclave_signer,
 			top_pool_author.clone(),
 			node_metadata_repo,
-			stf_game_executor
+			stf_game_executor,
 		);
 
 		(executor, top_pool_author, shielding_key_repo)
