@@ -124,7 +124,7 @@ dependencies = [
 [[package]]
 name = "ajuna-common"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#fe751ab0c948cb8d5a7e553eb90cd1bf4550fa6a"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#387beb253eaa3edd67136cde70988feb25658730"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2643,7 +2643,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pallet-ajuna-board"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#fe751ab0c948cb8d5a7e553eb90cd1bf4550fa6a"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#387beb253eaa3edd67136cde70988feb25658730"
 dependencies = [
  "ajuna-common",
  "dot4gravity",
@@ -2658,7 +2658,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-gameregistry"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#fe751ab0c948cb8d5a7e553eb90cd1bf4550fa6a"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#387beb253eaa3edd67136cde70988feb25658730"
 dependencies = [
  "ajuna-common",
  "frame-support",
@@ -2674,7 +2674,7 @@ dependencies = [
 [[package]]
 name = "pallet-ajuna-matchmaker"
 version = "0.1.0"
-source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#fe751ab0c948cb8d5a7e553eb90cd1bf4550fa6a"
+source = "git+https://github.com/ajuna-network/Ajuna.git?branch=release/bengal#387beb253eaa3edd67136cde70988feb25658730"
 dependencies = [
  "ajuna-common",
  "frame-support",
