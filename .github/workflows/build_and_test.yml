@@ -37,8 +37,6 @@ jobs:
             mode: sidechain
           - flavor_id: offchain-worker
             mode: offchain-worker
-          - flavor_id: teeracle
-            mode: teeracle
           - flavor_id: sidechain-evm
             mode: sidechain
             additional_features: evm
@@ -116,11 +114,6 @@ jobs:
           cargo clippy --features sidechain -- -D warnings
           cd enclave-runtime && cargo clippy --features sidechain -- -D warnings
 
-      - name: Clippy with Teeracle feature
-        run: |
-          cargo clippy --features teeracle -- -D warnings
-          cd enclave-runtime && cargo clippy --features teeracle -- -D warnings
-
       - name: Clippy with Offchain-worker feature
         run: |
           cargo clippy --features offchain-worker -- -D warnings
@@ -171,9 +164,6 @@ jobs:
           - test: M6
             flavor_id: offchain-worker
             demo_name: demo-indirect-invocation
-          - test: Teeracle
-            flavor_id: teeracle
-            demo_name: demo-teeracle
           - test: Benchmark
             flavor_id: sidechain
             demo_name: sidechain-benchmark
