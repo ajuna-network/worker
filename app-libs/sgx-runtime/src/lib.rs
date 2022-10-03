@@ -371,6 +371,11 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Parentchain: pallet_parentchain::{Pallet, Call, Storage},
 
+		// Ajuna
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
+		AjunaBoard: pallet_ajuna_board::{Pallet, Call, Storage, Event<T>},
+
 		Evm: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 	}
 );

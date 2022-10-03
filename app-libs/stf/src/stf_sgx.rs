@@ -42,7 +42,7 @@ use ita_sgx_runtime::{AddressMapping, HashedAddressMapping};
 
 #[cfg(feature = "evm")]
 use crate::evm_helpers::{
-	create_code_hash, evm_create2_address, evm_create_address, get_board_for, get_evm_account,
+	create_code_hash, evm_create2_address, evm_create_address, get_evm_account,
 	get_evm_account_codes, get_evm_account_storages,
 };
 
