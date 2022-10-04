@@ -18,17 +18,19 @@
 use crate::{
 	command_utils::get_worker_api_direct,
 	get_layer_two_nonce,
-	trusted_command_utils::{get_balance, get_identifiers, get_keystore_path, get_pair_from_str},
+	trusted_command_utils::{
+		decode_balance, get_identifiers, get_keystore_path, get_pair_from_str,
+	},
 	trusted_commands::TrustedArgs,
-	trusted_operation::{get_json_request, perform_trusted_operation, wait_until},
+	trusted_operation::{get_json_request, get_state, perform_trusted_operation, wait_until},
 	Cli,
 };
 use codec::Decode;
 use hdrhistogram::Histogram;
-use ita_stf::{Index, KeyPair, TrustedCall, TrustedGetter, TrustedOperation};
+use ita_stf::{Getter, Index, KeyPair, TrustedCall, TrustedGetter, TrustedOperation};
 use itc_rpc_client::direct_client::{DirectApi, DirectClient};
 use itp_types::{
-	TrustedOperationStatus,
+	ShardIdentifier, TrustedOperationStatus,
 	TrustedOperationStatus::{InSidechainBlock, Submitted},
 };
 use log::*;
@@ -100,7 +102,6 @@ impl BenchmarkClient {
 /// Stores timing information about a specific transaction
 struct BenchmarkTransaction {
 	started: Instant,
-	submitted: Instant,
 	confirmed: Option<Instant>,
 }
 
@@ -148,11 +149,11 @@ impl BenchmarkCommands {
 
 			// For the last account we wait for confirmation in order to ensure all accounts were setup correctly
 			let wait_for_confirmation = i == self.number_clients - 1;
-			let account_funding_request = get_json_request(trusted_args, &top, shielding_pubkey);
+			let account_funding_request = get_json_request(shard, &top, shielding_pubkey);
 
 			let client =
 				BenchmarkClient::new(account, initial_balance, account_funding_request, cli);
-			let _result = wait_for_top_confirmation(wait_for_confirmation, &client);
+			let _result = wait_for_top_confirmation(&client);
 			accounts.push(client);
 		}
 
@@ -169,6 +170,12 @@ impl BenchmarkCommands {
 			.map(move |mut client| {
 				let mut output: Vec<BenchmarkTransaction> = Vec::new();
 
+				// Needs to be above the existential deposit minimum, otherwise the account will not
+				// be created and the state is not increased.
+				let transfer_amount = 1000;
+
+				let keep_alive_balance = 1000;
+
 				for i in 0..self.number_iterations {
 					println!("Iteration: {}", i);
 
@@ -176,48 +183,53 @@ impl BenchmarkCommands {
 						random_wait(random_wait_before_transaction_ms);
 					}
 
-					let nonce = 0;
-
 					// Create new account.
 					let account_keys: sr25519::AppPair = store.generate().unwrap();
 					let new_account =
 						get_pair_from_str(trusted_args, account_keys.public().to_string().as_str());
 
-					println!("  Transfer amount: {}", client.current_balance);
+
+					println!("  Transfer amount: {}", transfer_amount);
 					println!("  From: {:?}", client.account.public());
 					println!("  To:   {:?}", new_account.public());
 
-					// The account from the last iteration keeps this much money.
-					// If this is 0, then all money is transferred and the state doesn't increase.
-					let keep_alive_balance = 1000;
+					// Get nonce of account.
+					let nonce = get_nonce(client.account.clone(), shard, &client.client_api);
 
-					// Transfer money from previous account to new account.
+					// Transfer money from client account to new account.
 					let top: TrustedOperation = TrustedCall::balance_transfer(
 						client.account.public().into(),
 						new_account.public().into(),
-						client.current_balance - keep_alive_balance,
+						transfer_amount,
 					)
 					.sign(&KeyPair::Sr25519(client.account.clone()), nonce, &mrenclave, &shard)
 					.into_trusted_operation(trusted_args.direct);
 
 					let last_iteration = i == self.number_iterations - 1;
-					let jsonrpc_call = get_json_request(trusted_args, &top, shielding_pubkey);
+					let jsonrpc_call = get_json_request(shard, &top, shielding_pubkey);
 					client.client_api.send(&jsonrpc_call).unwrap();
 					let result = wait_for_top_confirmation(
-						self.wait_for_confirmation || last_iteration,
 						&client,
 					);
 
-					client.current_balance -= keep_alive_balance;
-					client.account = new_account;
+					client.current_balance -= transfer_amount;
 
 					output.push(result);
-				}
-				client.client_api.close().unwrap();
 
-				let balance = get_balance(cli, trusted_args, &client.account.public().to_string());
-				println!("Balance: {}", balance.unwrap_or_default());
-				assert_eq!(client.current_balance, balance.unwrap());
+					let balance = get_balance(client.account.clone(), shard, &client.client_api);
+					println!("Balance: {}", balance.unwrap_or_default());
+					assert_eq!(client.current_balance, balance.unwrap());
+
+					// FIXME: We probably should re-fund the account in this case.
+					if client.current_balance <= keep_alive_balance {
+						error!("Account {:?} does not have enough balance anymore. Finishing benchmark early", client.account.public());
+						break;
+					}
+				}
+
+
+
+				client.client_api.close().unwrap();
 
 				output
 			})
@@ -234,12 +246,53 @@ impl BenchmarkCommands {
 	}
 }
 
+fn get_balance(
+	account: sr25519::Pair,
+	shard: ShardIdentifier,
+	direct_client: &DirectClient,
+) -> Option<u128> {
+	let getter = Getter::trusted(
+		TrustedGetter::free_balance(account.public().into())
+			.sign(&KeyPair::Sr25519(account.clone())),
+	);
+
+	let getter_start_timer = Instant::now();
+	let getter_result = get_state(direct_client, shard, &getter);
+	let getter_execution_time = getter_start_timer.elapsed().as_millis();
+
+	let balance = decode_balance(getter_result);
+	info!("Balance getter execution took {} ms", getter_execution_time,);
+	debug!("Retrieved {:?} Balance for {:?}", balance.unwrap_or_default(), account.public());
+	balance
+}
+
+fn get_nonce(
+	account: sr25519::Pair,
+	shard: ShardIdentifier,
+	direct_client: &DirectClient,
+) -> Index {
+	let getter = Getter::trusted(
+		TrustedGetter::nonce(account.public().into()).sign(&KeyPair::Sr25519(account.clone())),
+	);
+
+	let getter_start_timer = Instant::now();
+	let getter_result = get_state(direct_client, shard, &getter);
+	let getter_execution_time = getter_start_timer.elapsed().as_millis();
+
+	let nonce = match getter_result {
+		Some(encoded_nonce) => Index::decode(&mut encoded_nonce.as_slice()).unwrap(),
+		None => Default::default(),
+	};
+	info!("Nonce getter execution took {} ms", getter_execution_time,);
+	debug!("Retrieved {:?} nonce for {:?}", nonce, account.public());
+	nonce
+}
+
 fn print_benchmark_statistic(outputs: Vec<Vec<BenchmarkTransaction>>, wait_for_confirmation: bool) {
 	let mut hist = Histogram::<u64>::new(1).unwrap();
 	for output in outputs {
 		for t in output {
-			let benchmarked_timestamp =
-				if wait_for_confirmation { t.confirmed } else { Some(t.submitted) };
+			let benchmarked_timestamp = t.confirmed;
 			if let Some(confirmed) = benchmarked_timestamp {
 				hist += confirmed.duration_since(t.started).as_millis() as u64;
 			} else {
@@ -268,37 +321,11 @@ fn random_wait(random_wait_before_transaction_ms: (u32, u32)) {
 	thread::sleep(sleep_time);
 }
 
-fn wait_for_top_confirmation(
-	wait_for_sidechain_block: bool,
-	client: &BenchmarkClient,
-) -> BenchmarkTransaction {
+fn wait_for_top_confirmation(client: &BenchmarkClient) -> BenchmarkTransaction {
 	let started = Instant::now();
+	let confirmed = wait_until(&client.receiver, is_sidechain_block);
 
-	let submitted = wait_until(&client.receiver, is_submitted);
-
-	let confirmed = if wait_for_sidechain_block {
-		// We wait for the transaction hash that actually matches the submitted hash
-		loop {
-			let transaction_information = wait_until(&client.receiver, is_sidechain_block);
-			if let Some((hash, _)) = transaction_information {
-				if hash == submitted.unwrap().0 {
-					break transaction_information
-				}
-			}
-		}
-	} else {
-		None
-	};
-	if let (Some(s), Some(c)) = (submitted, confirmed) {
-		// Assert the two hashes are identical
-		assert_eq!(s.0, c.0);
-	}
-
-	BenchmarkTransaction {
-		started,
-		submitted: submitted.unwrap().1,
-		confirmed: confirmed.map(|v| v.1),
-	}
+	BenchmarkTransaction { started, confirmed: confirmed.map(|v| v.1) }
 }
 
 fn is_submitted(s: TrustedOperationStatus) -> bool {

@@ -23,7 +23,7 @@ use crate::{
 use base58::FromBase58;
 use codec::{Decode, Encode};
 use ita_stf::{Getter, ShardIdentifier, TrustedOperation};
-use itc_rpc_client::direct_client::DirectApi;
+use itc_rpc_client::direct_client::{DirectApi, DirectClient};
 use itp_node_api::api_client::TEEREX;
 use itp_rpc::{RpcRequest, RpcResponse, RpcReturnValue};
 use itp_sgx_crypto::ShieldingCryptoEncrypt;
@@ -48,20 +48,31 @@ pub(crate) fn perform_trusted_operation(
 	match top {
 		TrustedOperation::indirect_call(_) => send_request(cli, trusted_args, top),
 		TrustedOperation::direct_call(_) => send_direct_request(cli, trusted_args, top),
-		TrustedOperation::get(getter) => get_state(cli, trusted_args, getter),
+		TrustedOperation::get(getter) => execute_getter_from_cli_args(cli, trusted_args, getter),
 	}
 }
 
-fn get_state(cli: &Cli, trusted_args: &TrustedArgs, getter: &Getter) -> Option<Vec<u8>> {
+fn execute_getter_from_cli_args(
+	cli: &Cli,
+	trusted_args: &TrustedArgs,
+	getter: &Getter,
+) -> Option<Vec<u8>> {
 	let shard = read_shard(trusted_args).unwrap();
+	let direct_api = get_worker_api_direct(cli);
+	get_state(&direct_api, shard, getter)
+}
 
+pub(crate) fn get_state(
+	direct_api: &DirectClient,
+	shard: ShardIdentifier,
+	getter: &Getter,
+) -> Option<Vec<u8>> {
 	// Compose jsonrpc call.
 	let data = Request { shard, cyphertext: getter.encode() };
 	let rpc_method = "state_executeGetter".to_owned();
 	let jsonrpc_call: String =
 		RpcRequest::compose_jsonrpc_call(rpc_method, vec![data.to_hex()]).unwrap();
 
-	let direct_api = get_worker_api_direct(cli);
 	let rpc_response_str = direct_api.get(&jsonrpc_call).unwrap();
 
 	// Decode RPC response.
@@ -157,7 +168,8 @@ fn send_direct_request(
 	operation_call: &TrustedOperation,
 ) -> Option<Vec<u8>> {
 	let encryption_key = get_shielding_key(cli).unwrap();
-	let jsonrpc_call: String = get_json_request(trusted_args, operation_call, encryption_key);
+	let shard = read_shard(trusted_args).unwrap();
+	let jsonrpc_call: String = get_json_request(shard, operation_call, encryption_key);
 
 	debug!("get direct api");
 	let direct_api = get_worker_api_direct(cli);
@@ -173,7 +185,7 @@ fn send_direct_request(
 				debug!("received response");
 				let response: RpcResponse = serde_json::from_str(&response).unwrap();
 				if let Ok(return_value) = RpcReturnValue::from_hex(&response.result) {
-					debug!("successfully decoded rpc response");
+					debug!("successfully decoded rpc response: {:?}", return_value);
 					match return_value.status {
 						DirectRequestStatus::Error => {
 							debug!("request status is error");
@@ -214,13 +226,12 @@ fn send_direct_request(
 	}
 }
 
-pub fn get_json_request(
-	trusted_args: &TrustedArgs,
+pub(crate) fn get_json_request(
+	shard: ShardIdentifier,
 	operation_call: &TrustedOperation,
 	shielding_pubkey: sgx_crypto_helper::rsa3072::Rsa3072PubKey,
 ) -> String {
 	let operation_call_encrypted = shielding_pubkey.encrypt(&operation_call.encode()).unwrap();
-	let shard = read_shard(trusted_args).unwrap();
 
 	// compose jsonrpc call
 	let request = Request { shard, cyphertext: operation_call_encrypted };
@@ -231,7 +242,7 @@ pub fn get_json_request(
 	.unwrap()
 }
 
-pub fn wait_until(
+pub(crate) fn wait_until(
 	receiver: &Receiver<String>,
 	until: impl Fn(TrustedOperationStatus) -> bool,
 ) -> Option<(H256, Instant)> {
@@ -243,7 +254,7 @@ pub fn wait_until(
 				let parse_result: Result<RpcResponse, _> = serde_json::from_str(&response);
 				if let Ok(response) = parse_result {
 					if let Ok(return_value) = RpcReturnValue::from_hex(&response.result) {
-						debug!("successfully decoded rpc response");
+						debug!("successfully decoded rpc response: {:?}", return_value);
 						match return_value.status {
 							DirectRequestStatus::Error => {
 								debug!("request status is error");
@@ -259,8 +270,11 @@ pub fn wait_until(
 								if let Ok(value) = Hash::decode(&mut return_value.value.as_slice())
 								{
 									println!("Trusted call {:?} is {:?}", value, status);
-									if until(status) {
+									if until(status.clone()) {
 										return Some((value, Instant::now()))
+									} else if status == TrustedOperationStatus::Invalid {
+										error!("Invalid request");
+										return None
 									}
 								}
 							},
