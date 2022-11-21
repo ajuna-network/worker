@@ -383,8 +383,8 @@ pub(crate) fn init_direct_invocation_server(server_addr: String) -> EnclaveResul
 	let rpc_handler = GLOBAL_RPC_WS_HANDLER_COMPONENT.get()?;
 	let signing = Ed25519Seal::unseal_from_static_file()?;
 
-	let cert =
-		ed25519_self_signed_certificate(signing, "Enclave").map_err(|e| Error::Other(e.into()))?;
+	let cert = ed25519_self_signed_certificate(signing, "sub0.ajuna.network")
+		.map_err(|e| Error::Other(e.into()))?;
 
 	//write certificate and private key pem file
 	let pem_serialized = cert.serialize_pem().map_err(|e| Error::Other(e.into()))?;
