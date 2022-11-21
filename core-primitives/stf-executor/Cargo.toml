@@ -39,6 +39,10 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 sp-core = { default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 
+# node deps
+ajuna-common = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "release/bengal" }
+pallet-ajuna-gameregistry = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "release/bengal" }
+
 # dev dependencies
 itc-parentchain-test = { path = "../../core/parentchain/test", optional = true, default-features = false }
 itp-test = { path = "../test", default-features = false, optional = true }
@@ -69,6 +73,9 @@ std = [
     "sp-core/std",
     "sp-runtime/std",
     "thiserror",
+    #ajuna
+    "ajuna-common/std",
+    "pallet-ajuna-gameregistry/std",
 ]
 sgx = [
     "sgx_tstd",
@@ -88,4 +95,6 @@ test = [
     "itp-test",
     "sgx-crypto-helper",
 ]
-mocks = []
+mocks = [
+    "itp-node-api/mocks"
+    ]

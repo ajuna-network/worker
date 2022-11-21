@@ -19,7 +19,7 @@ use crate::{benchmark::BenchmarkCommands, Cli};
 
 #[cfg(feature = "evm")]
 use crate::evm::EvmCommands;
-use crate::trusted_base_cli::TrustedBaseCli;
+use crate::{ajuna::AjunaTrustedCommands, trusted_base_cli::TrustedBaseCli};
 
 #[derive(Args)]
 pub struct TrustedArgs {
@@ -54,6 +54,9 @@ pub enum TrustedCommands {
 
 	/// Run Benchmark
 	Benchmark(BenchmarkCommands),
+
+	#[clap(flatten)]
+	AjunaTrusted(AjunaTrustedCommands),
 }
 
 impl TrustedArgs {
@@ -61,6 +64,7 @@ impl TrustedArgs {
 		match &self.command {
 			TrustedCommands::BaseTrusted(cmd) => cmd.run(cli, self),
 			TrustedCommands::Benchmark(benchmark_commands) => benchmark_commands.run(cli, self),
+			TrustedCommands::AjunaTrusted(ajuna_commands) => ajuna_commands.run(cli, self),
 			#[cfg(feature = "evm")]
 			TrustedCommands::EvmCommands(evm_commands) => evm_commands.run(cli, self),
 		}

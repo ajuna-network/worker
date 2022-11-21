@@ -16,7 +16,7 @@
 */
 
 extern crate chrono;
-use crate::{base_cli::BaseCli, trusted_commands::TrustedArgs, Cli};
+use crate::{ajuna::AjunaPublicCli, base_cli::BaseCli, trusted_commands::TrustedArgs, Cli};
 use clap::Subcommand;
 
 #[cfg(feature = "teeracle")]
@@ -34,13 +34,17 @@ pub enum Commands {
 	/// Subcommands for the exchange oracle.
 	#[cfg(feature = "teeracle")]
 	#[clap(subcommand)]
-	ExchangeOracle(ExchangeOracleSubCommand),
+	ExchangeOracle(crate::exchange_oracle::ExchangeOracleSubCommand),
+
+	#[clap(flatten)]
+	AjunaPublic(AjunaPublicCli),
 }
 
 pub fn match_command(cli: &Cli) {
 	match &cli.command {
 		Commands::Base(cmd) => cmd.run(cli),
 		Commands::Trusted(cmd) => cmd.run(cli),
+		Commands::AjunaPublic(cmd) => cmd.run(cli),
 		#[cfg(feature = "teeracle")]
 		Commands::ExchangeOracle(cmd) => cmd.run(cli),
 	};

@@ -21,7 +21,10 @@ use crate::{
 };
 use base58::{FromBase58, ToBase58};
 use codec::{Decode, Encode};
-use ita_stf::{AccountId, KeyPair, ShardIdentifier, TrustedGetter, TrustedOperation};
+use ita_stf::{
+	AccountId, Index, KeyPair, SgxGameTurn, ShardIdentifier, TrustedCall, TrustedGetter,
+	TrustedOperation,
+};
 use log::*;
 use my_node_runtime::Balance;
 use sp_application_crypto::sr25519;
@@ -124,4 +127,18 @@ pub(crate) fn get_pair_from_str(trusted_args: &TrustedArgs, account: &str) -> sr
 			_pair.into()
 		},
 	}
+}
+
+pub fn play_turn(cli: &Cli, trusted_args: &TrustedArgs, arg_player: &str, turn: SgxGameTurn) {
+	let player = get_pair_from_str(trusted_args, arg_player);
+	println!("player ss58 is {}", player.public().to_ss58check());
+
+	println!("send trusted call play-turn from {} with turn {:?}", player.public(), turn);
+	let (mrenclave, shard) = get_identifiers(trusted_args);
+	let nonce = get_layer_two_nonce!(player, cli, trusted_args);
+
+	let top: TrustedOperation = TrustedCall::board_play_turn(player.public().into(), turn)
+		.sign(&KeyPair::Sr25519(player), nonce, &mrenclave, &shard)
+		.into_trusted_operation(trusted_args.direct);
+	let _ = perform_trusted_operation(cli, trusted_args, &top);
 }

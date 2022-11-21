@@ -19,10 +19,13 @@ use crate::{block_importer::BlockImporter, test::fixtures::validateer, ShardIden
 use codec::Encode;
 use core::assert_matches::assert_matches;
 use itc_parentchain_block_import_dispatcher::trigger_parentchain_block_import_mock::TriggerParentchainBlockImportMock;
+use itc_parentchain_light_client::mocks::validator_access_mock::ValidatorAccessMock;
 use itc_parentchain_test::{
 	parentchain_block_builder::ParentchainBlockBuilder,
 	parentchain_header_builder::ParentchainHeaderBuilder,
 };
+use itp_extrinsics_factory::mock::ExtrinsicsFactoryMock;
+use itp_node_api::metadata::{metadata_mocks::NodeMetadataMock, provider::NodeMetadataRepository};
 use itp_sgx_crypto::{aes::Aes, mocks::KeyRepositoryMock, StateCrypto};
 use itp_sgx_externalities::{SgxExternalities, SgxExternalitiesDiffType};
 use itp_stf_state_handler::handle_state::HandleState;
@@ -61,6 +64,9 @@ type TestBlockImporter = BlockImporter<
 	TestStateKeyRepo,
 	TestTopPoolAuthor,
 	TestParentchainBlockImportTrigger,
+	ExtrinsicsFactoryMock,
+	ValidatorAccessMock,
+	NodeMetadataRepository<NodeMetadataMock>,
 >;
 
 fn state_key() -> Aes {
@@ -86,6 +92,7 @@ fn test_fixtures(
 		Some(vec![validateer(Keyring::Alice.public().into())]),
 	));
 	let state_key_repository = Arc::new(TestStateKeyRepo::new(state_key()));
+	let node_metadata_repo = Arc::new(NodeMetadataRepository::new(NodeMetadataMock::new()));
 
 	let block_importer = TestBlockImporter::new(
 		state_handler.clone(),
@@ -93,6 +100,9 @@ fn test_fixtures(
 		top_pool_author.clone(),
 		parentchain_block_import_trigger,
 		ocall_api,
+		Arc::new(ExtrinsicsFactoryMock::default()),
+		Arc::new(ValidatorAccessMock::default()),
+		node_metadata_repo,
 	);
 
 	(block_importer, state_handler, top_pool_author)

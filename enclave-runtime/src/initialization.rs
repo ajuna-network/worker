@@ -24,8 +24,8 @@ use crate::{
 		EnclaveSidechainBlockImportQueueWorker, EnclaveSidechainBlockImporter,
 		EnclaveSidechainBlockSyncer, EnclaveStateFileIo, EnclaveStateHandler,
 		EnclaveStateKeyRepository, EnclaveStateObserver, EnclaveStateSnapshotRepository,
-		EnclaveStfEnclaveSigner, EnclaveStfExecutor, EnclaveTopPool, EnclaveTopPoolAuthor,
-		EnclaveValidatorAccessor, GLOBAL_EXTRINSICS_FACTORY_COMPONENT,
+		EnclaveStfEnclaveSigner, EnclaveStfExecutor, EnclaveStfGameExecutor, EnclaveTopPool,
+		EnclaveTopPoolAuthor, EnclaveValidatorAccessor, GLOBAL_EXTRINSICS_FACTORY_COMPONENT,
 		GLOBAL_IMMEDIATE_PARENTCHAIN_IMPORT_DISPATCHER_COMPONENT,
 		GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT, GLOBAL_OCALL_API_COMPONENT,
 		GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT, GLOBAL_RPC_WS_HANDLER_COMPONENT,
@@ -33,8 +33,8 @@ use crate::{
 		GLOBAL_SIDECHAIN_BLOCK_SYNCER_COMPONENT, GLOBAL_SIDECHAIN_IMPORT_QUEUE_COMPONENT,
 		GLOBAL_SIDECHAIN_IMPORT_QUEUE_WORKER_COMPONENT, GLOBAL_STATE_HANDLER_COMPONENT,
 		GLOBAL_STATE_KEY_REPOSITORY_COMPONENT, GLOBAL_STATE_OBSERVER_COMPONENT,
-		GLOBAL_STF_EXECUTOR_COMPONENT, GLOBAL_TOP_POOL_AUTHOR_COMPONENT,
-		GLOBAL_TRIGGERED_PARENTCHAIN_IMPORT_DISPATCHER_COMPONENT,
+		GLOBAL_STF_EXECUTOR_COMPONENT, GLOBAL_STF_GAME_EXECUTOR_COMPONENT,
+		GLOBAL_TOP_POOL_AUTHOR_COMPONENT, GLOBAL_TRIGGERED_PARENTCHAIN_IMPORT_DISPATCHER_COMPONENT,
 		GLOBAL_WEB_SOCKET_SERVER_COMPONENT,
 	},
 	ocall::OcallApi,
@@ -149,6 +149,10 @@ pub(crate) fn init_enclave(mu_ra_url: String, untrusted_worker_url: String) -> E
 	));
 	GLOBAL_STF_EXECUTOR_COMPONENT.initialize(stf_executor);
 
+	let stf_game_executor =
+		Arc::new(EnclaveStfGameExecutor::new(state_handler.clone(), ocall_api.clone()));
+	GLOBAL_STF_GAME_EXECUTOR_COMPONENT.initialize(stf_game_executor);
+
 	// For debug purposes, list shards. no problem to panic if fails.
 	let shards = state_handler.list_shards().unwrap();
 	debug!("found the following {} shards on disk:", shards.len());
@@ -220,12 +224,19 @@ pub(crate) fn init_enclave_sidechain_components() -> EnclaveResult<()> {
 
 	let signer = Ed25519Seal::unseal_from_static_file()?;
 
+	let validator_access = GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.get()?;
+	let extrinsics_factory = GLOBAL_EXTRINSICS_FACTORY_COMPONENT.get()?;
+	let node_metadata_repo = GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT.get()?;
+
 	let sidechain_block_importer = Arc::new(EnclaveSidechainBlockImporter::new(
 		state_handler,
 		state_key_repository.clone(),
 		top_pool_author,
 		parentchain_block_import_dispatcher,
 		ocall_api.clone(),
+		extrinsics_factory,
+		validator_access,
+		node_metadata_repo,
 	));
 
 	let sidechain_block_import_queue = GLOBAL_SIDECHAIN_IMPORT_QUEUE_COMPONENT.get()?;
@@ -303,23 +314,28 @@ fn initialize_parentchain_import_dispatcher<WorkerModeProvider: ProvideWorkerMod
 	let validator_access = GLOBAL_PARENTCHAIN_BLOCK_VALIDATOR_ACCESS_COMPONENT.get()?;
 	let extrinsics_factory = GLOBAL_EXTRINSICS_FACTORY_COMPONENT.get()?;
 	let node_metadata_repository = GLOBAL_NODE_METADATA_REPOSITORY_COMPONENT.get()?;
+	let stf_game_executor = GLOBAL_STF_GAME_EXECUTOR_COMPONENT.get()?;
 
 	let stf_enclave_signer = Arc::new(EnclaveStfEnclaveSigner::new(
 		state_observer,
-		ocall_api,
+		ocall_api.clone(),
 		shielding_key_repository.clone(),
 	));
 	let indirect_calls_executor = Arc::new(IndirectCallsExecutor::new(
 		shielding_key_repository,
 		stf_enclave_signer,
 		top_pool_author.clone(),
-		node_metadata_repository,
+		node_metadata_repository.clone(),
+		stf_game_executor,
 	));
 	let parentchain_block_importer = ParentchainBlockImporter::new(
 		validator_access.clone(),
 		stf_executor.clone(),
 		extrinsics_factory.clone(),
 		indirect_calls_executor,
+		state_handler.clone(),
+		ocall_api,
+		node_metadata_repository,
 	);
 
 	info!(
@@ -367,8 +383,8 @@ pub(crate) fn init_direct_invocation_server(server_addr: String) -> EnclaveResul
 	let rpc_handler = GLOBAL_RPC_WS_HANDLER_COMPONENT.get()?;
 	let signing = Ed25519Seal::unseal_from_static_file()?;
 
-	let cert =
-		ed25519_self_signed_certificate(signing, "Enclave").map_err(|e| Error::Other(e.into()))?;
+	let cert = ed25519_self_signed_certificate(signing, "ajuna-02.cluster.securitee.tech")
+		.map_err(|e| Error::Other(e.into()))?;
 
 	//write certificate and private key pem file
 	let pem_serialized = cert.serialize_pem().map_err(|e| Error::Other(e.into()))?;

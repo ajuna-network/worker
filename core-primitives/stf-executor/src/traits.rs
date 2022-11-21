@@ -21,9 +21,10 @@ use ita_stf::{
 	AccountId, ParentchainHeader, ShardIdentifier, TrustedCall, TrustedCallSigned,
 	TrustedGetterSigned, TrustedOperation,
 };
+use itp_node_api::metadata::pallet_ajuna_runner::GameId;
 use itp_sgx_externalities::SgxExternalitiesTrait;
 use itp_types::H256;
-use sp_runtime::traits::Header as HeaderTrait;
+use sp_runtime::traits::{Block as ParentchainBlockTrait, Header as HeaderTrait};
 use std::{fmt::Debug, result::Result as StdResult, time::Duration, vec::Vec};
 
 /// Post-processing steps after executing STF
@@ -102,4 +103,18 @@ pub trait StfExecuteGenericUpdate {
 /// Cannot be implemented for a generic header currently, because the runtime expects a ParentchainHeader.
 pub trait StfUpdateState {
 	fn update_states(&self, header: &ParentchainHeader) -> Result<()>;
+}
+
+/// Execute trusted calls for Ajuna games.
+pub trait StfExecuteGames {
+	fn new_game<ParentchainBlock>(
+		&self,
+		game_id: GameId,
+		shard: &ShardIdentifier,
+		block: &ParentchainBlock,
+	) -> Result<GameId>
+	where
+		ParentchainBlock: ParentchainBlockTrait<Hash = H256>;
+
+	fn finish_game(&self, game_id: GameId, shard: &ShardIdentifier) -> Result<GameId>;
 }

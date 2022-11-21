@@ -19,7 +19,10 @@ sp-runtime = { default-features = false, git = "https://github.com/paritytech/su
 # local deps
 ita-stf = { path = "../../../app-libs/stf", default-features = false }
 itc-parentchain-block-import-dispatcher = { path = "../../../core/parentchain/block-import-dispatcher", default-features = false }
+itc-parentchain-light-client = { path = "../../../core/parentchain/light-client", default-features = false }
 itp-enclave-metrics = { path = "../../../core-primitives/enclave-metrics", default-features = false }
+itp-extrinsics-factory = { path = "../../../core-primitives/extrinsics-factory", default-features = false }
+itp-node-api = { path = "../../../core-primitives/node-api", default-features = false }
 itp-ocall-api = { path = "../../../core-primitives/ocall-api", default-features = false }
 itp-settings = { path = "../../../core-primitives/settings" }
 itp-sgx-crypto = { path = "../../../core-primitives/sgx/crypto", default-features = false }
@@ -38,11 +41,15 @@ its-primitives = { path = "../../primitives", default-features = false }
 its-state = { path = "../../state", default-features = false }
 its-validateer-fetch = { path = "../../validateer-fetch", default-features = false }
 
+pallet-ajuna-board = { default-features = false, git = "https://github.com/ajuna-network/Ajuna", branch = "release/bengal" }
+
 [dev-dependencies]
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
 env_logger = "0.9.0"
 itc-parentchain-block-import-dispatcher = { path = "../../../core/parentchain/block-import-dispatcher", features = ["mocks"] }
 itc-parentchain-test = { path = "../../../core/parentchain/test" }
+itc-parentchain-light-client = { path = "../../../core/parentchain/light-client", features = ["mocks"] }
+itp-extrinsics-factory = { path = "../../../core-primitives/extrinsics-factory", features = ["mocks"] }
 itp-storage = { path = "../../../core-primitives/storage" }
 itp-test = { path = "../../../core-primitives/test" }
 its-test = { path = "../../../sidechain/test" }
@@ -54,6 +61,7 @@ std = [
    "ita-stf/std",
    "itc-parentchain-block-import-dispatcher/std",
    "itp-enclave-metrics/std",
+   "itp-node-api/std",
    "itp-ocall-api/std",
    "itp-sgx-crypto/std",
    "itp-sgx-externalities/std",
@@ -70,12 +78,14 @@ std = [
    "its-validateer-fetch/std",
    "its-primitives/std",
    "log/std",
+   "pallet-ajuna-board/std",
 ]
 sgx = [
    "sgx_tstd",
    "ita-stf/sgx",
    "itc-parentchain-block-import-dispatcher/sgx",
    "itp-enclave-metrics/sgx",
+   "itp-node-api/sgx",
    "itp-sgx-crypto/sgx",
    "itp-sgx-externalities/sgx",
    "itp-stf-executor/sgx",

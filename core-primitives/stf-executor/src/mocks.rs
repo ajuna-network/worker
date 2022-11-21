@@ -27,6 +27,7 @@ use ita_stf::{
 	AccountId, KeyPair, ShardIdentifier, TrustedCall, TrustedCallSigned, TrustedGetterSigned,
 	TrustedOperation,
 };
+use itp_node_api::metadata::pallet_ajuna_runner::GameId;
 use itp_sgx_externalities::SgxExternalitiesTrait;
 use itp_types::H256;
 use sp_core::Pair;
@@ -105,6 +106,27 @@ impl StfEnclaveSigning for StfEnclaveSignerMock {
 		shard: &ShardIdentifier,
 	) -> Result<TrustedCallSigned> {
 		Ok(trusted_call.sign(&KeyPair::Ed25519(self.signer.clone()), 1, &self.mr_enclave, shard))
+	}
+}
+
+#[derive(Default)]
+pub struct StfGameExecutorMock;
+
+impl crate::traits::StfExecuteGames for StfGameExecutorMock {
+	fn new_game<ParentchainBlock>(
+		&self,
+		_game_id: GameId,
+		_shard: &ShardIdentifier,
+		_block: &ParentchainBlock,
+	) -> Result<GameId>
+	where
+		ParentchainBlock: sp_runtime::traits::Block<Hash = itp_types::H256>,
+	{
+		Ok(GameId::default())
+	}
+
+	fn finish_game(&self, _game_id: GameId, _shard: &ShardIdentifier) -> Result<GameId> {
+		Ok(GameId::default())
 	}
 }
 

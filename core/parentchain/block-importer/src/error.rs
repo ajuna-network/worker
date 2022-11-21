@@ -19,7 +19,7 @@
 use crate::sgx_reexport_prelude::*;
 
 use sgx_types::sgx_status_t;
-use std::{boxed::Box, format};
+use std::{boxed::Box, format, string::String};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -34,6 +34,14 @@ pub enum Error {
 	StfExecution(#[from] itp_stf_executor::error::Error),
 	#[error("Light-client error: {0}")]
 	LightClient(#[from] itc_parentchain_light_client::error::Error),
+	#[error("Storage verified error: {0}")]
+	StorageVerified(String),
+	#[error("State handling error: {0}")]
+	StateHandler(#[from] itp_stf_state_handler::error::Error),
+	#[error("Node Metadata error: {0:?}")]
+	NodeMetadata(itp_node_api::metadata::Error),
+	#[error("Node API error: {0:?}")]
+	NodeMetadataProvider(#[from] itp_node_api::metadata::provider::Error),
 	#[error(transparent)]
 	Other(#[from] Box<dyn std::error::Error + Sync + Send + 'static>),
 }
@@ -47,5 +55,11 @@ impl From<sgx_status_t> for Error {
 impl From<codec::Error> for Error {
 	fn from(e: codec::Error) -> Self {
 		Self::Other(format!("{:?}", e).into())
+	}
+}
+
+impl From<itp_node_api::metadata::Error> for Error {
+	fn from(e: itp_node_api::metadata::Error) -> Self {
+		Self::NodeMetadata(e)
 	}
 }
